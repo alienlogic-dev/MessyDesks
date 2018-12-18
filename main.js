@@ -45,8 +45,11 @@ class Component {
 			this.svg
 				.circle(8)
 				.move(-4, (inStepSize * i) + (inStepSize / 2) - 4)
+				.addClass('pin')
 				.fill('#ffcc00')
-				.stroke({ color: '#000', width: 1 });
+				.stroke({ color: '#000', width: 1 })
+				.data('pin', item)
+				.on('click', this.pinClickedEvent, this);
 			this.svg
 				.text(item.name)
 				.font({
@@ -64,7 +67,10 @@ class Component {
 				.circle(8)
 				.move(wpx - 4, (outStepSize * i) + (outStepSize / 2) - 4)
 				.fill('#fff')
-				.stroke({ color: '#000', width: 1 });
+				.addClass('pin')
+				.stroke({ color: '#000', width: 1 })
+				.data('pin', item)
+				.on('click', this.pinClickedEvent, this);
 			this.svg
 				.text(item.name)
 				.font({
@@ -82,6 +88,8 @@ class Component {
   }
 
   drawSymbol(svg) { }
+
+  pinClickedEvent(e) { if (this.pinClicked) this.pinClicked(e.srcElement) }
 }
 
 class NOR_Component extends Component {
@@ -110,8 +118,41 @@ for (x = 0; x < 128; x++)
 for (y = 0; y < 128; y++)
 	draw.line(0, y*8, 1024, y*8).stroke({ opacity: 0.1, width: 1 });
 
-var test = new NOR_Component();
-var test2 = new NOR_Component(5);
+var links = new SVG.G();
+var markers = new SVG.G();
+var nodes = new SVG.G();
 
+var test = new NOR_Component();
+test.pinClicked = pinClicked;
 draw.add(test.svg);
+
+
+var test2 = new NOR_Component(5);
+test2.pinClicked = pinClicked;
 draw.add(test2.svg);
+
+draw.add(links);
+draw.add(markers);
+draw.add(nodes);
+
+var a = {};
+
+var pinClicked = null;
+function pinClicked(src) {
+	if (pinClicked == null) {
+		pinClicked = src;
+	} else {
+		var id_a = $(pinClicked).attr('id');
+		var id_b = $(src).attr('id');
+
+		var con = SVG.get(id_a).connectable({
+		  container: links,
+		  markers: markers
+		}, SVG.get(id_b));
+
+		SVG.get(id_a).parent().on('dragmove', con.update);
+		SVG.get(id_b).parent().on('dragmove', con.update);
+
+		pinClicked = null;
+	}
+}
