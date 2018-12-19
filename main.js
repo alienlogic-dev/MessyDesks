@@ -122,6 +122,18 @@ class Component {
   }
 }
 
+class INPUT extends Component {
+  constructor() {
+    super(0, 1);
+  }
+}
+
+class OUTPUT extends Component {
+  constructor() {
+    super(1, 0);
+  }
+}
+
 class NOR_Component extends Component {
   constructor(inputsCount = 2) {
   	if (inputsCount < 2) inputsCount = 2;
@@ -231,9 +243,15 @@ function compile() {
 		var instanceName = '_c' + idx;
 		var componentItem = components[idx];
 
-		componentItem.instName = instanceName;
+		if (componentItem instanceof INPUT) {
+			instanceName = 'in' + idx;
+		} else if (componentItem instanceof OUTPUT) {
+			instanceName = 'out' + idx;
+		} else {
+			compiledCode.push('var ' + instanceName + ' = new ' + componentItem.constructor.name + '();');
+		}
 
-		compiledCode.push('var ' + instanceName + ' = new ' + componentItem.constructor.name + '();');
+		componentItem.instName = instanceName;
 	}
 
 	compiledCode.push('');
@@ -244,11 +262,102 @@ function compile() {
 		var pinI = wireItem.I;
 		var pinO = wireItem.O;
 
-		compiledCode.push( pinI.component.instName + '.setIn(' + pinI.ID + ',' + pinO.component.instName + '.getOut(' + pinO.ID + '));' );
+		var outCode = pinO.component.instName + '.getOut(' + pinO.ID + ')';
+
+		if (pinO.component instanceof INPUT)
+			outCode = pinO.component.instName;
+
+		var inCode = pinI.component.instName + '.setIn(' + pinI.ID + ', ' + outCode + ')';
+
+		if (pinI.component instanceof OUTPUT)
+			inCode = pinI.component.instName + ' = ' + outCode;
+
+		compiledCode.push( inCode + ';' );
 	}
 
 	console.log(compiledCode.join('\n'));
 }
+
+function compileComponent(componentName) {
+	var compiledCode = [];
+
+	compiledCode.push('class ' + componentName + '_Component extends Component {');
+
+	// Create constructor
+	compiledCode.push('\tconstructor() {');
+
+	var inputPinCount = 0;
+	var outputPinCount = 0;
+
+	for (var idx = 0; idx < components.length; idx++) {
+		var componentItem = components[idx];
+
+		if (componentItem instanceof INPUT) {
+			inputPinCount++
+		} else if (componentItem instanceof OUTPUT) {
+			outputPinCount++;
+		}
+	}
+	compiledCode.push('\t\tsuper(' + inputPinCount + ', ' + outputPinCount + ');');
+
+	compiledCode.push('\t}');
+
+	// Create instances
+	compiledCode.push('\tinit() {');
+
+	var inputPinIndex = 0;
+	var outputPinIndex = 0;
+
+	for (var idx = 0; idx < components.length; idx++) {
+		var instanceName = '_c' + idx;
+		var componentItem = components[idx];
+
+		if (componentItem instanceof INPUT) {
+			instanceName = 'this.inputs[' + inputPinIndex++ + '].value';
+		} else if (componentItem instanceof OUTPUT) {
+			instanceName = 'this.outputs[' + outputPinIndex++ + '].value';
+		} else {
+			compiledCode.push('\t\tthis.' + instanceName + ' = new ' + componentItem.constructor.name + '();');
+		}
+
+		componentItem.instName = instanceName;
+	}
+
+	compiledCode.push('\t}');
+
+	// Connect wires
+	compiledCode.push('\texecute() {');
+
+	for (var idx = 0; idx < wires.length; idx++) {
+		var wireItem = wires[idx];
+		var pinI = wireItem.I;
+		var pinO = wireItem.O;
+
+		var outCode = 'this.' + pinO.component.instName + '.getOut(' + pinO.ID + ')';
+
+		if (pinO.component instanceof INPUT)
+			outCode = pinO.component.instName;
+
+		var inCode = 'this.' + pinI.component.instName + '.setIn(' + pinI.ID + ', ' + outCode + ')';
+
+		if (pinI.component instanceof OUTPUT)
+			inCode = pinI.component.instName + ' = ' + outCode;
+
+		compiledCode.push( '\t\t' + inCode + ';' );
+	}
+
+	compiledCode.push('\t}');
+
+	compiledCode.push('}');
+
+	// Eval new component
+	compiledCode.push('addComponent(new ' + componentName + '_Component());');
+	var compiledCodeString = compiledCode.join('\n');
+	eval(compiledCodeString);
+
+	console.log(compiledCodeString);
+}
+
 
 // Playground
 addComponent(new NOR_Component());
