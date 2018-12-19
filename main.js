@@ -104,7 +104,14 @@ class Component {
 
   drawSymbol(svg) {}
 
-  pinClickedEvent(e) { if (this.component.pinClicked) this.component.pinClicked(this) }
+  pinClickedEvent(e) {
+  	if (e.shiftKey) {
+  		this.value = this.value ? 0 : 1;
+  		this.svg.fill(this.value ? '#0f0' : '#f00');
+  	}
+  	else
+  		if (this.component.pinClicked) this.component.pinClicked(this);
+  }
 
   /* Runtime */
   execute() {}
@@ -114,6 +121,7 @@ class Component {
   		this.execute();
   		this.exeIdx++;
   	}
+  	this.outputs[index].svg.fill(this.outputs[index].value ? '#0f0' : '#f00');
   	return this.outputs[index].value;
   }
 
@@ -150,9 +158,9 @@ class NOR_Component extends Component {
   }
 
   execute() {
-  	var res = (this.inputs[0].value ? 1 : 0);
+  	var res = (this.inputs[0].value ? true : false);
   	for (var idx = 1; idx < this.inputs.length; idx++)
-  		res = res || (this.inputs[idx].value ? 1 : 0);
+  		res = res || (this.inputs[idx].value ? true : false);
   	this.outputs[0].value = !res; 
   }
 }
@@ -351,7 +359,7 @@ function compileComponent(componentName) {
 	compiledCode.push('}');
 
 	// Eval new component
-	compiledCode.push('addComponent(new ' + componentName + '_Component());');
+	compiledCode.push('components=[];wires=[];addComponent(new ' + componentName + '_Component());');
 	var compiledCodeString = compiledCode.join('\n');
 	eval(compiledCodeString);
 
@@ -370,3 +378,17 @@ cycIdx++;
 draw.add(links);
 draw.add(markers);
 draw.add(nodes);
+
+
+setInterval(function() {
+	for (var idx = 0; idx < components.length; idx++) {
+		var componentItem = components[idx];
+
+		if (componentItem instanceof INPUT) {
+		} else if (componentItem instanceof OUTPUT) {
+		} else {
+			componentItem.getOut(0);
+		}
+	}
+	cycIdx++;
+}, 500);
