@@ -1,10 +1,15 @@
 
 class Pin {
-	constructor(name, isInput = true) {
+	constructor(component, ID, name, isInput = true) {
+		this.ID = ID;
+		this.component = component;
+
 		this.name = name;
 		this.isInput = isInput;
 		this.width = Math.round(name.length / 3);
 		this.value = null;
+
+		this.svg = null;
 	}
 }
 
@@ -19,11 +24,11 @@ class Component {
 
 		this.inputs = [];
 		for (var i = 0; i < inputsCount; i++)
-			this.inputs.push(new Pin('', true));
+			this.inputs.push(new Pin(this, i, '', true));
 
 		this.outputs = [];
 		for (var i = 0; i < outputsCount; i++)
-			this.outputs.push(new Pin('', false));
+			this.outputs.push(new Pin(this, i, '', false));
 
 		this.init();
 
@@ -51,14 +56,14 @@ class Component {
 		var inStepSize = hpx / this.inputs.length;
 		for (var i = this.inputs.length - 1; i >= 0; i--) {
 			var item = this.inputs[i];
-			this.svg
+			item.svg = this.svg
 				.circle(8)
 				.move(-4, (inStepSize * i) + (inStepSize / 2) - 4)
 				.addClass('pin')
 				.fill('#ffcc00')
 				.stroke({ color: '#000', width: 1 })
-				.data('pin', item)
-				.on('click', this.pinClickedEvent, this);
+				.data('pin_id', item.ID)
+				.on('click', this.pinClickedEvent, item);
 			this.svg
 				.text(item.name)
 				.font({
@@ -72,14 +77,14 @@ class Component {
 		var outStepSize = hpx / this.outputs.length;
 		for (var i = this.outputs.length - 1; i >= 0; i--) {
 			var item = this.outputs[i];
-			this.svg
+			item.svg = this.svg
 				.circle(8)
 				.move(wpx - 4, (outStepSize * i) + (outStepSize / 2) - 4)
 				.fill('#fff')
 				.addClass('pin')
 				.stroke({ color: '#000', width: 1 })
-				.data('pin', item)
-				.on('click', this.pinClickedEvent, this);
+				.data('pin_id', item.ID)
+				.on('click', this.pinClickedEvent, item);
 			this.svg
 				.text(item.name)
 				.font({
@@ -98,7 +103,7 @@ class Component {
 
   drawSymbol(svg) {}
 
-  pinClickedEvent(e) { if (this.pinClicked) this.pinClicked(e.srcElement) }
+  pinClickedEvent(e) { if (this.component.pinClicked) this.component.pinClicked(this) }
 
   /* Runtime */
   execute() {}
@@ -181,69 +186,43 @@ var links = new SVG.G();
 var markers = new SVG.G();
 var nodes = new SVG.G();
 
+// Testboard
+var components = [];
+function addComponent(inst) {
+	inst.pinClicked = pinClicked;
+	draw.add(inst.svg);
+	components.push(inst);
+}
+
+var wires = [];
+var pinSelected = null;
+function pinClicked(pin) {
+	if (pinSelected == null) {
+		pinSelected = pin;
+	} else {
+		wires.push({ A: pinSelected, B: pin });
+
+		// TEMP //
+		var con = pinSelected.svg.connectable({
+		  container: links,
+		  markers: markers
+		}, pin.svg);
+
+		pinSelected.svg.parent().on('dragmove', con.update);
+		pin.svg.parent().on('dragmove', con.update);
+
+		pinSelected = null;
+	}
+}
+
+// Playground
+addComponent(new NOR_Component());
+addComponent(new NOR_Component());
 
 cycIdx++;
 
 
-var test = new SR_Component();
-test.pinClicked = pinClicked;
-
-
-test.setIn(0, false);
-test.setIn(1, false);
-console.log(cycIdx++, test.getOut(0));
-
-
-test.setIn(0, true);
-test.setIn(1, false);
-console.log(cycIdx++, test.getOut(0));
-
-
-test.setIn(0, false);
-test.setIn(1, false);
-console.log(cycIdx++, test.getOut(0));
-
-
-test.setIn(0, false);
-test.setIn(1, true);
-console.log(cycIdx++, test.getOut(0));
-
-
-test.setIn(0, false);
-test.setIn(1, false);
-console.log(cycIdx++, test.getOut(0));
-
-
-
-draw.add(test.svg);
-
-
-var test2 = new NOR_Component(5);
-test2.pinClicked = pinClicked;
-draw.add(test2.svg);
-
+// Add wires to top level
 draw.add(links);
 draw.add(markers);
 draw.add(nodes);
-
-var a = {};
-
-var pinClicked = null;
-function pinClicked(src) {
-	if (pinClicked == null) {
-		pinClicked = src;
-	} else {
-		var id_a = $(pinClicked).attr('id');
-		var id_b = $(src).attr('id');
-
-		var con = SVG.get(id_a).connectable({
-		  container: links,
-		  markers: markers
-		}, SVG.get(id_b));
-
-		SVG.get(id_a).parent().on('dragmove', con.update);
-		SVG.get(id_b).parent().on('dragmove', con.update);
-
-		pinClicked = null;
-	}
-}
