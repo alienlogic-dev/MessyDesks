@@ -4,11 +4,16 @@ class Pin {
 		this.name = name;
 		this.isInput = isInput;
 		this.width = Math.round(name.length / 3);
+		this.value = null;
 	}
 }
 
+var cycIdx = 0;
+
 class Component {
 	constructor(inputsCount, outputsCount) {
+		this.exeIdx = 0;
+
 		this.minWidth = 5;
 		this.minHeight = 2;
 
@@ -20,8 +25,12 @@ class Component {
 		for (var i = 0; i < outputsCount; i++)
 			this.outputs.push(new Pin('', false));
 
+		this.init();
+
 		this.createSVG();
   }
+
+  init() {}
 
   createSVG() {
   	var w = this.minWidth;
@@ -87,9 +96,24 @@ class Component {
 		this.svg.add(symbolSVG);
   }
 
-  drawSymbol(svg) { }
+  drawSymbol(svg) {}
 
   pinClickedEvent(e) { if (this.pinClicked) this.pinClicked(e.srcElement) }
+
+  /* Runtime */
+  execute() {}
+
+  getOut(index) {
+  	if (cycIdx > this.exeIdx) {
+  		this.execute();
+  		this.exeIdx++;
+  	}
+  	return this.outputs[index].value;
+  }
+
+  setIn(index, value) {
+  	this.inputs[index].value = value;
+  }
 }
 
 class NOR_Component extends Component {
@@ -106,8 +130,43 @@ class NOR_Component extends Component {
 			.fill('#cccccc')
 			.stroke({ color: '#000', width: 1 });
   }
+
+  execute() {
+  	var res = (this.inputs[0].value ? 1 : 0);
+  	for (var idx = 1; idx < this.inputs.length; idx++)
+  		res = res || (this.inputs[idx].value ? 1 : 0);
+  	this.outputs[0].value = !res; 
+  }
 }
 
+
+class SR_Component extends Component {
+	constructor() {
+    super(2, 1);
+
+    this.inputs[0].name = 'S';
+    this.inputs[1].name = 'R';
+
+    this.outputs[0].name = 'Q';
+
+		this.createSVG();
+  }
+
+  init() {
+  	this._c0 = new NOR_Component();
+  	this._c1 = new NOR_Component();
+  }
+
+  execute() {
+		this._c0.setIn(0, this.inputs[1].value);
+		this._c0.setIn(1, this._c1.getOut(0));
+		
+		this._c1.setIn(0, this._c0.getOut(0));
+		this._c1.setIn(1, this.inputs[0].value);
+
+		this.outputs[0].value = this._c0.getOut(0);
+  }
+}
 
 // initialize SVG.js
 var draw = SVG('drawing').size(1024, 1024);
@@ -122,8 +181,40 @@ var links = new SVG.G();
 var markers = new SVG.G();
 var nodes = new SVG.G();
 
-var test = new NOR_Component();
+
+cycIdx++;
+
+
+var test = new SR_Component();
 test.pinClicked = pinClicked;
+
+
+test.setIn(0, false);
+test.setIn(1, false);
+console.log(cycIdx++, test.getOut(0));
+
+
+test.setIn(0, true);
+test.setIn(1, false);
+console.log(cycIdx++, test.getOut(0));
+
+
+test.setIn(0, false);
+test.setIn(1, false);
+console.log(cycIdx++, test.getOut(0));
+
+
+test.setIn(0, false);
+test.setIn(1, true);
+console.log(cycIdx++, test.getOut(0));
+
+
+test.setIn(0, false);
+test.setIn(1, false);
+console.log(cycIdx++, test.getOut(0));
+
+
+
 draw.add(test.svg);
 
 
