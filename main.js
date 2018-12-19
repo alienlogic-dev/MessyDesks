@@ -18,6 +18,7 @@ var cycIdx = 0;
 class Component {
 	constructor(inputsCount, outputsCount) {
 		this.exeIdx = 0;
+		this.instName = '';
 
 		this.minWidth = 5;
 		this.minHeight = 2;
@@ -200,7 +201,13 @@ function pinClicked(pin) {
 	if (pinSelected == null) {
 		pinSelected = pin;
 	} else {
-		wires.push({ A: pinSelected, B: pin });
+		if (pin.isInput == pinSelected.isInput) {
+			alert('Connection allowed only for input and output');
+			pinSelected = null;
+			return;
+		}
+
+		wires.push({ I: (pin.isInput) ? pin : pinSelected, O: (pin.isInput) ? pinSelected : pin });
 
 		// TEMP //
 		var con = pinSelected.svg.connectable({
@@ -213,6 +220,34 @@ function pinClicked(pin) {
 
 		pinSelected = null;
 	}
+}
+
+// Compiler
+function compile() {
+	var compiledCode = [];
+
+	// Create instances
+	for (var idx = 0; idx < components.length; idx++) {
+		var instanceName = '_c' + idx;
+		var componentItem = components[idx];
+
+		componentItem.instName = instanceName;
+
+		compiledCode.push('var ' + instanceName + ' = new ' + componentItem.constructor.name + '();');
+	}
+
+	compiledCode.push('');
+
+	// Connect wires
+	for (var idx = 0; idx < wires.length; idx++) {
+		var wireItem = wires[idx];
+		var pinI = wireItem.I;
+		var pinO = wireItem.O;
+
+		compiledCode.push( pinI.component.instName + '.setIn(' + pinI.ID + ',' + pinO.component.instName + '.getOut(' + pinO.ID + '));' );
+	}
+
+	console.log(compiledCode.join('\n'));
 }
 
 // Playground
