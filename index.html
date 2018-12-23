@@ -14,10 +14,22 @@
       .pin:hover {
         stroke: red;
       }
+
+      .toolbox {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+      }
     </style>
   </head>
   <body>
 
+
+    <div class="toolbox p-2">
+      <button class="btn btn-outline-dark" onclick="addComponent(new INPUT())">Input</button>
+      <button class="btn btn-outline-dark" onclick="addComponent(new OUTPUT())">Output</button>
+    </div>
 
     <div id="drawing"></div>
 

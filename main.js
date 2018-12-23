@@ -211,6 +211,7 @@ var nodes = new SVG.G();
 var components = [];
 function addComponent(inst) {
 	inst.pinClicked = pinClicked;
+	inst.svg.move(100,100);
 	draw.add(inst.svg);
 	components.push(inst);
 }
@@ -289,6 +290,8 @@ function compile() {
 function compileComponent(componentName) {
 	var compiledCode = [];
 
+	compiledCode.push('' + componentName + '_Component = (');
+
 	compiledCode.push('class ' + componentName + '_Component extends Component {');
 
 	// Create constructor
@@ -356,7 +359,7 @@ function compileComponent(componentName) {
 
 	compiledCode.push('\t}');
 
-	compiledCode.push('}');
+	compiledCode.push('});');
 
 	// Eval new component
 	compiledCode.push('components=[];wires=[];addComponent(new ' + componentName + '_Component());');
