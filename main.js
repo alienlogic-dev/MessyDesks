@@ -197,19 +197,17 @@ class SR_Component extends Component {
 // initialize SVG.js
 var draw = SVG('drawing').size(1024, 1024);
 
-for (x = 0; x < 128; x++)
-	draw.line(x*8, 0, x*8, 1024).stroke({ opacity: 0.1, width: 1 });
-
-for (y = 0; y < 128; y++)
-	draw.line(0, y*8, 1024, y*8).stroke({ opacity: 0.1, width: 1 });
-
 var links = new SVG.G();
 var markers = new SVG.G();
 var nodes = new SVG.G();
 
-// Testboard
+// Wireboard
+initWireboard();
+
 var components = [];
-function addComponent(inst) {
+function addComponent(toolboxIdx) {
+	var inst = new toolbox[toolboxIdx]();
+	inst.id = 'c' + components.length;
 	inst.pinClicked = pinClicked;
 	inst.svg.move(100,100);
 	draw.add(inst.svg);
@@ -287,10 +285,8 @@ function compile() {
 	console.log(compiledCode.join('\n'));
 }
 
-function compileComponent(componentName) {
+function compileWireboardAsComponent(componentName) {
 	var compiledCode = [];
-
-	compiledCode.push('' + componentName + '_Component = (');
 
 	compiledCode.push('class ' + componentName + '_Component extends Component {');
 
@@ -320,8 +316,8 @@ function compileComponent(componentName) {
 	var outputPinIndex = 0;
 
 	for (var idx = 0; idx < components.length; idx++) {
-		var instanceName = '_c' + idx;
 		var componentItem = components[idx];
+		var instanceName = '_' + componentItem.id;
 
 		if (componentItem instanceof INPUT) {
 			instanceName = 'this.inputs[' + inputPinIndex++ + '].value';
@@ -359,30 +355,110 @@ function compileComponent(componentName) {
 
 	compiledCode.push('\t}');
 
-	compiledCode.push('});');
+	compiledCode.push('}');
 
-	// Eval new component
-	compiledCode.push('components=[];wires=[];addComponent(new ' + componentName + '_Component());');
-	var compiledCodeString = compiledCode.join('\n');
-	eval(compiledCodeString);
-
-	console.log(compiledCodeString);
+	return compiledCode.join('\n');
 }
 
+function createComponentFromWireboard(componentName) {
+	var compiledCode = [];
+
+	var componentCode = compileWireboardAsComponent(componentName);
+
+	compiledCode.push(componentName + '_Component = (');
+	compiledCode.push(componentCode);
+	compiledCode.push(');');
+
+	// Eval new component
+	compiledCode.push('toolbox[\'' + componentName + '\'] = ' + componentName + '_Component;');
+	compiledCode.push('drawToolbox();initWireboard();components=[];wires=[];addComponent(\'' + componentName + '\');');
+	var compiledCodeString = compiledCode.join('\n');
+	console.log(compiledCodeString);
+	eval(compiledCodeString);
+}
+
+// Project
+var toolbox = { 'IN': INPUT, 'OUT': OUTPUT, 'NOR': NOR_Component };
+drawToolbox();
+
+function drawToolbox() {
+	var toolboxDiv = $('#toolbox');
+	toolboxDiv.html('');
+
+	for (var idx in toolbox) {
+		var toolboxItem = toolbox[idx];
+		var newToolboxButton = '<button class="btn btn-outline-dark mr-2" onclick="addComponent(\'' + idx + '\')">' + idx + '</button>';
+		toolboxDiv.append(newToolboxButton);
+	}
+}
+
+function projectFromWireboard() {
+	var project = {
+		components: [],
+		wires: []
+	};
+
+	// Components
+	for (var idx = 0; idx < components.length; idx++) {
+		var componentItem = components[idx];
+		var newComponent = {
+			id: componentItem.id,
+			name: componentItem.constructor.name,
+			x: componentItem.svg.x(),
+			y: componentItem.svg.y()
+		};
+		project.components.push(newComponent);
+	}
+
+	// Wires
+	for (var idx = 0; idx < wires.length; idx++) {
+		var wireItem = wires[idx];
+		var pinI = wireItem.I;
+		var pinO = wireItem.O;
+
+		var newWire = {
+			O: {
+				component: pinO.component.id,
+				pin: pinO.ID
+			},
+			I: {
+				component: pinI.component.id,
+				pin: pinI.ID
+			}
+		};
+		project.wires.push(newWire);
+	}
+
+	return project;
+}
+
+function wireboardFromProject() {
+
+}
 
 // Playground
-addComponent(new NOR_Component());
-addComponent(new NOR_Component());
+addComponent('NOR');
+addComponent('NOR');
 
 cycIdx++;
 
+function initWireboard() {
+	draw.clear();
 
-// Add wires to top level
-draw.add(links);
-draw.add(markers);
-draw.add(nodes);
+	// Draw grid
+	for (x = 0; x < 128; x++)
+		draw.line(x*8, 0, x*8, 1024).stroke({ opacity: 0.1, width: 1 });
 
+	for (y = 0; y < 128; y++)
+		draw.line(0, y*8, 1024, y*8).stroke({ opacity: 0.1, width: 1 });
 
+	// Add wires to top level
+	draw.add(links);
+	draw.add(markers);
+	draw.add(nodes);
+}
+
+// Simulation
 setInterval(function() {
 	for (var idx = 0; idx < components.length; idx++) {
 		var componentItem = components[idx];
