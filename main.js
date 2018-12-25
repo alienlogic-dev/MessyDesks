@@ -285,8 +285,10 @@ function compile() {
 	}
 
 	console.log(compiledCode.join('\n'));
+
 }
 
+// DEPRECATED
 function compileWireboardAsComponent(componentName) {
 	var compiledCode = [];
 
@@ -376,6 +378,110 @@ function createComponentFromWireboard(componentName) {
 	
 	// Eval new component
 	var compiledCodeString = compiledCode.join('\n');
+	var ret = eval(compiledCodeString);
+
+	toolbox[componentName + '_Component'] = ret;
+	drawToolbox();
+	initWireboard();
+	components = [];
+	wires = [];
+
+	// Add component source as static
+	ret.source = componentSource;
+}
+//////////////
+
+function compileSource(componentName, source) {
+	var compiledCode = [];
+
+	compiledCode.push('class ' + componentName + '_Component extends Component {');
+
+	// Create constructor
+	compiledCode.push('\tconstructor() {');
+
+	// Count inputs and outputs
+	var inputPinCount = 0;
+	var outputPinCount = 0;
+	for (var idx = 0; idx < source.components.length; idx++) {
+		var componentItem = source.components[idx];
+
+		if (componentItem.name == 'INPUT') {
+			inputPinCount++
+		} else if (componentItem.name == 'OUTPUT') {
+			outputPinCount++;
+		}
+	}
+	compiledCode.push('\t\tsuper(' + inputPinCount + ', ' + outputPinCount + ');');
+
+	compiledCode.push('\t}');
+
+	// Create instances
+	compiledCode.push('\tinit() {');
+
+	for (var idx = 0; idx < source.components.length; idx++) {
+		var componentItem = source.components[idx];
+		var instanceName = componentItem.id;
+
+		if (componentItem.name == 'INPUT') {
+		} else if (componentItem.name == 'OUTPUT') {
+		} else {
+			compiledCode.push('\t\tthis.' + instanceName + ' = new ' + componentItem.name + '();');
+		}
+	}
+
+	compiledCode.push('\t}');
+
+	// Connect wires
+	compiledCode.push('\texecute() {');
+
+
+	var inputPinIndex = 0;
+	var outputPinIndex = 0;
+
+	for (var idx = 0; idx < source.wires.length; idx++) {
+		var wireItem = source.wires[idx];
+
+		var pinI = wireItem.I;
+		var componentI = source.components.filter(t => t.id == pinI.component)[0];
+
+		var pinO = wireItem.O;
+		var componentO = source.components.filter(t => t.id == pinO.component)[0];
+
+		var outCode = 'this.' + pinO.component + '.getOut(' + pinO.pin + ')';
+
+		if (componentO.name == 'INPUT')
+			outCode = 'this.inputs[' + inputPinIndex++ + '].value';
+
+		var inCode = 'this.' + pinI.component + '.setIn(' + pinI.pin + ', ' + outCode + ')';
+
+		if (componentI.name == 'OUTPUT')
+			inCode = 'this.outputs[' + outputPinIndex++ + '].value' + ' = ' + outCode;
+
+		compiledCode.push( '\t\t' + inCode + ';' );
+	}
+
+	compiledCode.push('\t}');
+
+	compiledCode.push('}');
+
+	return compiledCode.join('\n');
+}
+
+function newComponentFromWireboard(componentName) {
+	var compiledCode = [];
+
+	var componentSource = sourceFromWireboard();
+	var componentCode = compileSource(componentName, componentSource);
+
+	compiledCode.push(componentName + '_Component = (');
+	compiledCode.push(componentCode);
+	compiledCode.push(');');
+
+	compiledCode.push(componentName + '_Component');
+	
+	// Eval new component
+	var compiledCodeString = compiledCode.join('\n');
+	console.log(compiledCodeString);
 	var ret = eval(compiledCodeString);
 
 	toolbox[componentName + '_Component'] = ret;
