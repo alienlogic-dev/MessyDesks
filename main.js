@@ -17,6 +17,8 @@ var cycIdx = 0;
 
 class Component {
 	constructor(inputsCount, outputsCount) {
+		this.id = '';
+
 		this.exeIdx = 0;
 		this.instName = '';
 
@@ -363,18 +365,27 @@ function compileWireboardAsComponent(componentName) {
 function createComponentFromWireboard(componentName) {
 	var compiledCode = [];
 
+	var componentSource = sourceFromWireboard();
 	var componentCode = compileWireboardAsComponent(componentName);
 
 	compiledCode.push(componentName + '_Component = (');
 	compiledCode.push(componentCode);
 	compiledCode.push(');');
 
+	compiledCode.push(componentName + '_Component');
+	
 	// Eval new component
-	compiledCode.push('toolbox[\'' + componentName + '_Component\'] = ' + componentName + '_Component;');
-	compiledCode.push('drawToolbox();initWireboard();components=[];wires=[];addComponent(\'' + componentName + '\');');
 	var compiledCodeString = compiledCode.join('\n');
-	console.log(compiledCodeString);
-	eval(compiledCodeString);
+	var ret = eval(compiledCodeString);
+
+	toolbox[componentName + '_Component'] = ret;
+	drawToolbox();
+	initWireboard();
+	components = [];
+	wires = [];
+
+	// Add component source as static
+	ret.source = componentSource;
 }
 
 // Project
@@ -392,8 +403,8 @@ function drawToolbox() {
 	}
 }
 
-function projectFromWireboard() {
-	var project = {
+function sourceFromWireboard() {
+	var source = {
 		components: [],
 		wires: []
 	};
@@ -407,7 +418,7 @@ function projectFromWireboard() {
 			x: componentItem.svg.x(),
 			y: componentItem.svg.y()
 		};
-		project.components.push(newComponent);
+		source.components.push(newComponent);
 	}
 
 	// Wires
@@ -426,13 +437,79 @@ function projectFromWireboard() {
 				pin: pinI.ID
 			}
 		};
-		project.wires.push(newWire);
+		source.wires.push(newWire);
 	}
 
-	return JSON.stringify(project);
+	return source;
 }
 
-function wireboardFromProject(projectJSON) {
+
+function wireboardFromSource(source) {
+	// Clear the wireboard
+	initWireboard();
+	components = [];
+	wires = [];
+	
+	// Components
+	for (var idx = 0; idx < source.components.length; idx++) {
+		var componentItem = source.components[idx];
+
+		var inst = new toolbox[componentItem.name]();
+		inst.id = componentItem.id;
+		inst.pinClicked = pinClicked;
+		inst.svg.move(componentItem.x, componentItem.y);
+		draw.add(inst.svg);
+		components.push(inst);
+	}
+
+	// Wires
+	for (var idx = 0; idx < source.wires.length; idx++) {
+		var wireItem = source.wires[idx];
+
+		var componentO = components.filter(t => t.id == wireItem.O.component);
+		var componentI = components.filter(t => t.id == wireItem.I.component);
+		if ((componentO.length > 0) && (componentI.length > 0)) {
+			var pinO = componentO[0].outputs[wireItem.O.pin];
+			var pinI = componentI[0].inputs[wireItem.I.pin];
+
+			wires.push({
+				I: pinI,
+				O: pinO
+			});
+
+			// TEMP //
+			var con = pinI.svg.connectable({
+			  container: links,
+			  markers: markers
+			}, pinO.svg);
+
+			pinI.svg.parent().on('dragmove', con.update);
+			pinO.svg.parent().on('dragmove', con.update);
+		}
+	}
+}
+
+function saveProject() {
+	var project = {
+		toolbox: {},
+		source: {}
+	};
+
+	// Source of toolbox components
+	for (var idx in toolbox) {
+		var toolboxItem = toolbox[idx];
+
+		if (toolboxItem.source)
+			project.toolbox[idx] = toolboxItem.source;
+	}
+
+	// Source from wireboard
+	project.source = sourceFromWireboard();
+
+	return project;
+}
+
+function loadProject(projectJSON) {
 	var project = JSON.parse(projectJSON);
 
 	// Clear the wireboard
