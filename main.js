@@ -205,8 +205,8 @@ var nodes = new SVG.G();
 initWireboard();
 
 var components = [];
-function addComponent(toolboxIdx) {
-	var inst = new toolbox[toolboxIdx]();
+function addComponent(componentName) {
+	var inst = new toolbox[componentName]();
 	inst.id = 'c' + components.length;
 	inst.pinClicked = pinClicked;
 	inst.svg.move(100,100);
@@ -370,7 +370,7 @@ function createComponentFromWireboard(componentName) {
 	compiledCode.push(');');
 
 	// Eval new component
-	compiledCode.push('toolbox[\'' + componentName + '\'] = ' + componentName + '_Component;');
+	compiledCode.push('toolbox[\'' + componentName + '_Component\'] = ' + componentName + '_Component;');
 	compiledCode.push('drawToolbox();initWireboard();components=[];wires=[];addComponent(\'' + componentName + '\');');
 	var compiledCodeString = compiledCode.join('\n');
 	console.log(compiledCodeString);
@@ -378,7 +378,7 @@ function createComponentFromWireboard(componentName) {
 }
 
 // Project
-var toolbox = { 'IN': INPUT, 'OUT': OUTPUT, 'NOR': NOR_Component };
+var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'NOR_Component': NOR_Component };
 drawToolbox();
 
 function drawToolbox() {
@@ -387,7 +387,7 @@ function drawToolbox() {
 
 	for (var idx in toolbox) {
 		var toolboxItem = toolbox[idx];
-		var newToolboxButton = '<button class="btn btn-outline-dark mr-2" onclick="addComponent(\'' + idx + '\')">' + idx + '</button>';
+		var newToolboxButton = '<button class="btn btn-outline-dark mr-2" onclick="addComponent(\'' + idx + '\')">' + idx.replace('_Component','') + '</button>';
 		toolboxDiv.append(newToolboxButton);
 	}
 }
@@ -429,16 +429,59 @@ function projectFromWireboard() {
 		project.wires.push(newWire);
 	}
 
-	return project;
+	return JSON.stringify(project);
 }
 
-function wireboardFromProject() {
+function wireboardFromProject(projectJSON) {
+	var project = JSON.parse(projectJSON);
 
+	// Clear the wireboard
+	initWireboard();
+	components = [];
+	wires = [];
+	
+	// Components
+	for (var idx = 0; idx < project.components.length; idx++) {
+		var componentItem = project.components[idx];
+
+		var inst = new toolbox[componentItem.name]();
+		inst.id = componentItem.id;
+		inst.pinClicked = pinClicked;
+		inst.svg.move(componentItem.x, componentItem.y);
+		draw.add(inst.svg);
+		components.push(inst);
+	}
+
+	// Wires
+	for (var idx = 0; idx < project.wires.length; idx++) {
+		var wireItem = project.wires[idx];
+
+		var componentO = components.filter(t => t.id == wireItem.O.component);
+		var componentI = components.filter(t => t.id == wireItem.I.component);
+		if ((componentO.length > 0) && (componentI.length > 0)) {
+			var pinO = componentO[0].outputs[wireItem.O.pin];
+			var pinI = componentI[0].inputs[wireItem.I.pin];
+
+			wires.push({
+				I: pinI,
+				O: pinO
+			});
+
+			// TEMP //
+			var con = pinI.svg.connectable({
+			  container: links,
+			  markers: markers
+			}, pinO.svg);
+
+			pinI.svg.parent().on('dragmove', con.update);
+			pinO.svg.parent().on('dragmove', con.update);
+		}
+	}
 }
 
 // Playground
-addComponent('NOR');
-addComponent('NOR');
+addComponent('NOR_Component');
+addComponent('NOR_Component');
 
 cycIdx++;
 
