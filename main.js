@@ -243,154 +243,92 @@ function pinClicked(pin) {
 	}
 }
 
-// Compiler
-function compile() {
-	var compiledCode = [];
+function sourceFromWireboard() {
+	var source = {
+		components: [],
+		wires: []
+	};
 
-	// Create instances
+	// Components
 	for (var idx = 0; idx < components.length; idx++) {
-		var instanceName = '_c' + idx;
 		var componentItem = components[idx];
-
-		if (componentItem instanceof INPUT) {
-			instanceName = 'in' + idx;
-		} else if (componentItem instanceof OUTPUT) {
-			instanceName = 'out' + idx;
-		} else {
-			compiledCode.push('var ' + instanceName + ' = new ' + componentItem.constructor.name + '();');
-		}
-
-		componentItem.instName = instanceName;
+		var newComponent = {
+			id: componentItem.id,
+			name: componentItem.constructor.name,
+			x: componentItem.svg.x(),
+			y: componentItem.svg.y()
+		};
+		source.components.push(newComponent);
 	}
 
-	compiledCode.push('');
-
-	// Connect wires
+	// Wires
 	for (var idx = 0; idx < wires.length; idx++) {
 		var wireItem = wires[idx];
 		var pinI = wireItem.I;
 		var pinO = wireItem.O;
 
-		var outCode = pinO.component.instName + '.getOut(' + pinO.ID + ')';
-
-		if (pinO.component instanceof INPUT)
-			outCode = pinO.component.instName;
-
-		var inCode = pinI.component.instName + '.setIn(' + pinI.ID + ', ' + outCode + ')';
-
-		if (pinI.component instanceof OUTPUT)
-			inCode = pinI.component.instName + ' = ' + outCode;
-
-		compiledCode.push( inCode + ';' );
+		var newWire = {
+			O: {
+				component: pinO.component.id,
+				pin: pinO.ID
+			},
+			I: {
+				component: pinI.component.id,
+				pin: pinI.ID
+			}
+		};
+		source.wires.push(newWire);
 	}
 
-	console.log(compiledCode.join('\n'));
-
+	return source;
 }
-
-// DEPRECATED
-function compileWireboardAsComponent(componentName) {
-	var compiledCode = [];
-
-	compiledCode.push('class ' + componentName + '_Component extends Component {');
-
-	// Create constructor
-	compiledCode.push('\tconstructor() {');
-
-	var inputPinCount = 0;
-	var outputPinCount = 0;
-
-	for (var idx = 0; idx < components.length; idx++) {
-		var componentItem = components[idx];
-
-		if (componentItem instanceof INPUT) {
-			inputPinCount++
-		} else if (componentItem instanceof OUTPUT) {
-			outputPinCount++;
-		}
-	}
-	compiledCode.push('\t\tsuper(' + inputPinCount + ', ' + outputPinCount + ');');
-
-	compiledCode.push('\t}');
-
-	// Create instances
-	compiledCode.push('\tinit() {');
-
-	var inputPinIndex = 0;
-	var outputPinIndex = 0;
-
-	for (var idx = 0; idx < components.length; idx++) {
-		var componentItem = components[idx];
-		var instanceName = '_' + componentItem.id;
-
-		if (componentItem instanceof INPUT) {
-			instanceName = 'this.inputs[' + inputPinIndex++ + '].value';
-		} else if (componentItem instanceof OUTPUT) {
-			instanceName = 'this.outputs[' + outputPinIndex++ + '].value';
-		} else {
-			compiledCode.push('\t\tthis.' + instanceName + ' = new ' + componentItem.constructor.name + '();');
-		}
-
-		componentItem.instName = instanceName;
-	}
-
-	compiledCode.push('\t}');
-
-	// Connect wires
-	compiledCode.push('\texecute() {');
-
-	for (var idx = 0; idx < wires.length; idx++) {
-		var wireItem = wires[idx];
-		var pinI = wireItem.I;
-		var pinO = wireItem.O;
-
-		var outCode = 'this.' + pinO.component.instName + '.getOut(' + pinO.ID + ')';
-
-		if (pinO.component instanceof INPUT)
-			outCode = pinO.component.instName;
-
-		var inCode = 'this.' + pinI.component.instName + '.setIn(' + pinI.ID + ', ' + outCode + ')';
-
-		if (pinI.component instanceof OUTPUT)
-			inCode = pinI.component.instName + ' = ' + outCode;
-
-		compiledCode.push( '\t\t' + inCode + ';' );
-	}
-
-	compiledCode.push('\t}');
-
-	compiledCode.push('}');
-
-	return compiledCode.join('\n');
-}
-
-function createComponentFromWireboard(componentName) {
-	var compiledCode = [];
-
-	var componentSource = sourceFromWireboard();
-	var componentCode = compileWireboardAsComponent(componentName);
-
-	compiledCode.push(componentName + '_Component = (');
-	compiledCode.push(componentCode);
-	compiledCode.push(');');
-
-	compiledCode.push(componentName + '_Component');
-	
-	// Eval new component
-	var compiledCodeString = compiledCode.join('\n');
-	var ret = eval(compiledCodeString);
-
-	toolbox[componentName + '_Component'] = ret;
-	drawToolbox();
+function wireboardFromSource(source) {
+	// Clear the wireboard
 	initWireboard();
 	components = [];
 	wires = [];
+	
+	// Components
+	for (var idx = 0; idx < source.components.length; idx++) {
+		var componentItem = source.components[idx];
 
-	// Add component source as static
-	ret.source = componentSource;
+		var inst = new toolbox[componentItem.name]();
+		inst.id = componentItem.id;
+		inst.pinClicked = pinClicked;
+		inst.svg.move(componentItem.x, componentItem.y);
+		draw.add(inst.svg);
+		components.push(inst);
+	}
+
+	// Wires
+	for (var idx = 0; idx < source.wires.length; idx++) {
+		var wireItem = source.wires[idx];
+
+		var componentO = components.filter(t => t.id == wireItem.O.component);
+		var componentI = components.filter(t => t.id == wireItem.I.component);
+		if ((componentO.length > 0) && (componentI.length > 0)) {
+			var pinO = componentO[0].outputs[wireItem.O.pin];
+			var pinI = componentI[0].inputs[wireItem.I.pin];
+
+			wires.push({
+				I: pinI,
+				O: pinO
+			});
+
+			// TEMP //
+			var con = pinI.svg.connectable({
+			  container: links,
+			  markers: markers
+			}, pinO.svg);
+
+			pinI.svg.parent().on('dragmove', con.update);
+			pinO.svg.parent().on('dragmove', con.update);
+		}
+	}
 }
-//////////////
 
+
+// Compiler
 function compileSource(componentName, source) {
 	var compiledCode = [];
 
@@ -467,10 +405,10 @@ function compileSource(componentName, source) {
 	return compiledCode.join('\n');
 }
 
-function newComponentFromWireboard(componentName) {
+function newComponentFromSource(componentName, source) {
 	var compiledCode = [];
 
-	var componentSource = sourceFromWireboard();
+	var componentSource = source;
 	var componentCode = compileSource(componentName, componentSource);
 
 	compiledCode.push(componentName + '_Component = (');
@@ -494,6 +432,10 @@ function newComponentFromWireboard(componentName) {
 	ret.source = componentSource;
 }
 
+function newComponentFromWireboard(componentName) {
+	newComponentFromSource(sourceFromWireboard());
+}
+
 // Project
 var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'NOR_Component': NOR_Component };
 drawToolbox();
@@ -506,92 +448,6 @@ function drawToolbox() {
 		var toolboxItem = toolbox[idx];
 		var newToolboxButton = '<button class="btn btn-outline-dark mr-2" onclick="addComponent(\'' + idx + '\')">' + idx.replace('_Component','') + '</button>';
 		toolboxDiv.append(newToolboxButton);
-	}
-}
-
-function sourceFromWireboard() {
-	var source = {
-		components: [],
-		wires: []
-	};
-
-	// Components
-	for (var idx = 0; idx < components.length; idx++) {
-		var componentItem = components[idx];
-		var newComponent = {
-			id: componentItem.id,
-			name: componentItem.constructor.name,
-			x: componentItem.svg.x(),
-			y: componentItem.svg.y()
-		};
-		source.components.push(newComponent);
-	}
-
-	// Wires
-	for (var idx = 0; idx < wires.length; idx++) {
-		var wireItem = wires[idx];
-		var pinI = wireItem.I;
-		var pinO = wireItem.O;
-
-		var newWire = {
-			O: {
-				component: pinO.component.id,
-				pin: pinO.ID
-			},
-			I: {
-				component: pinI.component.id,
-				pin: pinI.ID
-			}
-		};
-		source.wires.push(newWire);
-	}
-
-	return source;
-}
-
-
-function wireboardFromSource(source) {
-	// Clear the wireboard
-	initWireboard();
-	components = [];
-	wires = [];
-	
-	// Components
-	for (var idx = 0; idx < source.components.length; idx++) {
-		var componentItem = source.components[idx];
-
-		var inst = new toolbox[componentItem.name]();
-		inst.id = componentItem.id;
-		inst.pinClicked = pinClicked;
-		inst.svg.move(componentItem.x, componentItem.y);
-		draw.add(inst.svg);
-		components.push(inst);
-	}
-
-	// Wires
-	for (var idx = 0; idx < source.wires.length; idx++) {
-		var wireItem = source.wires[idx];
-
-		var componentO = components.filter(t => t.id == wireItem.O.component);
-		var componentI = components.filter(t => t.id == wireItem.I.component);
-		if ((componentO.length > 0) && (componentI.length > 0)) {
-			var pinO = componentO[0].outputs[wireItem.O.pin];
-			var pinI = componentI[0].inputs[wireItem.I.pin];
-
-			wires.push({
-				I: pinI,
-				O: pinO
-			});
-
-			// TEMP //
-			var con = pinI.svg.connectable({
-			  container: links,
-			  markers: markers
-			}, pinO.svg);
-
-			pinI.svg.parent().on('dragmove', con.update);
-			pinO.svg.parent().on('dragmove', con.update);
-		}
 	}
 }
 
@@ -614,52 +470,16 @@ function saveProject() {
 
 	return project;
 }
-
 function loadProject(projectJSON) {
 	var project = JSON.parse(projectJSON);
 
-	// Clear the wireboard
-	initWireboard();
-	components = [];
-	wires = [];
-	
-	// Components
-	for (var idx = 0; idx < project.components.length; idx++) {
-		var componentItem = project.components[idx];
-
-		var inst = new toolbox[componentItem.name]();
-		inst.id = componentItem.id;
-		inst.pinClicked = pinClicked;
-		inst.svg.move(componentItem.x, componentItem.y);
-		draw.add(inst.svg);
-		components.push(inst);
+	// Load the toolbox
+	for (var idx in project.toolbox) {
+		var toolboxItem = project.toolbox[idx];
+		newComponentFromSource(idx, toolboxItem);
 	}
 
-	// Wires
-	for (var idx = 0; idx < project.wires.length; idx++) {
-		var wireItem = project.wires[idx];
-
-		var componentO = components.filter(t => t.id == wireItem.O.component);
-		var componentI = components.filter(t => t.id == wireItem.I.component);
-		if ((componentO.length > 0) && (componentI.length > 0)) {
-			var pinO = componentO[0].outputs[wireItem.O.pin];
-			var pinI = componentI[0].inputs[wireItem.I.pin];
-
-			wires.push({
-				I: pinI,
-				O: pinO
-			});
-
-			// TEMP //
-			var con = pinI.svg.connectable({
-			  container: links,
-			  markers: markers
-			}, pinO.svg);
-
-			pinI.svg.parent().on('dragmove', con.update);
-			pinO.svg.parent().on('dragmove', con.update);
-		}
-	}
+	wireboardFromSource(project.source);
 }
 
 // Playground
