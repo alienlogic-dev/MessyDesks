@@ -11,6 +11,10 @@
     <title>Maker</title>
 
     <style type="text/css">
+      .hidden {
+        display: none;
+      }
+
       .pin:hover {
         stroke: red;
       }
@@ -21,16 +25,32 @@
         right: 0;
         top: 0;
       }
+
+      .editbox {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
     </style>
   </head>
   <body>
+    <div id="toolbox" class="toolbox p-2"></div>
+    <div id="editbox" class="editbox p-2 hidden">
+      <div class="row">
+        <div class="col-10">
+          <ol class="breadcrumb m-0">
+            
+          </ol>
+        </div>
+        <div class="col-2">
+          <button class="btn btn-primary w-100 h-100" onclick="endLastComponentEdit()">Done</button>
+        </div>
+      </div>
 
-
-    <div id="toolbox" class="toolbox p-2">
     </div>
 
     <div id="drawing"></div>
-
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

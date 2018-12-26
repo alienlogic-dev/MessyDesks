@@ -564,6 +564,8 @@ function startComponentEdit(component) {
   wireboardSourceStack.push(sourceFromWireboard());
   componentEditStack.push(component.constructor.name.replace('_Component',''));
   wireboardFromSource(component.constructor.source);
+
+  drawEditbox();
 }
 
 function endLastComponentEdit() {
@@ -578,6 +580,15 @@ function endLastComponentEdit() {
 	}
 	else
 		console.error('No editing pending!');
+
+	drawEditbox();
+}
+
+function drawEditbox() {
+  if (componentEditStack.length > 0) $('#editbox').removeClass('hidden'); else $('#editbox').addClass('hidden');
+  $('#editbox .breadcrumb').html('');
+  for (var idx in componentEditStack)
+  	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx] + '</li>');
 }
 
 // Compiler
