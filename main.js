@@ -54,6 +54,15 @@ class Component {
 			.fill('#cccccc')
 			.stroke({ color: '#666666', width: 2 });
 
+		this.svg
+			.text(this.constructor.name.replace('_Component',''))
+			.font({
+						  family:   'Menlo'
+						, size:     12
+						, anchor:   'middle'
+						})
+			.move(wpx / 2, -15);
+
 		this.svg.draggable({snapToGrid: 8});
 
 		var inStepSize = hpx / this.inputs.length;
@@ -521,7 +530,7 @@ function saveProject() {
 		var toolboxItem = toolbox[idx];
 
 		if (toolboxItem.source)
-			project.toolbox[idx] = toolboxItem.source;
+			project.toolbox[idx.replace('_Component', '')] = toolboxItem.source;
 	}
 
 	// Source from wireboard
@@ -542,8 +551,8 @@ function loadProject(projectJSON) {
 }
 
 // Playground
-addComponent('NOR_Component');
-addComponent('NOR_Component');
+//addComponent('NOR_Component');
+//addComponent('NOR_Component');
 
 cycIdx++;
 
@@ -557,6 +566,7 @@ function initWireboard() {
 	for (y = 0; y < 128; y++)
 		draw.line(0, y*8, 1024, y*8).stroke({ opacity: 0.1, width: 1 });
 
+	// Clear wire drawings
 	links.clear();
 	markers.clear();
 	nodes.clear();
@@ -575,8 +585,9 @@ setInterval(function() {
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {
 		} else {
-			componentItem.getOut(0);
+			for (var outIdx = 0; outIdx < componentItem.outputs.length; outIdx++)
+				componentItem.getOut(outIdx);
 		}
 	}
 	cycIdx++;
-}, 500);
+}, 100);
