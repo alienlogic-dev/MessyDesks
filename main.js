@@ -356,47 +356,106 @@ function compileSource(componentName, source) {
 	// Create instances
 	compiledCode.push('\tinit() {');
 
+	var aliases = {};
+
+	var inputPinIndex = 0;
+	var outputPinIndex = 0;
 	for (var idx = 0; idx < source.components.length; idx++) {
 		var componentItem = source.components[idx];
 		var instanceName = componentItem.id;
 
 		if (componentItem.name == 'INPUT') {
+			instanceName = inputPinIndex++;
 		} else if (componentItem.name == 'OUTPUT') {
+			instanceName = outputPinIndex++;
 		} else {
 			compiledCode.push('\t\tthis.' + instanceName + ' = new ' + componentItem.name + '();');
 		}
+
+		aliases[componentItem.id] = instanceName;
 	}
 
 	compiledCode.push('\t}');
 
 	// Connect wires
 	compiledCode.push('\texecute() {');
+	var wires = source.wires.slice(0);
 
+	// Inputs
+	for (var idx = 0; idx < wires.length; idx++) {
+		var wireItem = wires[idx];
+		if (wireItem) {
+			var pinI = wireItem.I;
+			var componentI = source.components.filter(t => t.id == pinI.component)[0];
 
-	var inputPinIndex = 0;
-	var outputPinIndex = 0;
+			var pinO = wireItem.O;
+			var componentO = source.components.filter(t => t.id == pinO.component)[0];
 
-	for (var idx = 0; idx < source.wires.length; idx++) {
-		var wireItem = source.wires[idx];
+			if (componentO.name == 'INPUT') {
+				var	outCode = 'this.inputs[' + aliases[componentO.id] + '].value';
 
-		var pinI = wireItem.I;
-		var componentI = source.components.filter(t => t.id == pinI.component)[0];
+				var inCode = 'this.' + aliases[pinI.component] + '.setIn(' + pinI.pin + ', ' + outCode + ')';
 
-		var pinO = wireItem.O;
-		var componentO = source.components.filter(t => t.id == pinO.component)[0];
+				if (componentI.name == 'OUTPUT')
+					inCode = 'this.outputs[' + aliases[componentI.id] + '].value' + ' = ' + outCode;
 
-		var outCode = 'this.' + pinO.component + '.getOut(' + pinO.pin + ')';
+				compiledCode.push( '\t\t' + inCode + ';' );
 
-		if (componentO.name == 'INPUT')
-			outCode = 'this.inputs[' + inputPinIndex++ + '].value';
-
-		var inCode = 'this.' + pinI.component + '.setIn(' + pinI.pin + ', ' + outCode + ')';
-
-		if (componentI.name == 'OUTPUT')
-			inCode = 'this.outputs[' + outputPinIndex++ + '].value' + ' = ' + outCode;
-
-		compiledCode.push( '\t\t' + inCode + ';' );
+				wires[idx] = null;
+			}
+		}
 	}
+
+	// Normal
+	for (var idx = 0; idx < wires.length; idx++) {
+		var wireItem = wires[idx];
+		if (wireItem) {
+			var pinI = wireItem.I;
+			var componentI = source.components.filter(t => t.id == pinI.component)[0];
+
+			var pinO = wireItem.O;
+			var componentO = source.components.filter(t => t.id == pinO.component)[0];
+
+			if ((componentI.name != 'OUTPUT') && (componentI.name != 'OUTPUT')) {
+				var outCode = 'this.' + aliases[pinO.component] + '.getOut(' + pinO.pin + ')';
+
+				var inCode = 'this.' + aliases[pinI.component] + '.setIn(' + pinI.pin + ', ' + outCode + ')';
+
+				compiledCode.push( '\t\t' + inCode + ';' );
+
+				wires[idx] = null;
+			}			
+		}
+	}
+
+	// Outputs
+	for (var idx = 0; idx < wires.length; idx++) {
+		var wireItem = wires[idx];
+		if (wireItem) {
+			var pinI = wireItem.I;
+			var componentI = source.components.filter(t => t.id == pinI.component)[0];
+
+			var pinO = wireItem.O;
+			var componentO = source.components.filter(t => t.id == pinO.component)[0];
+
+
+			if (componentI.name == 'OUTPUT') {
+				var outCode = 'this.' + aliases[pinO.component] + '.getOut(' + pinO.pin + ')';
+
+				if (componentO.name == 'INPUT')
+					outCode = 'this.inputs[' + aliases[componentO.id] + '].value';
+
+				var inCode = 'this.outputs[' + aliases[componentI.id] + '].value' + ' = ' + outCode;
+
+				compiledCode.push( '\t\t' + inCode + ';' );
+
+				wires[idx] = null;
+			}			
+		}
+	}
+
+	if (wires.filter(t => t != null).length > 0)
+		console.error('Something went wrong compiling the wires!');
 
 	compiledCode.push('\t}');
 
@@ -433,7 +492,7 @@ function newComponentFromSource(componentName, source) {
 }
 
 function newComponentFromWireboard(componentName) {
-	newComponentFromSource(sourceFromWireboard());
+	newComponentFromSource(componentName, sourceFromWireboard());
 }
 
 // Project
@@ -497,6 +556,10 @@ function initWireboard() {
 
 	for (y = 0; y < 128; y++)
 		draw.line(0, y*8, 1024, y*8).stroke({ opacity: 0.1, width: 1 });
+
+	links.clear();
+	markers.clear();
+	nodes.clear();
 
 	// Add wires to top level
 	draw.add(links);
