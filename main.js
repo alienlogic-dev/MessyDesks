@@ -16,7 +16,7 @@ class Pin {
 var cycIdx = 0;
 
 class Component {
-	constructor(inputsCount, outputsCount) {
+	constructor(inputsList, outputsList) {
 		this.id = '';
 
 		this.exeIdx = 0;
@@ -26,12 +26,20 @@ class Component {
 		this.minHeight = 2;
 
 		this.inputs = [];
-		for (var i = 0; i < inputsCount; i++)
-			this.inputs.push(new Pin(this, i, '', true));
+		if (inputsList instanceof Array)
+			for (var i = 0; i < inputsList.length; i++)
+				this.inputs.push(new Pin(this, i, inputsList[i], true));
+		else
+			for (var i = 0; i < inputsList; i++)
+				this.inputs.push(new Pin(this, i, '', true));
 
 		this.outputs = [];
-		for (var i = 0; i < outputsCount; i++)
-			this.outputs.push(new Pin(this, i, '', false));
+		if (outputsList instanceof Array)
+			for (var i = 0; i < outputsList.length; i++)
+				this.outputs.push(new Pin(this, i, outputsList[i], false));
+		else
+			for (var i = 0; i < outputsList; i++)
+				this.outputs.push(new Pin(this, i, '', false));
 
 		this.init();
 
@@ -133,7 +141,10 @@ class Component {
   }
 
   clickEvent(e) { }
-  dblClickEvent(e) { }
+  dblClickEvent(e) { wireboardFromSource(this.constructor.source) }
+
+  /* Config */
+  getConfig() { return null; }
 
   /* Runtime */
   execute() {}
@@ -160,9 +171,12 @@ class Component {
 }
 
 class INPUT extends Component {
-  constructor(alias = '') {
+  constructor(config = null) {
     super(0, 1);
-    this.alias = alias;
+
+    this.alias = '';
+  	if (config)
+  		this.alias = config.alias;
 		this.aliasSVG.text(this.alias);
   }
 
@@ -191,13 +205,21 @@ class INPUT extends Component {
 						})
 			.move(wpx / 2, -15);
   }
+
+  getConfig() {
+  	return {
+  		alias: this.alias
+  	};
+  }
 }
 
 class OUTPUT extends Component {
-  constructor(alias = '') {
+  constructor(config = null) {
     super(1, 0);
 
-    this.alias = alias;
+    this.alias = '';
+  	if (config)
+  		this.alias = config.alias;
 		this.aliasSVG.text(this.alias);
   }
 
@@ -226,10 +248,20 @@ class OUTPUT extends Component {
 						})
 			.move(wpx / 2, -15);
   }
+
+  getConfig() {
+  	return {
+  		alias: this.alias
+  	};
+  }
 }
 
 class NOR_Component extends Component {
-  constructor(inputsCount = 2) {
+  constructor(config = null) {
+  	var inputsCount = 2;
+  	if (config)
+  		inputsCount = config.inputsCount;
+
   	if (inputsCount < 2) inputsCount = 2;
     super(inputsCount, 1);
 
@@ -249,18 +281,20 @@ class NOR_Component extends Component {
   		res = res || (this.inputs[idx].value ? true : false);
   	this.outputs[0].value = !res; 
   }
+
+  getConfig() {
+  	return {
+  		inputsCount: this.inputs.length
+  	};
+  }
+
+  dblClickEvent(e) {
+  }
 }
 
 class SR_Component extends Component {
 	constructor() {
-    super(2, 1);
-
-    this.inputs[0].name = 'S';
-    this.inputs[1].name = 'R';
-
-    this.outputs[0].name = 'Q';
-
-		this.createSVG();
+    super(['S', 'R'], ['Q']);
   }
 
   init() {
@@ -448,6 +482,7 @@ function sourceFromWireboard() {
 		var newComponent = {
 			id: componentItem.id,
 			name: componentItem.constructor.name,
+			config: componentItem.getConfig(),
 			x: componentItem.svg.x(),
 			y: componentItem.svg.y()
 		};
@@ -485,7 +520,7 @@ function wireboardFromSource(source) {
 	for (var idx = 0; idx < source.components.length; idx++) {
 		var componentItem = source.components[idx];
 
-		var inst = new toolbox[componentItem.name]();
+		var inst = new toolbox[componentItem.name](componentItem.config);
 		inst.id = componentItem.id;
 		inst.pinClicked = pinClicked;
 		inst.svg.move(componentItem.x, componentItem.y);
@@ -532,17 +567,21 @@ function compileSource(componentName, source) {
 
 	// Count inputs and outputs
 	var inputPinCount = 0;
+	var inputAliases = [];
 	var outputPinCount = 0;
+	var outputAliases = [];
 	for (var idx = 0; idx < source.components.length; idx++) {
 		var componentItem = source.components[idx];
 
 		if (componentItem.name == 'INPUT') {
+			if (componentItem.config) inputAliases.push(componentItem.config.alias);
 			inputPinCount++
 		} else if (componentItem.name == 'OUTPUT') {
+			if (componentItem.config) outputAliases.push(componentItem.config.alias);
 			outputPinCount++;
 		}
 	}
-	compiledCode.push('\t\tsuper(' + inputPinCount + ', ' + outputPinCount + ');');
+	compiledCode.push('\t\tsuper(' + JSON.stringify(inputAliases) + ', ' + JSON.stringify(outputAliases) + ');');
 
 	compiledCode.push('\t}');
 
@@ -562,7 +601,7 @@ function compileSource(componentName, source) {
 		} else if (componentItem.name == 'OUTPUT') {
 			instanceName = outputPinIndex++;
 		} else {
-			compiledCode.push('\t\tthis.' + instanceName + ' = new ' + componentItem.name + '();');
+			compiledCode.push('\t\tthis.' + instanceName + ' = new ' + componentItem.name + '(' + JSON.stringify(componentItem.config) + ');');
 		}
 
 		aliases[componentItem.id] = instanceName;
