@@ -137,7 +137,12 @@ class Component {
   	if (e.shiftKey)
   		this.value = this.value ? 0 : 1;
   	else
-  		if (this.component.pinClicked) this.component.pinClicked(this);
+  		if (e.altKey) {
+  			var wire = wires.filter(t => (t.I === this) || (t.O === this));
+  			removeWire(wire[0]);
+  		}
+  		else
+  			if (this.component.pinClicked) this.component.pinClicked(this);
   }
 
   clickEvent(e) { }
@@ -465,11 +470,19 @@ function pinClicked(pin) {
 		  markers: markers
 		}, pin.svg);
 
+		pin.con = con;
+		pinSelected.con = con;
+
 		pinSelected.svg.parent().on('dragmove', con.update);
 		pin.svg.parent().on('dragmove', con.update);
 
 		pinSelected = null;
 	}
+}
+function removeWire(wire) {
+	var idx = wires.indexOf(wire);
+	wires.splice(idx, 1);
+	wire.I.con.connector.remove();
 }
 
 function sourceFromWireboard() {
@@ -550,6 +563,9 @@ function wireboardFromSource(source) {
 			  container: links,
 			  markers: markers
 			}, pinO.svg);
+
+			pinI.con = con;
+			pinO.con = con;
 
 			pinI.svg.parent().on('dragmove', con.update);
 			pinO.svg.parent().on('dragmove', con.update);
