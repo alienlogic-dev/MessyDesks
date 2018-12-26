@@ -662,7 +662,7 @@ setInterval(function() {
 		if (wireItem) {
 			var pinI = wireItem.I;
 			var pinO = wireItem.O;
-			pinI.component.inputs[pinI.ID].value = pinO.component.outputs[pinO.ID].value;
+			pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
 		}
 	}
 
@@ -672,8 +672,6 @@ setInterval(function() {
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {
 		} else {
-			for (var outIdx = 0; outIdx < componentItem.outputs.length; outIdx++)
-				componentItem.getOut(outIdx);
 			componentItem.update();
 		}
 	}
