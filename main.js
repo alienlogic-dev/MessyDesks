@@ -48,7 +48,22 @@ class Component {
   	var hpx = h * 8;
 
   	this.svg = new SVG.G();
-		this.svg.rect(wpx, hpx)
+		this.svg.on('click', this.clickEvent, this);
+		this.svg.on('dblclick', this.dblClickEvent, this);
+		this.svg.draggable({snapToGrid: 8});
+
+		this.drawBody(wpx, hpx);
+		this.drawPins(wpx, hpx);
+
+		var symbolSVG = new SVG.G();
+		this.drawSymbol(symbolSVG);
+
+		symbolSVG.move((wpx / 2) - (symbolSVG.width() / 2), (hpx / 2) - (symbolSVG.height() / 2));
+		this.svg.add(symbolSVG);
+  }
+
+  drawBody(wpx, hpx) {
+  	this.svg.rect(wpx, hpx)
 			.radius(2)
 			.move(0, 0)
 			.fill('#cccccc')
@@ -62,11 +77,9 @@ class Component {
 						, anchor:   'middle'
 						})
 			.move(wpx / 2, -15);
+  }
 
-		this.svg.on('click', this.clickEvent, this);
-		this.svg.on('dblclick', this.dblClickEvent, this);
-		this.svg.draggable({snapToGrid: 8});
-
+  drawPins(wpx, hpx) {
 		var inStepSize = hpx / this.inputs.length;
 		for (var i = this.inputs.length - 1; i >= 0; i--) {
 			var item = this.inputs[i];
@@ -108,14 +121,9 @@ class Component {
 							})
 				.move(wpx - 6, (outStepSize * i) + (outStepSize / 2) - 6);
 		}
-
-		var symbolSVG = new SVG.G();
-		this.drawSymbol(symbolSVG);
-		symbolSVG.move((wpx / 2) - (symbolSVG.width() / 2), (hpx / 2) - (symbolSVG.height() / 2));
-		this.svg.add(symbolSVG);
   }
 
-  drawSymbol(svg) {}
+  drawSymbol(svg) { }
 
   pinClickedEvent(e) {
   	if (e.shiftKey)
@@ -152,26 +160,71 @@ class Component {
 }
 
 class INPUT extends Component {
-  constructor() {
+  constructor(alias = '') {
     super(0, 1);
+    this.alias = alias;
+		this.aliasSVG.text(this.alias);
   }
 
-  clickEvent(e) {
-  	this.outputs[0].value = this.outputs[0].value ? 0 : 1;
+  dblClickEvent(e) {
+  	var name = prompt('Enter input name', this.alias);
+
+		if ((name != null) && (name != "")) {
+		  this.alias = name;
+		  this.aliasSVG.text(this.alias);
+		}
+  }
+
+  drawBody(wpx, hpx) {
+  	this.svg.rect(wpx, hpx)
+			.radius(2)
+			.move(0, 0)
+			.fill('#cccccc')
+			.stroke({ color: '#666666', width: 2 });
+
+		this.aliasSVG = this.svg
+			.text(this.constructor.name.replace('_Component',''))
+			.font({
+						  family:   'Menlo'
+						, size:     12
+						, anchor:   'middle'
+						})
+			.move(wpx / 2, -15);
   }
 }
 
 class OUTPUT extends Component {
-  constructor() {
+  constructor(alias = '') {
     super(1, 0);
+
+    this.alias = alias;
+		this.aliasSVG.text(this.alias);
   }
 
   dblClickEvent(e) {
-  	var name = prompt('Enter output name', '');
+  	var name = prompt('Enter output name', this.alias);
 
 		if ((name != null) && (name != "")) {
-		  
+		  this.alias = name;
+		  this.aliasSVG.text(this.alias);
 		}
+  }
+
+  drawBody(wpx, hpx) {
+  	this.svg.rect(wpx, hpx)
+			.radius(2)
+			.move(0, 0)
+			.fill('#cccccc')
+			.stroke({ color: '#666666', width: 2 });
+
+		this.aliasSVG = this.svg
+			.text(this.constructor.name.replace('_Component',''))
+			.font({
+						  family:   'Menlo'
+						, size:     12
+						, anchor:   'middle'
+						})
+			.move(wpx / 2, -15);
   }
 }
 
