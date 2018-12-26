@@ -134,8 +134,11 @@ class Component {
   drawSymbol(svg) { }
 
   pinClickedEvent(e) {
-  	if (e.shiftKey)
-  		this.value = this.value ? 0 : 1;
+  	if (e.shiftKey) {
+  		var value = prompt('Enter value', this.value);
+			if ((value != null) && (value != ""))
+			  this.value = value;
+  	}
   	else
   		if (e.altKey) {
   			var wire = wires.filter(t => (t.I === this) || (t.O === this));
@@ -761,7 +764,6 @@ function newComponentFromSource(componentName, source) {
 	
 	// Eval new component
 	var compiledCodeString = compiledCode.join('\n');
-	console.log(compiledCodeString);
 	var ret = eval(compiledCodeString);
 
 	toolbox[componentName + '_Component'] = ret;
@@ -824,6 +826,23 @@ function loadProject(projectJSON) {
 	wireboardFromSource(project.source);
 }
 
+function saveProjectToFile() {
+	var filename = prompt('Enter project filename', 'project');
+	if ((filename != null) && (filename != ""))
+		download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
+}
+
+
+var openFile = function(event) {
+  var input = event.target;
+
+  var reader = new FileReader();
+  reader.onload = function(){
+    var text = reader.result;
+    loadProject(text);
+  };
+  reader.readAsText(input.files[0]);
+};
 // Playground
 //addComponent('NOR_Component');
 //addComponent('NOR_Component');
@@ -849,6 +868,25 @@ function initWireboard() {
 	draw.add(links);
 	draw.add(markers);
 	draw.add(nodes);
+}
+
+// Function to download data to a file
+function download(data, filename, type) {
+    var file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);  
+        }, 0); 
+    }
 }
 
 // Simulation

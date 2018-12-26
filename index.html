@@ -7,8 +7,10 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
-    <title>Maker</title>
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    
+    <title>MessyDesk</title>
 
     <style type="text/css">
       .hidden {
@@ -25,6 +27,10 @@
         right: 0;
         top: 0;
       }
+      .toolbox div {
+        vertical-align: top;
+        display: inline-block;
+      }
 
       .editbox {
         position: fixed;
@@ -33,9 +39,64 @@
         right: 0;
       }
     </style>
+    <style type="text/css">
+      .inputfile {
+          width: 0.1px;
+          height: 0.1px;
+          opacity: 0;
+          overflow: hidden;
+          position: absolute;
+          z-index: -1;
+      }
+
+      .inputfile + label {
+          max-width: 80%;
+          font-size: 1.25rem;
+          /* 20px */
+          font-weight: 700;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          cursor: pointer;
+          display: inline-block;
+          overflow: hidden;
+          padding: 0.625rem 1.25rem;
+          /* 10px 20px */
+      }
+
+      .no-js .inputfile + label {
+          display: none;
+      }
+
+      .inputfile:focus + label,
+      .inputfile.has-focus + label {
+          outline: 1px dotted #000;
+          outline: -webkit-focus-ring-color auto 5px;
+      }
+
+      .inputfile + label * {
+          /* pointer-events: none; */
+          /* in case of FastClick lib use */
+      }
+
+      .inputfile + label svg {
+          width: 1em;
+          height: 1em;
+          vertical-align: middle;
+          fill: currentColor;
+          margin-top: -0.25em;
+          /* 4px */
+          margin-right: 0.25em;
+          /* 4px */
+      }
+    </style>
   </head>
   <body>
-    <div id="toolbox" class="toolbox p-2"></div>
+    <input type="file" name="file" id="file" class="inputfile" accept=".prj" onchange="openFile(event)"/>
+    <div class="toolbox p-2">
+      <label class="btn btn-primary" for="file"><i class="far fa-folder-open"></i></label>
+      <button class="btn btn-primary" onclick="saveProjectToFile()"><i class="far fa-save"></i></button>
+      <div id="toolbox"></div>
+    </div>
     <div id="editbox" class="editbox p-2 hidden">
       <div class="row">
         <div class="col-10">
@@ -47,10 +108,9 @@
           <button class="btn btn-primary w-100 h-100" onclick="endLastComponentEdit()">Done</button>
         </div>
       </div>
-
     </div>
 
-    <div id="drawing"></div>
+    <div id="drawing" class="wireboard"></div>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
