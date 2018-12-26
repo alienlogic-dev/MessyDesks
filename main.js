@@ -16,7 +16,7 @@ class Pin {
 var cycIdx = 0;
 
 class Component {
-	constructor(inputsList, outputsList) {
+	constructor(inputsList, outputsList, withGUI = false) {
 		this.id = '';
 
 		this.exeIdx = 0;
@@ -43,7 +43,7 @@ class Component {
 
 		this.init();
 
-		this.createSVG();
+		if (withGUI) this.createSVG();
   }
 
   init() {}
@@ -187,7 +187,6 @@ class INPUT extends Component {
     this.alias = '';
   	if (config)
   		this.alias = config.alias;
-		this.aliasSVG.text(this.alias);
   }
 
   dblClickEvent(e) {
@@ -230,7 +229,6 @@ class OUTPUT extends Component {
     this.alias = '';
   	if (config)
   		this.alias = config.alias;
-		this.aliasSVG.text(this.alias);
   }
 
   dblClickEvent(e) {
@@ -448,7 +446,8 @@ function addComponent(componentName) {
 	var inst = new toolbox[componentName]();
 	inst.id = 'c' + components.length;
 	inst.pinClicked = pinClicked;
-	inst.svg.move(100,100);
+	inst.createSVG();
+	inst.svg.move(200,200);
 	draw.add(inst.svg);
 	components.push(inst);
 }
@@ -541,6 +540,7 @@ function wireboardFromSource(source) {
 		var inst = new toolbox[componentItem.name](componentItem.config);
 		inst.id = componentItem.id;
 		inst.pinClicked = pinClicked;
+		inst.createSVG();
 		inst.svg.move(componentItem.x, componentItem.y);
 		draw.add(inst.svg);
 		components.push(inst);
@@ -906,7 +906,7 @@ setInterval(function() {
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {
 		} else {
-			componentItem.update();
+			//componentItem.update();
 		}
 	}
 	cycIdx++;
