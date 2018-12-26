@@ -283,6 +283,59 @@ class RAM_Component extends Component {
   }
 }
 
+class ToBus_Component extends Component {
+	constructor() {
+    super(8, 1);
+
+    this.inputs[0].name = 'D0';
+    this.inputs[1].name = 'D1';
+    this.inputs[2].name = 'D2';
+    this.inputs[3].name = 'D3';
+    this.inputs[4].name = 'D4';
+    this.inputs[5].name = 'D5';
+    this.inputs[6].name = 'D6';
+    this.inputs[7].name = 'D7';
+
+    this.outputs[0].name = 'Bus';
+
+		this.createSVG();
+  }
+
+  execute() {
+  	var data = 0x00;
+  	for (var idx = 0; idx < this.inputs.length; idx++) {
+  		var dPin = this.inputs[idx].value;
+  		data = data | (dPin ? (1 << idx) : 0);
+  	}
+  	this.outputs[0].value = data;
+  }
+}
+
+class FromBus_Component extends Component {
+	constructor() {
+    super(1, 8);
+
+    this.inputs[0].name = 'Bus';
+
+    this.outputs[0].name = 'D0';
+    this.outputs[1].name = 'D1';
+    this.outputs[2].name = 'D2';
+    this.outputs[3].name = 'D3';
+    this.outputs[4].name = 'D4';
+    this.outputs[5].name = 'D5';
+    this.outputs[6].name = 'D6';
+    this.outputs[7].name = 'D7';
+
+		this.createSVG();
+  }
+
+  execute() {
+  	var data = this.inputs[0].value;
+  	for (var idx = 0; idx < this.outputs.length; idx++)
+  		this.outputs[idx].value = (data >> idx) & 0x01;
+  }
+}
+
 // initialize SVG.js
 var draw = SVG('drawing').size(1024, 1024);
 
@@ -583,7 +636,7 @@ function newComponentFromWireboard(componentName) {
 }
 
 // Project
-var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component };
+var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component };
 drawToolbox();
 
 function drawToolbox() {
