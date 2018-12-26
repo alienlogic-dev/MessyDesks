@@ -141,7 +141,9 @@ class Component {
   }
 
   clickEvent(e) { }
-  dblClickEvent(e) { wireboardFromSource(this.constructor.source) }
+  dblClickEvent(e) {
+  	startComponentEdit(this);
+  }
 
   /* Config */
   getConfig() { return null; }
@@ -555,6 +557,28 @@ function wireboardFromSource(source) {
 	}
 }
 
+var wireboardSourceStack = [];
+var componentEditStack = [];
+
+function startComponentEdit(component) {
+  wireboardSourceStack.push(sourceFromWireboard());
+  componentEditStack.push(component.constructor.name.replace('_Component',''));
+  wireboardFromSource(component.constructor.source);
+}
+
+function endLastComponentEdit() {
+	if (wireboardSourceStack.length > 0) {
+		newComponentFromWireboard(componentEditStack[componentEditStack.length - 1]);
+
+		var lastSource = wireboardSourceStack[wireboardSourceStack.length - 1];
+		wireboardFromSource(lastSource);
+
+		wireboardSourceStack.splice(-1, 1);
+		componentEditStack.splice(-1, 1);
+	}
+	else
+		console.error('No editing pending!');
+}
 
 // Compiler
 function compileSource(componentName, source) {
@@ -574,10 +598,10 @@ function compileSource(componentName, source) {
 		var componentItem = source.components[idx];
 
 		if (componentItem.name == 'INPUT') {
-			if (componentItem.config) inputAliases.push(componentItem.config.alias);
+			if (componentItem.config) inputAliases.push(componentItem.config.alias); else inputAliases.push('');
 			inputPinCount++
 		} else if (componentItem.name == 'OUTPUT') {
-			if (componentItem.config) outputAliases.push(componentItem.config.alias);
+			if (componentItem.config) outputAliases.push(componentItem.config.alias); else outputAliases.push('');
 			outputPinCount++;
 		}
 	}
