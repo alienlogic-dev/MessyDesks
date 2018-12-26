@@ -63,6 +63,8 @@ class Component {
 						})
 			.move(wpx / 2, -15);
 
+		this.svg.on('click', this.clickEvent, this);
+		this.svg.on('dblclick', this.dblClickEvent, this);
 		this.svg.draggable({snapToGrid: 8});
 
 		var inStepSize = hpx / this.inputs.length;
@@ -116,13 +118,14 @@ class Component {
   drawSymbol(svg) {}
 
   pinClickedEvent(e) {
-  	if (e.shiftKey) {
+  	if (e.shiftKey)
   		this.value = this.value ? 0 : 1;
-  		this.svg.fill(this.value ? '#0f0' : '#f00');
-  	}
   	else
   		if (this.component.pinClicked) this.component.pinClicked(this);
   }
+
+  clickEvent(e) { }
+  dblClickEvent(e) { }
 
   /* Runtime */
   execute() {}
@@ -132,12 +135,19 @@ class Component {
   		this.execute();
   		this.exeIdx++;
   	}
-  	this.outputs[index].svg.fill(this.outputs[index].value ? '#0f0' : '#f00');
   	return this.outputs[index].value;
   }
 
   setIn(index, value) {
   	this.inputs[index].value = value;
+  }
+
+  update() {
+  	for (var idx = 0; idx < this.inputs.length; idx++)
+  		this.inputs[idx].svg.fill(this.inputs[idx].value ? '#0f0' : '#f00');
+
+  	for (var idx = 0; idx < this.outputs.length; idx++)
+  		this.outputs[idx].svg.fill(this.outputs[idx].value ? '#0f0' : '#f00');
   }
 }
 
@@ -145,11 +155,23 @@ class INPUT extends Component {
   constructor() {
     super(0, 1);
   }
+
+  clickEvent(e) {
+  	this.outputs[0].value = this.outputs[0].value ? 0 : 1;
+  }
 }
 
 class OUTPUT extends Component {
   constructor() {
     super(1, 0);
+  }
+
+  dblClickEvent(e) {
+  	var name = prompt('Enter output name', '');
+
+		if ((name != null) && (name != "")) {
+		  
+		}
   }
 }
 
@@ -176,7 +198,6 @@ class NOR_Component extends Component {
   }
 }
 
-
 class SR_Component extends Component {
 	constructor() {
     super(2, 1);
@@ -202,6 +223,63 @@ class SR_Component extends Component {
 		this._c1.setIn(1, this.inputs[0].value);
 
 		this.outputs[0].value = this._c0.getOut(0);
+  }
+}
+
+class RAM_Component extends Component {
+	constructor() {
+    super(7, 4);
+
+    this.inputs[0].name = 'A0';
+    this.inputs[1].name = 'A1';
+    this.inputs[2].name = 'A2';
+    this.inputs[3].name = 'A3';
+
+    this.inputs[4].name = 'CS';
+    this.inputs[5].name = 'OE';
+    this.inputs[6].name = 'RW';
+
+    this.outputs[0].name = 'D0';
+    this.outputs[1].name = 'D1';
+    this.outputs[2].name = 'D2';
+    this.outputs[3].name = 'D3';
+
+    this.ram = Array(Math.pow(2, 4)).fill(0);
+    this.ram[1] = 1;
+    this.ram[2] = 2;
+		this.createSVG();
+  }
+
+  execute() {
+  	var csPin = this.inputs[4].value;
+  	var oePin = this.inputs[5].value;
+  	var rwPin = this.inputs[6].value;
+
+  	var a0Pin = this.inputs[0].value;
+  	var a1Pin = this.inputs[1].value;
+  	var a2Pin = this.inputs[2].value;
+  	var a3Pin = this.inputs[3].value;
+  	var addr = (a0Pin ? 1 : 0) | (a1Pin ? 2 : 0) | (a2Pin ? 4 : 0) | (a3Pin ? 8 : 0);
+
+  	if (csPin) {
+  		if (rwPin) {
+	  		if (oePin) {
+	  			var ramValue = this.ram[addr];
+	  			this.outputs[0].value = (ramValue >> 0) & 0x01;
+	  			this.outputs[1].value = (ramValue >> 1) & 0x01;
+	  			this.outputs[2].value = (ramValue >> 2) & 0x01;
+	  			this.outputs[3].value = (ramValue >> 3) & 0x01;
+	  		}
+	  	} else {
+	  		var d0Pin = this.outputs[0].value;
+				var d1Pin = this.outputs[1].value;
+				var d2Pin = this.outputs[2].value;
+				var d3Pin = this.outputs[3].value;
+				var dataValue = (d0Pin ? 1 : 0) | (d1Pin ? 2 : 0) | (d2Pin ? 4 : 0) | (d3Pin ? 8 : 0);
+
+				this.ram[addr] = dataValue;
+	  	}
+  	}
   }
 }
 
@@ -505,7 +583,7 @@ function newComponentFromWireboard(componentName) {
 }
 
 // Project
-var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'NOR_Component': NOR_Component };
+var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component };
 drawToolbox();
 
 function drawToolbox() {
@@ -579,6 +657,15 @@ function initWireboard() {
 
 // Simulation
 setInterval(function() {
+	for (var idx = 0; idx < wires.length; idx++) {
+		var wireItem = wires[idx];
+		if (wireItem) {
+			var pinI = wireItem.I;
+			var pinO = wireItem.O;
+			pinI.component.inputs[pinI.ID].value = pinO.component.outputs[pinO.ID].value;
+		}
+	}
+
 	for (var idx = 0; idx < components.length; idx++) {
 		var componentItem = components[idx];
 
@@ -587,7 +674,8 @@ setInterval(function() {
 		} else {
 			for (var outIdx = 0; outIdx < componentItem.outputs.length; outIdx++)
 				componentItem.getOut(outIdx);
+			componentItem.update();
 		}
 	}
 	cycIdx++;
-}, 100);
+}, 500);
