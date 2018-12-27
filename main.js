@@ -306,6 +306,14 @@ class CLOCK extends Component {
   		this.lastTimestamp = timestamp;
   	}
   }
+
+  dblClickEvent(e) {
+  	var interval = prompt('Enter interval', this.interval);
+
+		if ((interval != null) && (interval != "")) {
+		  this.interval = +interval;
+		}
+  }
 }
 
 class NOR_Component extends Component {
@@ -423,7 +431,6 @@ class RAM_Component extends Component {
   }
 }
 
-globalcpu = null;
 class CPU6502_Component extends Component {
 	constructor() {
     super(
@@ -437,7 +444,7 @@ class CPU6502_Component extends Component {
 		this.lastRST_state = 0;
 		this.lastCLK_state = 0;
 
-    globalcpu = this.cpu = new CPU6502.CPU6502();
+		this.cpu = new CPU6502.CPU6502();
     this.cpu.md_component = this;
 
     this.cpu.read = function(addr) {
@@ -490,53 +497,48 @@ class CPU6502_Component extends Component {
   }
 }
 
-
 class ToBus_Component extends Component {
-	constructor() {
-    super(8, 1);
+	constructor(config = null) {
+  	var size = 8;
+  	if (config)
+  		size = config.size;
 
-    this.inputs[0].name = 'D0';
-    this.inputs[1].name = 'D1';
-    this.inputs[2].name = 'D2';
-    this.inputs[3].name = 'D3';
-    this.inputs[4].name = 'D4';
-    this.inputs[5].name = 'D5';
-    this.inputs[6].name = 'D6';
-    this.inputs[7].name = 'D7';
+  	if (size < 2) size = 2;
+    super(size, 1);
+
+    for (var idx = 0; idx < size; idx++)
+    	this.inputs[idx].name = 'D' + idx;
 
     this.outputs[0].name = 'Bus';
   }
 
   execute() {
-  	var data = 0x00;
-  	for (var idx = 0; idx < this.inputs.length; idx++) {
-  		var dPin = this.inputs[idx].value;
-  		data = data | (dPin ? (1 << idx) : 0);
-  	}
+  	var data = [];
+  	for (var idx = 0; idx < this.inputs.length; idx++)
+  		data.push(this.inputs[idx].value);
   	this.outputs[0].value = data;
   }
 }
 
 class FromBus_Component extends Component {
-	constructor() {
-    super(1, 8);
+	constructor(config = null) {
+  	var size = 8;
+  	if (config)
+  		size = config.size;
+
+  	if (size < 2) size = 2;
+    super(1, size);
 
     this.inputs[0].name = 'Bus';
 
-    this.outputs[0].name = 'D0';
-    this.outputs[1].name = 'D1';
-    this.outputs[2].name = 'D2';
-    this.outputs[3].name = 'D3';
-    this.outputs[4].name = 'D4';
-    this.outputs[5].name = 'D5';
-    this.outputs[6].name = 'D6';
-    this.outputs[7].name = 'D7';
+    for (var idx = 0; idx < size; idx++)
+    	this.outputs[idx].name = 'D' + idx;
   }
 
   execute() {
   	var data = this.inputs[0].value;
   	for (var idx = 0; idx < this.outputs.length; idx++)
-  		this.outputs[idx].value = (data >> idx) & 0x01;
+  		this.outputs[idx].value = data[idx];
   }
 }
 
