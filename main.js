@@ -194,7 +194,8 @@ class Component {
   }
 
   setIn(index, value) {
-  	this.inputs[index].value = value;
+  	if (value != null)
+  		this.inputs[index].value = value;
   }
 
   update() {
@@ -452,6 +453,27 @@ class FromBus_Component extends Component {
   		this.outputs[idx].value = (data >> idx) & 0x01;
   }
 }
+
+class TRI_Component extends Component {
+	constructor() {
+    super(
+    	['I', 'En'],
+    	[],
+    	['Q']
+    );
+  }
+
+  execute() {
+  	var enPin = +this.inputs[2].value;
+
+  	if (enPin) {
+  		this.outputs[0].value = this.inputs[1].value;
+  	} else {
+  		this.outputs[0].value = null;
+  	}
+  }
+}
+
 
 // initialize SVG.js
 var draw = SVG('drawing').size(1024, 1024);
@@ -810,7 +832,7 @@ function newComponentFromWireboard(componentName) {
 }
 
 // Project
-var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component };
+var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component };
 drawToolbox();
 
 function drawToolbox() {
