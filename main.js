@@ -349,47 +349,41 @@ class SR_Component extends Component {
 class RAM_Component extends Component {
 	constructor() {
     super(
-    	['A0', 'A1', 'A2', 'A3', 'CS', 'OE', 'RW'],
+    	['A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15', 'CS', 'OE', 'RW'],
     	[],
-    	['D0', 'D1', 'D2', 'D3']
+    	['D0', 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7']
     );
 
-    this.ram = Array(Math.pow(2, 4)).fill(0);
-    this.ram[1] = 1;
-    this.ram[2] = 2;
+		this.minWidth = 10;
+
+    this.ram = Array(Math.pow(2, 16)).fill(0);
+    this.ram[0xFFFC] = 0x10;
+    this.ram[0xFFFD] = 0x00;
   }
 
   execute() {
-  	var csPin = +this.inputs[8].value;
-  	var oePin = +this.inputs[9].value;
-  	var rwPin = +this.inputs[10].value;
+  	var csPin = +this.inputs[24].value;
+  	var oePin = +this.inputs[25].value;
+  	var rwPin = +this.inputs[26].value;
 
-  	var a0Pin = +this.inputs[4].value;
-  	var a1Pin = +this.inputs[5].value;
-  	var a2Pin = +this.inputs[6].value;
-  	var a3Pin = +this.inputs[7].value;
-  	var addr = (a0Pin ? 1 : 0) | (a1Pin ? 2 : 0) | (a2Pin ? 4 : 0) | (a3Pin ? 8 : 0);
+  	var addr = 0x00;
+  	for (var i = 0; i < 16; i++)
+  		addr = addr | (+this.inputs[i + 8].value ? (1 << i) : 0);
 
-		this.outputs[0].value = null;
-		this.outputs[1].value = null;
-		this.outputs[2].value = null;
-		this.outputs[3].value = null;
+  	for (var i = 0; i < 8; i++)
+  		this.outputs[i].value = null;
 
   	if (csPin) {
   		if (rwPin) {
 	  		if (oePin) {
 	  			var ramValue = this.ram[addr];
-	  			this.outputs[0].value = (ramValue >> 0) & 0x01;
-	  			this.outputs[1].value = (ramValue >> 1) & 0x01;
-	  			this.outputs[2].value = (ramValue >> 2) & 0x01;
-	  			this.outputs[3].value = (ramValue >> 3) & 0x01;
+			  	for (var i = 0; i < 8; i++)
+			  		this.outputs[i].value = (ramValue >> i) & 0x01;
 	  		}
 	  	} else {
-	  		var d0Pin = +this.inputs[0].value;
-				var d1Pin = +this.inputs[1].value;
-				var d2Pin = +this.inputs[2].value;
-				var d3Pin = +this.inputs[3].value;
-				var dataValue = (d0Pin ? 1 : 0) | (d1Pin ? 2 : 0) | (d2Pin ? 4 : 0) | (d3Pin ? 8 : 0);
+		  	var dataValue = 0x00;
+		  	for (var i = 0; i < 8; i++)
+		  		dataValue = dataValue | (+this.inputs[i].value ? (1 << i) : 0);
 
 				this.ram[addr] = dataValue;
 	  	}
@@ -404,6 +398,61 @@ class RAM_Component extends Component {
 		}
   }
 }
+
+globalcpu = null;
+class CPU6502_Component extends Component {
+	constructor() {
+    super(
+    	['RST', 'CLK'],
+    	['A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15', 'RW'],
+    	['D0', 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7']
+    );
+
+		this.minWidth = 10;
+
+		this.lastRST_state = 0;
+		this.lastCLK_state = 0;
+
+    globalcpu = this.cpu = new CPU6502.CPU6502();
+    this.cpu.md_component = this;
+
+    this.cpu.read = function(addr) {
+    	this.md_component.outputs[24].value = 1; // Rw
+
+	  	for (var i = 0; i < 16; i++)
+    		this.md_component.outputs[i + 8].value = (addr >> i) & 0x01;
+
+	  	simStep();
+
+	  	var data = 0x00;
+	  	for (var i = 0; i < 8; i++)
+	  		data = data | (+this.md_component.inputs[i].value ? (1 << i) : 0);
+
+	    return data;
+    }
+
+    this.cpu.write = function(addr, value) {
+      mem[addr & 0xFFFF] = value;
+    }
+  }
+
+  execute() {
+  	if ((+this.inputs[8].value == 1) && (this.lastRST_state == 0)){
+  		this.lastRST_state = +this.inputs[8].value;
+    	this.cpu.reset();
+  	}
+  	else
+  		this.lastRST_state = +this.inputs[8].value;
+
+  	if ((+this.inputs[9].value == 1) && (this.lastCLK_state == 0)){
+  		this.lastCLK_state = +this.inputs[9].value;
+    	this.cpu.step();
+  	}
+  	else
+  		this.lastCLK_state = +this.inputs[9].value;
+  }
+}
+
 
 class ToBus_Component extends Component {
 	constructor() {
@@ -502,6 +551,12 @@ function pinClicked(pin) {
 	if (pinSelected == null) {
 		pinSelected = pin;
 	} else {
+		if (pin === pinSelected) {
+			alert('Cannot select to the same pin');
+			pinSelected = null;
+			return;
+		}
+
 		if (pin.isBidirectional && pinSelected.isBidirectional) {
 			wires.push({ I: pin, O: pinSelected });
 			wires.push({ I: pinSelected, O: pin });
@@ -832,7 +887,7 @@ function newComponentFromWireboard(componentName) {
 }
 
 // Project
-var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component };
+var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component };
 drawToolbox();
 
 function drawToolbox() {
@@ -898,8 +953,6 @@ var openFile = function(event) {
 //addComponent('NOR_Component');
 //addComponent('NOR_Component');
 
-cycIdx++;
-
 function initWireboard() {
 	draw.clear();
 
@@ -941,7 +994,8 @@ function download(data, filename, type) {
 }
 
 // Simulation
-setInterval(function() {
+function simStep() {
+	cycIdx++;
 	for (var idx = 0; idx < wires.length; idx++) {
 		var wireItem = wires[idx];
 		if (wireItem) {
@@ -950,6 +1004,9 @@ setInterval(function() {
 			pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
 		}
 	}
+}
+setInterval(function() {
+	simStep();
 
 	for (var idx = 0; idx < components.length; idx++) {
 		var componentItem = components[idx];
@@ -960,5 +1017,4 @@ setInterval(function() {
 			componentItem.update();
 		}
 	}
-	cycIdx++;
 }, 500);
