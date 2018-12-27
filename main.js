@@ -206,7 +206,7 @@ class INPUT extends Component {
 			.stroke({ color: '#666666', width: 2 });
 
 		this.aliasSVG = this.svg
-			.text(this.constructor.name.replace('_Component',''))
+			.text(this.alias)
 			.font({
 						  family:   'Menlo'
 						, size:     12
@@ -248,7 +248,7 @@ class OUTPUT extends Component {
 			.stroke({ color: '#666666', width: 2 });
 
 		this.aliasSVG = this.svg
-			.text(this.constructor.name.replace('_Component',''))
+			.text(this.alias)
 			.font({
 						  family:   'Menlo'
 						, size:     12
@@ -272,8 +272,6 @@ class NOR_Component extends Component {
 
   	if (inputsCount < 2) inputsCount = 2;
     super(inputsCount, 1);
-
-		this.createSVG();
   }
 
   drawSymbol(svg) {
@@ -284,10 +282,10 @@ class NOR_Component extends Component {
   }
 
   execute() {
-  	var res = (this.inputs[0].value ? true : false);
+  	var res = (Boolean(+this.inputs[0].value) ? true : false);
   	for (var idx = 1; idx < this.inputs.length; idx++)
-  		res = res || (this.inputs[idx].value ? true : false);
-  	this.outputs[0].value = !res; 
+  		res = res || (Boolean(+this.inputs[idx].value) ? true : false);
+  	this.outputs[0].value = !res ? 1 : 0; 
   }
 
   getConfig() {
@@ -342,7 +340,6 @@ class RAM_Component extends Component {
     this.ram = Array(Math.pow(2, 4)).fill(0);
     this.ram[1] = 1;
     this.ram[2] = 2;
-		this.createSVG();
   }
 
   execute() {
@@ -392,8 +389,6 @@ class ToBus_Component extends Component {
     this.inputs[7].name = 'D7';
 
     this.outputs[0].name = 'Bus';
-
-		this.createSVG();
   }
 
   execute() {
@@ -420,8 +415,6 @@ class FromBus_Component extends Component {
     this.outputs[5].name = 'D5';
     this.outputs[6].name = 'D6';
     this.outputs[7].name = 'D7';
-
-		this.createSVG();
   }
 
   execute() {
