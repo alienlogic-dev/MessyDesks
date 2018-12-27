@@ -246,6 +246,9 @@ class CLOCK extends Component {
     super(0, 1);
 
     this.interval = 10;
+    if (config)
+      this.interval = +config.interval;
+
     this.lastTimestamp = Math.floor(Date.now());
   }
 
@@ -263,6 +266,25 @@ class CLOCK extends Component {
 		if ((interval != null) && (interval != "")) {
 		  this.interval = +interval;
 		}
+  }
+
+  getConfig() {
+    return {
+      interval: this.interval
+    };
+  }
+}
+
+class R_TRIG extends Component {
+  constructor(config = null) {
+    super(1, 1);
+
+    this.lastValue = 0;
+  }
+
+  execute() {
+    this.outputs[0].value = (this.inputs[0].value != this.lastValue) && (+this.inputs[0].value);
+    this.lastValue = this.inputs[0].value;
   }
 }
 
@@ -565,5 +587,5 @@ class DEC2BIN_Component extends Component {
   }
 }
 
-var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
+var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'R_TRIG': R_TRIG, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
 drawToolbox();
