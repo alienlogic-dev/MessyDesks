@@ -17,7 +17,7 @@ class INPUT extends Component {
   }
 
   drawBody(wpx, hpx) {
-  	this.svg.rect(wpx, hpx)
+  	this.svgBody = this.svg.rect(wpx, hpx)
 			.radius(2)
 			.move(0, 0)
 			.fill('#cccccc')
@@ -59,7 +59,7 @@ class OUTPUT extends Component {
   }
 
   drawBody(wpx, hpx) {
-  	this.svg.rect(wpx, hpx)
+  	this.svgBody = this.svg.rect(wpx, hpx)
 			.radius(2)
 			.move(0, 0)
 			.fill('#cccccc')

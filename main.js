@@ -19,6 +19,7 @@ var cycIdx = 0;
 class Component {
 	constructor(inputsList, outputsList, biList = 0, withGUI = false) {
 		this.id = '';
+		this.isSelected = false;
 
 		this.exeIdx = 0;
 		this.instName = '';
@@ -89,7 +90,7 @@ class Component {
   }
 
   drawBody(wpx, hpx) {
-  	this.svg.rect(wpx, hpx)
+  	this.svgBody = this.svg.rect(wpx, hpx)
 			.radius(2)
 			.move(0, 0)
 			.fill('#cccccc')
@@ -179,6 +180,16 @@ class Component {
   	startComponentEdit(this);
   }
 
+  /* Selection */
+  select() {
+  	this.svgBody.stroke({ color: '#0000ff', width: 2 });
+  	this.isSelected = true;
+  }
+  deselect() {
+  	this.svgBody.stroke({ color: '#666666', width: 2 });
+  	this.isSelected = false;
+	}
+
   /* Config */
   getConfig() { return null; }
 
@@ -214,6 +225,41 @@ var draw = SVG('drawing').size(wireboardWidth*8, wireboardHeight*8);
 
 var componentsSVG = new SVG.G();
 var wiresSVG = new SVG.G();
+
+// Selection
+$(document).keydown(function(e) {
+	if (e.keyCode == 8) { // Delete selected components
+		for (var idx = components.length - 1; idx >= 0; idx--) {
+			var componentItem = components[idx];
+
+			if (componentItem.isSelected) {
+				removeWiresFromComponent(componentItem);
+				componentItem.svg.remove();
+				components.splice(idx, 1);
+			}
+		}
+	}
+});
+draw.on('click', function(e) {
+	var clickedComponent = null;
+
+	for (var idx in components)
+		components[idx].deselect();
+
+	for (var idx in components) {
+		if (pointInRect(e, components[idx].svg.rbox())) {
+			clickedComponent = components[idx];
+			clickedComponent.select();
+			break;
+		}
+	}
+});
+
+function pointInRect(p, rect) {
+	var inX = (p.x >= (rect.x2 - rect.w)) && (p.x <= rect.x2);
+	var inY = (p.y >= (rect.y2 - rect.h)) && (p.y <= rect.y2);
+	return inX && inY;
+}
 
 // Wireboard
 initWireboard();
@@ -266,7 +312,15 @@ function pinClicked(pin) {
 function removeWire(wire) {
 	var idx = wires.indexOf(wire);
 	wires.splice(idx, 1);
+	wire.O.con.remove();
 	wire.I.con.remove();
+}
+function removeWiresFromComponent(component) {
+	for (var idx = wires.length - 1; idx >= 0; idx--) {
+		var wireItem = wires[idx];
+		if ((wireItem.I.component === component) || (wireItem.O.component === component))
+			removeWire(wireItem);
+	}
 }
 
 function sourceFromWireboard() {
