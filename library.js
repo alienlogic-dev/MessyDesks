@@ -185,6 +185,62 @@ class Disp_7Seg extends Component {
   }
 }
 
+class BCD_7Seg extends Component {
+  constructor(config = null) {
+    super(['', '', '', ''], 0);
+
+    this.minWidth = 6;
+    
+    this.ledSVG = null;
+    this.segMap = [0x3F, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x67, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71];
+  }
+
+  drawSymbol(svg) {
+    this.ledSVG = new SVG.G();
+    this.ledSVG.rect(636, 1000).fill('#000');
+    this.segA = this.ledSVG.path('M 575 138 L 494 211 L 249 211 L 194 137 L 213 120 L 559 120 Z');
+    this.segB = this.ledSVG.path('M 595 160 L 544 452 L 493 500 L 459 456 L 500 220 L 582 146 Z');
+    this.segC = this.ledSVG.path('M 525 560 L 476 842 L 465 852 L 401 792 L 441 562 L 491 516 Z');
+    this.segD = this.ledSVG.path('M 457 860 L 421 892 L 94 892 L 69 864 L 144 801 L 394 801 Z');
+    this.segE = this.ledSVG.path('M 181 560 L 141 789 L 61 856 L 48 841 L 96 566 L 148 516 Z');
+    this.segF = this.ledSVG.path('M 241 218 L 200 453 L 150 500 L 115 454 L 166 162 L 185 145 Z');
+    this.segG = this.ledSVG.path('M 485 507 L 433 555 L 190 555 L 156 509 L 204 464 L 451 464 Z');
+    this.segDOT = this.ledSVG.circle(92).move(496, 794);
+
+    this.segA.fill('#3f0000');
+    this.segB.fill('#3f0000');
+    this.segC.fill('#3f0000');
+    this.segD.fill('#3f0000');
+    this.segE.fill('#3f0000');
+    this.segF.fill('#3f0000');
+    this.segG.fill('#3f0000');
+    this.segDOT.fill('#3f0000');
+
+    this.ledSVG.scale(0.05,0.05);
+
+    svg.add(this.ledSVG);
+    svg.size(31.8, 50);
+  }
+
+  execute() {
+    var data = 0;
+    for (var idx = 0; idx < this.inputs.length; idx++) {
+      var dPin = +this.inputs[idx].value;
+      data = data | (dPin ? (1 << idx) : 0);
+    }
+
+    var segData = this.segMap[data];
+
+    this.segA.fill(segData & 0x01 ? '#ff0000' : '#3f0000');
+    this.segB.fill(segData & 0x02 ? '#ff0000' : '#3f0000');
+    this.segC.fill(segData & 0x04 ? '#ff0000' : '#3f0000');
+    this.segD.fill(segData & 0x08 ? '#ff0000' : '#3f0000');
+    this.segE.fill(segData & 0x10 ? '#ff0000' : '#3f0000');
+    this.segF.fill(segData & 0x20 ? '#ff0000' : '#3f0000');
+    this.segG.fill(segData & 0x40 ? '#ff0000' : '#3f0000');
+  }
+}
+
 class CLOCK extends Component {
   constructor(config = null) {
     super(0, 1);
@@ -479,7 +535,7 @@ class BIN2DEC_Component extends Component {
   execute() {
     var data = 0;
     for (var idx = 0; idx < this.inputs.length; idx++) {
-      var dPin = this.inputs[idx].value;
+      var dPin = +this.inputs[idx].value;
       data = data | (dPin ? (1 << idx) : 0);
     }
 
@@ -509,5 +565,5 @@ class DEC2BIN_Component extends Component {
   }
 }
 
-var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'CLOCK': CLOCK, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
+var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
 drawToolbox();
