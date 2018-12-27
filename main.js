@@ -75,7 +75,8 @@ class Component {
   	var hpx = h * 8;
 
   	this.svg = new SVG.G();
-		this.svg.on('click', this.clickEvent, this);
+		this.svg.on('mousedown', this.mouseDownEvent, this);
+		this.svg.on('mouseup', this.mouseUpEvent, this);
 		this.svg.on('dblclick', this.dblClickEvent, this);
 		this.svg.draggable({snapToGrid: 8});
 
@@ -175,7 +176,8 @@ class Component {
   			if (this.component.pinClicked) this.component.pinClicked(this);
   }
 
-  clickEvent(e) { }
+  mouseDownEvent(e) { }
+  mouseUpEvent(e) { }
   dblClickEvent(e) {
   	startComponentEdit(this);
   }
@@ -756,10 +758,13 @@ setInterval(function() {
 	for (var idx = 0; idx < components.length; idx++) {
 		var componentItem = components[idx];
 
+		if (componentItem.outputs.length == 0)
+			componentItem.execute();
+
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {
 		} else {
 			componentItem.update();
 		}
 	}
-}, 500);
+}, 250);
