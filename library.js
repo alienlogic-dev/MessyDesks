@@ -107,6 +107,26 @@ class CLOCK extends Component {
   }
 }
 
+class TRI_Component extends Component {
+  constructor() {
+    super(
+      ['I', 'En'],
+      [],
+      ['Q']
+    );
+  }
+
+  execute() {
+    var enPin = +this.inputs[2].value;
+
+    if (enPin) {
+      this.outputs[0].value = this.inputs[1].value;
+    } else {
+      this.outputs[0].value = null;
+    }
+  }
+}
+
 class NOR_Component extends Component {
   constructor(config = null) {
   	var inputsCount = 2;
@@ -141,6 +161,7 @@ class NOR_Component extends Component {
   }
 }
 
+
 class SR_Component extends Component {
 	constructor() {
     super(['S', 'R'], ['Q']);
@@ -161,6 +182,7 @@ class SR_Component extends Component {
 		this.outputs[0].value = this._c0.getOut(0);
   }
 }
+
 
 class RAM_Component extends Component {
 	constructor() {
@@ -288,6 +310,7 @@ class CPU6502_Component extends Component {
   }
 }
 
+
 class ToBus_Component extends Component {
 	constructor(config = null) {
   	var size = 8;
@@ -328,30 +351,60 @@ class FromBus_Component extends Component {
 
   execute() {
   	var data = this.inputs[0].value;
-  	for (var idx = 0; idx < this.outputs.length; idx++)
-  		this.outputs[idx].value = data[idx];
+    if (data)
+    	for (var idx = 0; idx < data.length; idx++)
+    		this.outputs[idx].value = data[idx];
   }
 }
 
-class TRI_Component extends Component {
-	constructor() {
-    super(
-    	['I', 'En'],
-    	[],
-    	['Q']
-    );
+
+class BIN2DEC_Component extends Component {
+  constructor(config = null) {
+    var size = 8;
+    if (config)
+      size = config.size;
+
+    if (size < 2) size = 2;
+    super(size, 1);
+
+    for (var idx = 0; idx < size; idx++)
+      this.inputs[idx].name = 'D' + idx;
+
+    this.outputs[0].name = 'Bus';
   }
 
   execute() {
-  	var enPin = +this.inputs[2].value;
+    var data = 0;
+    for (var idx = 0; idx < this.inputs.length; idx++) {
+      var dPin = this.inputs[idx].value;
+      data = data | (dPin ? (1 << idx) : 0);
+    }
 
-  	if (enPin) {
-  		this.outputs[0].value = this.inputs[1].value;
-  	} else {
-  		this.outputs[0].value = null;
-  	}
+    this.outputs[0].value = data;
   }
 }
 
-var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'CLOCK': CLOCK, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component };
+class DEC2BIN_Component extends Component {
+  constructor(config = null) {
+    var size = 8;
+    if (config)
+      size = config.size;
+
+    if (size < 2) size = 2;
+    super(1, size);
+
+    this.inputs[0].name = 'Bus';
+
+    for (var idx = 0; idx < size; idx++)
+      this.outputs[idx].name = 'D' + idx;
+  }
+
+  execute() {
+    var data = this.inputs[0].value;
+    for (var idx = 0; idx < this.outputs.length; idx++)
+      this.outputs[idx].value = (data >> idx) & 0x01;
+  }
+}
+
+var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'CLOCK': CLOCK, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
 drawToolbox();
