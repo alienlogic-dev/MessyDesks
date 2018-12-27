@@ -1,3 +1,51 @@
+class CONST extends Component {
+  constructor(config = null) {
+    super(0, 1);
+
+    this.minHeight = 3;
+
+    this.value = '';
+    if (config)
+      this.value = config.value;
+  }
+
+  dblClickEvent(e) {
+    var value = prompt('Enter const value', this.value);
+
+    if ((value != null) && (value != "")) {
+      this.value = value;
+      this.valueSVG.text(this.value);
+    }
+  }
+
+  drawBody(wpx, hpx) {
+    this.svgBody = this.svg.rect(wpx, hpx)
+      .radius(2)
+      .move(0, 0)
+      .fill('#cccccc')
+      .stroke({ color: '#666666', width: 2 });
+
+    this.valueSVG = this.svg
+      .text(this.value)
+      .font({
+              family:   'Menlo'
+            , size:     12
+            , anchor:   'middle'
+            })
+      .move(wpx / 2, 0);
+  }
+
+  execute() {
+    this.outputs[0].value = this.value;
+  }
+
+  getConfig() {
+    return {
+      value: this.value
+    };
+  }
+}
+
 class INPUT extends Component {
   constructor(config = null) {
     super(0, 1);
@@ -587,5 +635,5 @@ class DEC2BIN_Component extends Component {
   }
 }
 
-var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'R_TRIG': R_TRIG, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
+var toolbox = { 'CONST': CONST, 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'R_TRIG': R_TRIG, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
 drawToolbox();

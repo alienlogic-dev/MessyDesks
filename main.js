@@ -688,6 +688,22 @@ function saveProjectToFile() {
 		download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
 }
 
+function compile() {
+	var compiledCode = [];
+	for (var idx in toolbox) {
+		var toolboxItem = toolbox[idx];
+		if (toolboxItem.source) {
+			var toolboxCode = compileSource(idx.replace('_Component', ''), toolboxItem.source);
+			compiledCode.push(toolboxCode);
+		}
+	}
+
+	var wireboardCode = compileSource('MAIN', sourceFromWireboard());
+	compiledCode.push(wireboardCode);
+
+	var compiledCodeString = compiledCode.join('\n');
+	console.log(compiledCodeString);
+}
 
 var openFile = function(event) {
   var input = event.target;
