@@ -212,9 +212,8 @@ var wireboardWidth = 256;
 var wireboardHeight = 256;
 var draw = SVG('drawing').size(wireboardWidth*8, wireboardHeight*8);
 
-var links = new SVG.G();
-var markers = new SVG.G();
-var nodes = new SVG.G();
+var componentsSVG = new SVG.G();
+var wiresSVG = new SVG.G();
 
 // Wireboard
 initWireboard();
@@ -226,7 +225,7 @@ function addComponent(componentName) {
 	inst.pinClicked = pinClicked;
 	inst.createSVG();
 	inst.svg.move(200,200);
-	draw.add(inst.svg);
+	componentsSVG.add(inst.svg);
 	components.push(inst);
 }
 
@@ -256,7 +255,7 @@ function pinClicked(pin) {
 		}
 
 		// TEMP //
-		var con = new WireConnection(pinSelected.svg, pin.svg, links);
+		var con = new WireConnection(pinSelected.svg, pin.svg, wiresSVG);
 
 		pin.con = con;
 		pinSelected.con = con;
@@ -325,7 +324,7 @@ function wireboardFromSource(source) {
 		inst.pinClicked = pinClicked;
 		inst.createSVG();
 		inst.svg.move(componentItem.x, componentItem.y);
-		draw.add(inst.svg);
+		componentsSVG.add(inst.svg);
 		components.push(inst);
 	}
 
@@ -345,7 +344,7 @@ function wireboardFromSource(source) {
 			});
 
 			// TEMP //
-			var con = new WireConnection(pinI.svg, pinO.svg, links);
+			var con = new WireConnection(pinI.svg, pinO.svg, wiresSVG);
 
 			pinI.con = con;
 			pinO.con = con;
@@ -635,14 +634,12 @@ function initWireboard() {
 	draw.rect(wireboardWidth*8, wireboardHeight*8).fill(pattern);
 
 	// Clear wire drawings
-	links.clear();
-	markers.clear();
-	nodes.clear();
+	componentsSVG.clear();
+	wiresSVG.clear();
 
 	// Add wires to top level
-	draw.add(links);
-	draw.add(markers);
-	draw.add(nodes);
+	draw.add(componentsSVG);
+	draw.add(wiresSVG);
 }
 
 // Function to download data to a file
