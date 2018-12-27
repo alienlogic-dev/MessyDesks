@@ -254,16 +254,10 @@ function pinClicked(pin) {
 		}
 
 		// TEMP //
-		var con = pinSelected.svg.connectable({
-		  container: links,
-		  markers: markers
-		}, pin.svg);
+		var con = new WireConnection(pinSelected.svg, pin.svg, links);
 
 		pin.con = con;
 		pinSelected.con = con;
-
-		pinSelected.svg.parent().on('dragmove', con.update);
-		pin.svg.parent().on('dragmove', con.update);
 
 		pinSelected = null;
 	}
@@ -271,7 +265,7 @@ function pinClicked(pin) {
 function removeWire(wire) {
 	var idx = wires.indexOf(wire);
 	wires.splice(idx, 1);
-	wire.I.con.connector.remove();
+	wire.I.con.remove();
 }
 
 function sourceFromWireboard() {
@@ -349,16 +343,10 @@ function wireboardFromSource(source) {
 			});
 
 			// TEMP //
-			var con = pinI.svg.connectable({
-			  container: links,
-			  markers: markers
-			}, pinO.svg);
+			var con = new WireConnection(pinI.svg, pinO.svg, links);
 
 			pinI.con = con;
 			pinO.con = con;
-
-			pinI.svg.parent().on('dragmove', con.update);
-			pinO.svg.parent().on('dragmove', con.update);
 		}
 	}
 }
