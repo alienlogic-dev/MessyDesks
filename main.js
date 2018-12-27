@@ -287,9 +287,10 @@ function pointInRect(p, rect) {
 initWireboard();
 
 var components = [];
+var componentsIdx = 0;
 function addComponent(componentName) {
 	var inst = new toolbox[componentName]();
-	inst.id = 'c' + components.length;
+	inst.id = 'c' + componentsIdx++;
 	inst.pinClicked = pinClicked;
 	inst.createSVG();
 	inst.svg.move(200,200);
@@ -402,6 +403,8 @@ function wireboardFromSource(source) {
 		inst.svg.move(componentItem.x, componentItem.y);
 		componentsSVG.add(inst.svg);
 		components.push(inst);
+
+		componentsIdx = Math.max(componentsIdx, +(componentItem.id.replace('c','')) + 1);
 	}
 
 	// Wires
