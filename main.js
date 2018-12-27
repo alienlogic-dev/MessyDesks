@@ -1,11 +1,12 @@
 
 class Pin {
-	constructor(component, ID, name, isInput = true) {
+	constructor(component, ID, name, isInput = true, isBidirectional = false) {
 		this.ID = ID;
 		this.component = component;
 
 		this.name = name;
 		this.isInput = isInput;
+		this.isBidirectional = isBidirectional;
 		this.width = Math.round(name.length / 3);
 		this.value = null;
 
@@ -16,7 +17,7 @@ class Pin {
 var cycIdx = 0;
 
 class Component {
-	constructor(inputsList, outputsList, withGUI = false) {
+	constructor(inputsList, outputsList, biList = 0, withGUI = false) {
 		this.id = '';
 
 		this.exeIdx = 0;
@@ -26,20 +27,37 @@ class Component {
 		this.minHeight = 2;
 
 		this.inputs = [];
+		this.outputs = [];
+
+		var inputIdx = 0;
+		var outputIdx = 0;
+		// Insert bidirectional pins
+		if (biList instanceof Array)
+			for (var i = 0; i < biList.length; i++) {
+				this.inputs.push(new Pin(this, inputIdx++, biList[i], true, true));
+				this.outputs.push(new Pin(this, outputIdx++, biList[i], false, true));
+			}
+		else
+			for (var i = 0; i < biList; i++){
+				this.inputs.push(new Pin(this, inputIdx++, '', true, true));
+				this.outputs.push(new Pin(this, outputIdx++, '', false, true));
+			}
+
+		// Create list of inputs
 		if (inputsList instanceof Array)
 			for (var i = 0; i < inputsList.length; i++)
-				this.inputs.push(new Pin(this, i, inputsList[i], true));
+				this.inputs.push(new Pin(this, inputIdx++, inputsList[i], true));
 		else
 			for (var i = 0; i < inputsList; i++)
-				this.inputs.push(new Pin(this, i, '', true));
+				this.inputs.push(new Pin(this, inputIdx++, '', true));
 
-		this.outputs = [];
+		// Create list of outputs
 		if (outputsList instanceof Array)
 			for (var i = 0; i < outputsList.length; i++)
-				this.outputs.push(new Pin(this, i, outputsList[i], false));
+				this.outputs.push(new Pin(this, outputIdx++, outputsList[i], false));
 		else
 			for (var i = 0; i < outputsList; i++)
-				this.outputs.push(new Pin(this, i, '', false));
+				this.outputs.push(new Pin(this, outputIdx++, '', false));
 
 		this.init();
 
@@ -91,9 +109,13 @@ class Component {
 		var inStepSize = hpx / this.inputs.length;
 		for (var i = this.inputs.length - 1; i >= 0; i--) {
 			var item = this.inputs[i];
-			item.svg = this.svg
-				.circle(8)
-				.move(-4, (inStepSize * i) + (inStepSize / 2) - 4)
+
+			if (item.isBidirectional)
+				item.svg = this.svg.rect(8, 8);
+			else
+				item.svg = this.svg.circle(8);
+
+			item.svg.move(-4, (inStepSize * i) + (inStepSize / 2) - 4)
 				.addClass('pin')
 				.fill('#ffcc00')
 				.stroke({ color: '#000', width: 1 })
@@ -112,9 +134,13 @@ class Component {
 		var outStepSize = hpx / this.outputs.length;
 		for (var i = this.outputs.length - 1; i >= 0; i--) {
 			var item = this.outputs[i];
-			item.svg = this.svg
-				.circle(8)
-				.move(wpx - 4, (outStepSize * i) + (outStepSize / 2) - 4)
+
+			if (item.isBidirectional)
+				item.svg = this.svg.rect(8, 8);
+			else
+				item.svg = this.svg.circle(8);
+
+			item.svg.move(wpx - 4, (outStepSize * i) + (outStepSize / 2) - 4)
 				.fill('#fff')
 				.addClass('pin')
 				.stroke({ color: '#000', width: 1 })
@@ -173,10 +199,10 @@ class Component {
 
   update() {
   	for (var idx = 0; idx < this.inputs.length; idx++)
-  		this.inputs[idx].svg.fill(this.inputs[idx].value ? '#0f0' : '#f00');
+  		this.inputs[idx].svg.fill((this.inputs[idx].value == null) ? '#ccc' : (+this.inputs[idx].value ? '#0f0' : '#f00'));
 
   	for (var idx = 0; idx < this.outputs.length; idx++)
-  		this.outputs[idx].svg.fill(this.outputs[idx].value ? '#0f0' : '#f00');
+  		this.outputs[idx].svg.fill((this.outputs[idx].value == null) ? '#ccc' : (+this.outputs[idx].value ? '#0f0' : '#f00'));
   }
 }
 
@@ -321,21 +347,11 @@ class SR_Component extends Component {
 
 class RAM_Component extends Component {
 	constructor() {
-    super(7, 4);
-
-    this.inputs[0].name = 'A0';
-    this.inputs[1].name = 'A1';
-    this.inputs[2].name = 'A2';
-    this.inputs[3].name = 'A3';
-
-    this.inputs[4].name = 'CS';
-    this.inputs[5].name = 'OE';
-    this.inputs[6].name = 'RW';
-
-    this.outputs[0].name = 'D0';
-    this.outputs[1].name = 'D1';
-    this.outputs[2].name = 'D2';
-    this.outputs[3].name = 'D3';
+    super(
+    	['A0', 'A1', 'A2', 'A3', 'CS', 'OE', 'RW'],
+    	[],
+    	['D0', 'D1', 'D2', 'D3']
+    );
 
     this.ram = Array(Math.pow(2, 4)).fill(0);
     this.ram[1] = 1;
@@ -343,15 +359,20 @@ class RAM_Component extends Component {
   }
 
   execute() {
-  	var csPin = this.inputs[4].value;
-  	var oePin = this.inputs[5].value;
-  	var rwPin = this.inputs[6].value;
+  	var csPin = +this.inputs[8].value;
+  	var oePin = +this.inputs[9].value;
+  	var rwPin = +this.inputs[10].value;
 
-  	var a0Pin = this.inputs[0].value;
-  	var a1Pin = this.inputs[1].value;
-  	var a2Pin = this.inputs[2].value;
-  	var a3Pin = this.inputs[3].value;
+  	var a0Pin = +this.inputs[4].value;
+  	var a1Pin = +this.inputs[5].value;
+  	var a2Pin = +this.inputs[6].value;
+  	var a3Pin = +this.inputs[7].value;
   	var addr = (a0Pin ? 1 : 0) | (a1Pin ? 2 : 0) | (a2Pin ? 4 : 0) | (a3Pin ? 8 : 0);
+
+		this.outputs[0].value = null;
+		this.outputs[1].value = null;
+		this.outputs[2].value = null;
+		this.outputs[3].value = null;
 
   	if (csPin) {
   		if (rwPin) {
@@ -363,15 +384,23 @@ class RAM_Component extends Component {
 	  			this.outputs[3].value = (ramValue >> 3) & 0x01;
 	  		}
 	  	} else {
-	  		var d0Pin = this.outputs[0].value;
-				var d1Pin = this.outputs[1].value;
-				var d2Pin = this.outputs[2].value;
-				var d3Pin = this.outputs[3].value;
+	  		var d0Pin = +this.inputs[0].value;
+				var d1Pin = +this.inputs[1].value;
+				var d2Pin = +this.inputs[2].value;
+				var d3Pin = +this.inputs[3].value;
 				var dataValue = (d0Pin ? 1 : 0) | (d1Pin ? 2 : 0) | (d2Pin ? 4 : 0) | (d3Pin ? 8 : 0);
 
 				this.ram[addr] = dataValue;
 	  	}
   	}
+  }
+
+  dblClickEvent(e) {
+  	var value = prompt('Enter value @ 3', 0);
+
+		if ((value != null) && (value != "")) {
+		  this.ram[3] = +value;
+		}
   }
 }
 
@@ -451,13 +480,18 @@ function pinClicked(pin) {
 	if (pinSelected == null) {
 		pinSelected = pin;
 	} else {
-		if (pin.isInput == pinSelected.isInput) {
-			alert('Connection allowed only for input and output');
-			pinSelected = null;
-			return;
-		}
+		if (pin.isBidirectional && pinSelected.isBidirectional) {
+			wires.push({ I: pin, O: pinSelected });
+			wires.push({ I: pinSelected, O: pin });
+		} else {
+			if (pin.isInput == pinSelected.isInput) {
+				alert('Connection allowed only for input and output');
+				pinSelected = null;
+				return;
+			}
 
-		wires.push({ I: (pin.isInput) ? pin : pinSelected, O: (pin.isInput) ? pinSelected : pin });
+			wires.push({ I: (pin.isInput) ? pin : pinSelected, O: (pin.isInput) ? pinSelected : pin });
+		}
 
 		// TEMP //
 		var con = pinSelected.svg.connectable({
@@ -573,11 +607,13 @@ var wireboardSourceStack = [];
 var componentEditStack = [];
 
 function startComponentEdit(component) {
-  wireboardSourceStack.push(sourceFromWireboard());
-  componentEditStack.push(component.constructor.name.replace('_Component',''));
-  wireboardFromSource(component.constructor.source);
+	if (component.constructor.source) {
+		wireboardSourceStack.push(sourceFromWireboard());
+	  componentEditStack.push(component.constructor.name.replace('_Component',''));
+	  wireboardFromSource(component.constructor.source);
 
-  drawEditbox();
+	  drawEditbox();
+	}
 }
 
 function endLastComponentEdit() {
@@ -899,7 +935,7 @@ setInterval(function() {
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {
 		} else {
-			//componentItem.update();
+			componentItem.update();
 		}
 	}
 	cycIdx++;
