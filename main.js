@@ -291,6 +291,23 @@ class OUTPUT extends Component {
   }
 }
 
+class CLOCK extends Component {
+  constructor(config = null) {
+    super(0, 1);
+
+    this.interval = 10;
+    this.lastTimestamp = Math.floor(Date.now());
+  }
+
+  execute() {
+  	var timestamp = Math.floor(Date.now());
+  	if ((timestamp - this.lastTimestamp) > this.interval) {
+  		this.outputs[0].value = !this.outputs[0].value;
+  		this.lastTimestamp = timestamp;
+  	}
+  }
+}
+
 class NOR_Component extends Component {
   constructor(config = null) {
   	var inputsCount = 2;
@@ -357,8 +374,15 @@ class RAM_Component extends Component {
 		this.minWidth = 10;
 
     this.ram = Array(Math.pow(2, 16)).fill(0);
-    this.ram[0xFFFC] = 0x10;
-    this.ram[0xFFFD] = 0x00;
+    this.ram[0xFFFC] = 0x00;
+    this.ram[0xFFFD] = 0x10;
+
+    this.ram[0x1000] = 0xE6;
+    this.ram[0x1001] = 0x00;
+
+    this.ram[0x1002] = 0x4C;
+    this.ram[0x1003] = 0x00;
+    this.ram[0x1004] = 0x10;
   }
 
   execute() {
@@ -417,6 +441,8 @@ class CPU6502_Component extends Component {
     this.cpu.md_component = this;
 
     this.cpu.read = function(addr) {
+    	//console.log('read @ ' + addr.toString(16));
+
     	this.md_component.outputs[24].value = 1; // Rw
 
 	  	for (var i = 0; i < 16; i++)
@@ -432,7 +458,18 @@ class CPU6502_Component extends Component {
     }
 
     this.cpu.write = function(addr, value) {
-      mem[addr & 0xFFFF] = value;
+    	//console.log('write ' + value.toString(16) + ' @ ' + addr.toString(16));
+
+	  	for (var i = 0; i < 16; i++)
+    		this.md_component.outputs[i + 8].value = (addr >> i) & 0x01;
+
+	  	for (var i = 0; i < 8; i++)
+    		this.md_component.outputs[i].value = (value >> i) & 0x01;
+
+	  	simStep();
+
+    	this.md_component.outputs[24].value = 0; // rW
+
     }
   }
 
@@ -887,7 +924,7 @@ function newComponentFromWireboard(componentName) {
 }
 
 // Project
-var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component };
+var toolbox = { 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'CLOCK': CLOCK, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component };
 drawToolbox();
 
 function drawToolbox() {
@@ -1005,9 +1042,12 @@ function simStep() {
 		}
 	}
 }
+
 setInterval(function() {
 	simStep();
+}, 5);
 
+setInterval(function() {
 	for (var idx = 0; idx < components.length; idx++) {
 		var componentItem = components[idx];
 
