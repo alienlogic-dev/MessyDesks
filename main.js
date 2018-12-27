@@ -228,7 +228,24 @@ var wiresSVG = new SVG.G();
 
 // Selection
 $(document).keydown(function(e) {
-	if (e.keyCode == 8) { // Delete selected components
+	//console.log(e.keyCode);
+	if ((e.keyCode == 79) && e.metaKey) { // CMD/CTRL + O -> Open project
+		$('#file').click();
+		return false;
+	}
+
+	if ((e.keyCode == 83) && e.metaKey) { // CMD/CTRL + S -> Save project
+		saveProjectToFile();
+		return false;
+	}
+
+	if ((e.keyCode == 65) && e.metaKey) { // CMD/CTRL + A -> Select all
+		for (var idx in components)
+			components[idx].select();
+		return false;
+	}
+
+	if (e.keyCode == 8) { // DEL -> Delete selected components
 		for (var idx = components.length - 1; idx >= 0; idx--) {
 			var componentItem = components[idx];
 
@@ -238,13 +255,16 @@ $(document).keydown(function(e) {
 				components.splice(idx, 1);
 			}
 		}
+		return false;
 	}
 });
+
 draw.on('click', function(e) {
 	var clickedComponent = null;
 
-	for (var idx in components)
-		components[idx].deselect();
+	if (!e.metaKey) // Use CMD or CTRL key for multiple selection
+		for (var idx in components)
+			components[idx].deselect();
 
 	for (var idx in components) {
 		if (pointInRect(e, components[idx].svg.rbox())) {
