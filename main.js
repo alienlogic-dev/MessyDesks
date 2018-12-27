@@ -208,7 +208,9 @@ class Component {
 }
 
 // initialize SVG.js
-var draw = SVG('drawing').size(1024, 1024);
+var wireboardWidth = 256;
+var wireboardHeight = 256;
+var draw = SVG('drawing').size(wireboardWidth*8, wireboardHeight*8);
 
 var links = new SVG.G();
 var markers = new SVG.G();
@@ -626,12 +628,11 @@ var openFile = function(event) {
 function initWireboard() {
 	draw.clear();
 
-	// Draw grid
-	for (x = 0; x < 128; x++)
-		draw.line(x*8, 0, x*8, 1024).stroke({ opacity: 0.1, width: 1 });
-
-	for (y = 0; y < 128; y++)
-		draw.line(0, y*8, 1024, y*8).stroke({ opacity: 0.1, width: 1 });
+	var pattern = draw.pattern(8, 8, function(add) {
+		add.line(8, 0, 8, 8).stroke('#ddd');
+		add.line(0, 8, 8, 8).stroke('#ddd');
+	})
+	draw.rect(wireboardWidth*8, wireboardHeight*8).fill(pattern);
 
 	// Clear wire drawings
 	links.clear();

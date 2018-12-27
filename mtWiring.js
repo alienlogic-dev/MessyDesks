@@ -13,28 +13,38 @@ class WireConnection {
 	}
 
 	update() {
-		var fromPos = this.from.rbox();
-		var toPos = this.to.rbox();
+		var fromPos = this.from;
+		var toPos = this.to;
 
-		if (toPos.cx < fromPos.cx) {
-			var t = toPos;
-			toPos = fromPos;
-			fromPos = t;
+		var fcx = fromPos.cx() + this.from.parent().x();
+		var fcy = fromPos.cy() + this.from.parent().y();
+
+		var tcx = toPos.cx() + this.to.parent().x();
+		var tcy = toPos.cy() + this.to.parent().y();
+
+		if (tcx < fcx) {
+			var tx = tcx;
+			tcx = fcx;
+			fcx = tx;
+
+			var ty = tcy;
+			tcy = fcy;
+			fcy = ty;
 		}
 
 		var newPath = 'Mfcx,fcy Cxa,ya xb,yb tcx,tcy';
 		newPath = newPath
-						.replace('fcx', fromPos.cx)
-						.replace('fcy', fromPos.cy)
+						.replace('fcx', fcx)
+						.replace('fcy', fcy)
 
-						.replace('xa', ((fromPos.cx + toPos.cx) / 2) - 10)
-						.replace('ya', fromPos.cy)
+						.replace('xa', ((fcx + tcx) / 2) - 10)
+						.replace('ya', fcy)
 
-						.replace('xb', ((fromPos.cx + toPos.cx) / 2) + 10)
-						.replace('yb', toPos.cy)
+						.replace('xb', ((fcx + tcx) / 2) + 10)
+						.replace('yb', tcy)
 
-						.replace('tcx', toPos.cx)
-						.replace('tcy', toPos.cy);
+						.replace('tcx', tcx)
+						.replace('tcy', tcy);
 		this.svg.plot(newPath);
 	}
 
