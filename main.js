@@ -201,6 +201,8 @@ class Component {
   getOut(index) {
   	if (cycIdx > this.exeIdx) {
   		this.execute();
+  		for (var i = 0; i < this.inputs.length; i++)
+  			this.inputs[i].value = null;
   		this.exeIdx++;
   	}
   	return this.outputs[index].value;
@@ -471,7 +473,7 @@ function drawEditbox() {
 function compileSource(componentName, source) {
 	var compiledCode = [];
 
-	compiledCode.push('class ' + componentName + '_Component extends Component {');
+	compiledCode.push(`class ${componentName}_Component extends Component {`);
 
 	// Create constructor
 	compiledCode.push('\tconstructor() {');
@@ -492,7 +494,7 @@ function compileSource(componentName, source) {
 			outputPinCount++;
 		}
 	}
-	compiledCode.push('\t\tsuper(' + JSON.stringify(inputAliases) + ', ' + JSON.stringify(outputAliases) + ');');
+	compiledCode.push(`\t\tsuper(${JSON.stringify(inputAliases)}, ${JSON.stringify(outputAliases)});`);
 
 	compiledCode.push('\t}');
 
@@ -512,7 +514,7 @@ function compileSource(componentName, source) {
 		} else if (componentItem.name == 'OUTPUT') {
 			instanceName = outputPinIndex++;
 		} else {
-			compiledCode.push('\t\tthis.' + instanceName + ' = new ' + componentItem.name + '(' + JSON.stringify(componentItem.config) + ');');
+			compiledCode.push(`\t\tthis.${instanceName} = new ${componentItem.name}(${JSON.stringify(componentItem.config)});`);
 		}
 
 		aliases[componentItem.id] = instanceName;
@@ -535,12 +537,12 @@ function compileSource(componentName, source) {
 			var componentO = source.components.filter(t => t.id == pinO.component)[0];
 
 			if (componentO.name == 'INPUT') {
-				var	outCode = 'this.inputs[' + aliases[componentO.id] + '].value';
+				var	outCode = `this.inputs[${aliases[componentO.id]}].value`;
 
-				var inCode = 'this.' + aliases[pinI.component] + '.setIn(' + pinI.pin + ', ' + outCode + ')';
+				var inCode = `this.${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
 
 				if (componentI.name == 'OUTPUT')
-					inCode = 'this.outputs[' + aliases[componentI.id] + '].value' + ' = ' + outCode;
+					inCode = `this.outputs[${aliases[componentI.id]}].value = ${outCode}`;
 
 				compiledCode.push( '\t\t' + inCode + ';' );
 
@@ -560,9 +562,9 @@ function compileSource(componentName, source) {
 			var componentO = source.components.filter(t => t.id == pinO.component)[0];
 
 			if ((componentI.name != 'OUTPUT') && (componentI.name != 'OUTPUT')) {
-				var outCode = 'this.' + aliases[pinO.component] + '.getOut(' + pinO.pin + ')';
+				var outCode = `this.${aliases[pinO.component]}.getOut(${pinO.pin})`;
 
-				var inCode = 'this.' + aliases[pinI.component] + '.setIn(' + pinI.pin + ', ' + outCode + ')';
+				var inCode = `this.${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
 
 				compiledCode.push( '\t\t' + inCode + ';' );
 
@@ -583,12 +585,12 @@ function compileSource(componentName, source) {
 
 
 			if (componentI.name == 'OUTPUT') {
-				var outCode = 'this.' + aliases[pinO.component] + '.getOut(' + pinO.pin + ')';
+				var outCode = `this.${aliases[pinO.component]}.getOut(${pinO.pin})`;
 
 				if (componentO.name == 'INPUT')
-					outCode = 'this.inputs[' + aliases[componentO.id] + '].value';
+					outCode = `this.inputs[${aliases[componentO.id]}].value`;
 
-				var inCode = 'this.outputs[' + aliases[componentI.id] + '].value' + ' = ' + outCode;
+				var inCode = `this.outputs[${aliases[componentI.id]}].value = ${outCode}`;
 
 				compiledCode.push( '\t\t' + inCode + ';' );
 
@@ -688,17 +690,20 @@ function saveProjectToFile() {
 		download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
 }
 
-function compile() {
+function compile(lang) {
+	var cs = compileSource;
+	if (lang == 'c++') cs = cpp_compiler.compileSource;
+
 	var compiledCode = [];
 	for (var idx in toolbox) {
 		var toolboxItem = toolbox[idx];
 		if (toolboxItem.source) {
-			var toolboxCode = compileSource(idx.replace('_Component', ''), toolboxItem.source);
+			var toolboxCode = cs(idx.replace('_Component', ''), toolboxItem.source);
 			compiledCode.push(toolboxCode);
 		}
 	}
 
-	var wireboardCode = compileSource('MAIN', sourceFromWireboard());
+	var wireboardCode = cs('MAIN', sourceFromWireboard());
 	compiledCode.push(wireboardCode);
 
 	var compiledCodeString = compiledCode.join('\n');
