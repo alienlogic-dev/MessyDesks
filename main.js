@@ -170,7 +170,8 @@ class Component {
   	else
   		if (e.altKey) {
   			var wire = wires.filter(t => (t.I === this) || (t.O === this));
-  			removeWire(wire[0]);
+ 				for (var idx in wire)
+  				removeWire(wire[idx]);
   		}
   		else
   			if (this.component.pinClicked) this.component.pinClicked(this);
@@ -203,7 +204,7 @@ class Component {
   		this.execute();
   		for (var i = 0; i < this.inputs.length; i++)
   			this.inputs[i].value = null;
-  		this.exeIdx++;
+  		this.exeIdx = cycIdx;
   	}
   	return this.outputs[index].value;
   }
@@ -335,10 +336,10 @@ function pinClicked(pin) {
 	}
 }
 function removeWire(wire) {
-	var idx = wires.indexOf(wire);
-	wires.splice(idx, 1);
 	wire.O.con.remove();
 	wire.I.con.remove();
+	var idx = wires.indexOf(wire);
+	wires.splice(idx, 1);
 }
 function removeWiresFromComponent(component) {
 	for (var idx = wires.length - 1; idx >= 0; idx--) {
@@ -627,9 +628,6 @@ function newComponentFromSource(componentName, source) {
 
 	toolbox[componentName + '_Component'] = ret;
 	drawToolbox();
-	initWireboard();
-	components = [];
-	wires = [];
 
 	// Add component source as static
 	ret.source = componentSource;
@@ -637,6 +635,21 @@ function newComponentFromSource(componentName, source) {
 
 function newComponentFromWireboard(componentName) {
 	newComponentFromSource(componentName, sourceFromWireboard());
+	initWireboard();
+	components = [];
+	wires = [];
+}
+
+function newEmptyComponent() {
+	var name = prompt('Enter new component name', 'empty');
+	if ((name != null) && (name != ""))
+		if (name in toolbox)
+			alert('Component alredy exists!');
+		else
+			newComponentFromSource(name, {
+				components: [],
+				wires: []
+			});
 }
 
 // Project
