@@ -704,8 +704,12 @@ function saveProjectToFile() {
 }
 
 function compile(lang) {
+	var fr = function(){return ''};
 	var cs = compileSource;
-	if (lang == 'c++') cs = cpp_compiler.compileSource;
+	if (lang == 'c++') {
+		cs = cpp_compiler.compileSource;
+		fr = cpp_compiler.framework;
+	}
 
 	var compiledCode = [];
 	for (var idx in toolbox) {
@@ -719,7 +723,7 @@ function compile(lang) {
 	var wireboardCode = cs('MAIN', sourceFromWireboard());
 	compiledCode.push(wireboardCode);
 
-	var compiledCodeString = compiledCode.join('\n');
+	var compiledCodeString = fr() + '\n\n' + compiledCode.join('\n');
 	console.log(compiledCodeString);
 }
 
