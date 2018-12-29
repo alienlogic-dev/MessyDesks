@@ -635,5 +635,88 @@ class DEC2BIN_Component extends Component {
   }
 }
 
-var toolbox = { 'CONST': CONST, 'INPUT': INPUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'R_TRIG': R_TRIG, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
+class PIN_IN extends Component {
+  constructor(config = null) {
+    super(0, 1);
+
+    this.pinNumber = 0;
+    if (config)
+      this.pinNumber = config.pinNumber;
+  }
+
+  dblClickEvent(e) {
+    if (e.shiftKey)
+      this.pinNumber--;
+    else
+      this.pinNumber++;
+    this.aliasSVG.text(this.pinNumber.toString());
+  }
+
+  drawBody(wpx, hpx) {
+    this.svgBody = this.svg.rect(wpx, hpx)
+      .radius(2)
+      .move(0, 0)
+      .fill('#cccccc')
+      .stroke({ color: '#666666', width: 2 });
+
+    this.aliasSVG = this.svg
+      .text(this.pinNumber.toString())
+      .font({
+              family:   'Menlo'
+            , size:     12
+            , anchor:   'middle'
+            })
+      .move(wpx / 2, -15);
+  }
+
+  getConfig() {
+    return {
+      alias: this.pinNumber
+    };
+  }
+}
+
+class PIN_OUT extends Component {
+  constructor(config = null) {
+    super(1, 0);
+
+    this.pinNumber = 0;
+    if (config)
+      this.pinNumber = config.pinNumber;
+  }
+
+  dblClickEvent(e) {
+    if (e.shiftKey)
+      this.pinNumber--;
+    else
+      this.pinNumber++;
+    this.aliasSVG.text(this.pinNumber.toString());
+  }
+
+  drawBody(wpx, hpx) {
+    this.svgBody = this.svg.rect(wpx, hpx)
+      .radius(2)
+      .move(0, 0)
+      .fill('#cccccc')
+      .stroke({ color: '#666666', width: 2 });
+
+    this.aliasSVG = this.svg
+      .text(this.pinNumber.toString())
+      .font({
+              family:   'Menlo'
+            , size:     12
+            , anchor:   'middle'
+            })
+      .move(wpx / 2, -15);
+  }
+
+  getConfig() {
+    return {
+      alias: this.pinNumber
+    };
+  }
+}
+
+var toolbox = { 'CONST': CONST, 'PIN_IN': PIN_IN, 'INPUT': INPUT, 'PIN_OUT': PIN_OUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'R_TRIG': R_TRIG, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
+
 drawToolbox();
