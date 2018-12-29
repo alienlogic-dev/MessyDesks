@@ -1,3 +1,4 @@
+const prompt = require('electron-prompt');
 
 class Pin {
 	constructor(component, ID, name, isInput = true, isBidirectional = false) {
@@ -282,7 +283,7 @@ draw.on('click', function(e) {
 					clickedComponent.deselect();
 				else
 					clickedComponent.select();
-					
+
 			break;
 		}
 	}
@@ -649,15 +650,22 @@ function newComponentFromWireboard(componentName) {
 }
 
 function newEmptyComponent() {
-	var name = prompt('Enter new component name', 'empty');
-	if ((name != null) && (name != ""))
-		if (name in toolbox)
-			alert('Component alredy exists!');
-		else
-			newComponentFromSource(name, {
-				components: [],
-				wires: []
-			});
+
+	prompt({
+	    title: 'Enter new component name',
+	    value: 'empty'
+	})
+	.then((name) => {
+		if ((name != null) && (name != ""))
+			if (name in toolbox)
+				alert('Component alredy exists!');
+			else
+				newComponentFromSource(name, {
+					components: [],
+					wires: []
+				});
+	})
+	.catch(console.error);
 }
 
 // Project

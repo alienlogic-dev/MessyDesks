@@ -28,6 +28,8 @@
 #define MAXGPIO 16
 static const uint8_t gpioports[MAXGPIO] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static const uint8_t gpiopins[MAXGPIO] = {24, 7, 2, 6, 8, 9, 18, 19, 20, 23, 16, 22, 11, 12, 13, 14};
+bool gpio_in_values[MAXGPIO];
+bool gpio_out_values[MAXGPIO];
 
 void setGPIOAsOutput(uint8_t idx, bool asOutput) {
     if (idx < MAXGPIO)
@@ -47,6 +49,25 @@ bool readGPIO(uint8_t idx) {
         return Chip_GPIO_GetPinState(LPC_GPIO, gpioports[idx], gpiopins[idx]);
     return false;
 }
+
+void marshalling_IN() {
+    for (uint32_t idx = MAXGPIO - 1; idx > 0; idx--)
+        gpio_in_values[idx] = Chip_GPIO_GetPinState(LPC_GPIO, gpioports[idx], gpiopins[idx]);
+}
+
+void marshalling_OUT() {
+    uint32_t t[10];
+
+    t[0] = 0;
+    for (uint32_t idx = 0; idx < MAXGPIO; idx++)
+        if (gpio_out_values[idx] > 0)
+            t[gpioports[idx]] |= (1 << gpiopins[idx]);
+
+    LPC_GPIO->PIN[0] = t[0];
+    //LPC_GPIO->PIN[1] = 0xff;
+    //LPC_GPIO->W[1] = t[1];
+}
+
 /* Board specific components */
 class PIN_IN: public Component {
   public:
@@ -58,7 +79,7 @@ class PIN_IN: public Component {
 
     void execute() {
         setGPIOAsOutput(pinNumber, false);
-        outputsData[0] = readGPIO(pinNumber);
+        outputsData[0] = gpio_in_values[pinNumber];
         this->outputs[0] = &outputsData[0];
     }
 };
@@ -75,14 +96,14 @@ class PIN_OUT: public Component {
         if (value) {
             inputs[index] = value;
             setGPIOAsOutput(pinNumber, true);
-            writeGPIO(pinNumber, *inputs[0]);
+            gpio_out_values[pinNumber] = *inputs[0];
         }
     }
 
     void execute() {
         setGPIOAsOutput(pinNumber, true);
         if (inputs[0])
-            writeGPIO(pinNumber, *inputs[0]);
+            gpio_out_values[pinNumber] = *inputs[0];
     }
 };
 
@@ -102,8 +123,8 @@ int main(void) {
 #endif
 #endif
     for (int i = 0; i < 16; i++) {
-        setGPIOAsOutput(i, false);
-    	writeGPIO(i, false);
+        setGPIOAsOutput(i, true);
+    	writeGPIO(i, true);
     }
 
     // TODO: insert code here
@@ -111,8 +132,10 @@ int main(void) {
     MAIN_Component test = MAIN_Component();
 
     while(1) {
+        marshalling_IN();
         cycIdx++;
         test.getOut(0);
+        marshalling_OUT();
     }
 
     // Force the counter to be placed into memory

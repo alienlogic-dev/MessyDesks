@@ -10,12 +10,13 @@ class CONST extends Component {
   }
 
   dblClickEvent(e) {
-    var value = prompt('Enter const value', this.value);
-
-    if ((value != null) && (value != "")) {
-      this.value = value;
-      this.valueSVG.text(this.value);
-    }
+    prompt('Enter const value', this.value)
+    .then((value) => {
+      if ((value != null) && (value != "")) {
+        this.value = value;
+        this.valueSVG.text(this.value.toString());
+      }
+    });
   }
 
   drawBody(wpx, hpx) {
@@ -26,7 +27,7 @@ class CONST extends Component {
       .stroke({ color: '#666666', width: 2 });
 
     this.valueSVG = this.svg
-      .text(this.value)
+      .text(this.value.toString())
       .font({
               family:   'Menlo'
             , size:     12
