@@ -671,7 +671,7 @@ class PIN_IN extends Component {
 
   getConfig() {
     return {
-      alias: this.pinNumber
+      pinNumber: this.pinNumber
     };
   }
 }
@@ -712,7 +712,7 @@ class PIN_OUT extends Component {
 
   getConfig() {
     return {
-      alias: this.pinNumber
+      pinNumber: this.pinNumber
     };
   }
 }

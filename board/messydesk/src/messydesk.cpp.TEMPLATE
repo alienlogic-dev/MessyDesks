@@ -1,0 +1,117 @@
+/*
+===============================================================================
+ Name        : main.c
+ Author      : $(author)
+ Version     :
+ Copyright   : $(copyright)
+ Description : main definition
+===============================================================================
+*/
+
+#if defined (__USE_LPCOPEN)
+#if defined(NO_BOARD_LIB)
+#include "chip.h"
+#else
+#include "board.h"
+#endif
+#endif
+
+//#include <cr_section_macros.h>
+
+// TODO: insert other include files here
+// TODO: insert other definitions and declarations here
+/* Start of Framework for MessyDesk */
+###DESK_FRAMEWORK###
+/* End of Framework for MessyDesk */
+
+/* Board Abstraction Logic */
+#define MAXGPIO 16
+static const uint8_t gpioports[MAXGPIO] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static const uint8_t gpiopins[MAXGPIO] = {24, 7, 2, 6, 8, 9, 18, 19, 20, 23, 16, 22, 11, 12, 13, 14};
+
+void setGPIOAsOutput(uint8_t idx, bool asOutput) {
+    if (idx < MAXGPIO)
+        if (asOutput)
+            Chip_GPIO_SetPinDIROutput(LPC_GPIO, gpioports[idx], gpiopins[idx]);
+        else
+            Chip_GPIO_SetPinDIRInput(LPC_GPIO, gpioports[idx], gpiopins[idx]);
+}
+
+void writeGPIO(uint8_t idx, bool value) {
+    if (idx < MAXGPIO)
+        Chip_GPIO_SetPinState(LPC_GPIO, gpioports[idx], gpiopins[idx], value);
+}
+
+bool readGPIO(uint8_t idx) {
+    if (idx < MAXGPIO)
+        return Chip_GPIO_GetPinState(LPC_GPIO, gpioports[idx], gpiopins[idx]);
+    return false;
+}
+/* Board specific components */
+class PIN_IN: public Component {
+  public:
+    PIN_IN(uint8_t pin) : Component(0, 1) {
+        pinNumber = pin;
+    }
+
+    uint8_t pinNumber = 0;
+
+    void execute() {
+        setGPIOAsOutput(pinNumber, false);
+        outputsData[0] = readGPIO(pinNumber);
+        this->outputs[0] = &outputsData[0];
+    }
+};
+
+class PIN_OUT: public Component {
+  public:
+    PIN_OUT(uint8_t pin) : Component(1, 0) {
+        pinNumber = pin;
+    }
+
+    uint8_t pinNumber = 0;
+
+    void execute() {
+        setGPIOAsOutput(pinNumber, true);
+        if (inputs[0])
+            writeGPIO(pinNumber, *inputs[0]);
+    }
+};
+
+/* Start of Source code from MessyDesk */
+###DESK_WIREBOARD###
+/* End of Source code from MessyDesk */
+
+int main(void) {
+
+#if defined (__USE_LPCOPEN)
+    // Read clock settings and update SystemCoreClock variable
+    SystemCoreClockUpdate();
+#if !defined(NO_BOARD_LIB)
+    // Set up and initialize all required blocks and
+    // functions related to the board hardware
+    Board_Init();
+#endif
+#endif
+    for (int i = 0; i < 16; i++) {
+        setGPIOAsOutput(i, false);
+    	writeGPIO(i, false);
+    }
+
+    // TODO: insert code here
+
+    MAIN_Component test = MAIN_Component();
+
+    while(1) {
+        cycIdx++;
+        uint8_t data = *test.getOut(0);
+    }
+
+    // Force the counter to be placed into memory
+    volatile static int i = 0 ;
+    // Enter an infinite loop, just incrementing a counter
+    while(1) {
+        i++ ;
+    }
+    return 0 ;
+}

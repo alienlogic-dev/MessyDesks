@@ -724,7 +724,11 @@ function compile(lang) {
 	compiledCode.push(wireboardCode);
 
 	var compiledCodeString = fr() + '\n\n' + compiledCode.join('\n');
-	console.log(compiledCodeString);
+	return {
+		complete: compiledCodeString,
+		framework: fr(),
+		wireboard : compiledCode.join('\n')
+	};
 }
 
 var openFile = function(event) {
