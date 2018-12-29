@@ -50,7 +50,7 @@ class CONST: public Component {
     	outValue = value;
     }
 
-    uint8_t outValue = 0;
+    uint8_t outValue;
 
     void execute() {
       outputsData[0] = outValue;
@@ -173,8 +173,8 @@ class BCD_7Seg: public Component {
 				instanceName = outputPinIndex++;
 			} else {
 				compiledDefsCode.push(`\t\t${componentItem.name} ${instanceName};`);
-				console.log(componentItem.config);
-				compiledInstancesCode.push(`\t\t\t${instanceName}();`);
+				if (componentItem.config)
+					compiledInstancesCode.push(`${instanceName}(${Object.values(componentItem.config).join(',')})`);
 			}
 
 			aliases[componentItem.id] = instanceName;
@@ -196,7 +196,7 @@ class BCD_7Seg: public Component {
 				outputPinCount++;
 			}
 		}
-		compiledCode.push(`\t\t${componentName}_Component() : Component(${inputAliases.length}, ${outputAliases.length}) {}`);
+		compiledCode.push(`\t\t${componentName}_Component() : Component(${inputAliases.length}, ${outputAliases.length}) ${compiledInstancesCode.length ? ', ' : ''} ${compiledInstancesCode.join(', ')} {}`);
 
 		// Connect wires
 		compiledCode.push('\t\tvoid execute() {');
