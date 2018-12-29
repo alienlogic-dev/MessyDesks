@@ -44,7 +44,7 @@ all: messydesk.axf
 messydesk.axf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU C++ Linker'
-	../../../tools/bin/arm-none-eabi-c++ -nostdlib -L"/Users/chmod775/Documents/LPCXpresso_8.2.2/workspace/lpc_board_nxp_lpcxpresso_11u68/Debug" -L"/Users/chmod775/Documents/LPCXpresso_8.2.2/workspace/lpc_chip_11u6x/Debug" -Xlinker -Map="messydesk.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m0 -mthumb -T "messydesk_Debug.ld" -o "messydesk.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	../../../tools/bin/arm-none-eabi-c++ -nostdlib -L"../../lpc_board_nxp_lpcxpresso_11u68/Debug" -L"../../lpc_chip_11u6x/Debug" -Xlinker -Map="messydesk.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m0 -mthumb -T "messydesk_Debug.ld" -o "messydesk.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build

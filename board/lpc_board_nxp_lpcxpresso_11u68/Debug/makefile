@@ -29,7 +29,7 @@ all: liblpc_board_nxp_lpcxpresso_11u68.a
 liblpc_board_nxp_lpcxpresso_11u68.a: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Archiver'
-	arm-none-eabi-ar -r  "liblpc_board_nxp_lpcxpresso_11u68.a" $(OBJS) $(USER_OBJS) $(LIBS)
+	../../../tools/bin/arm-none-eabi-ar -r  "liblpc_board_nxp_lpcxpresso_11u68.a" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
@@ -41,7 +41,7 @@ clean:
 
 post-build:
 	-@echo 'Performing post-build steps'
-	-arm-none-eabi-size "liblpc_board_nxp_lpcxpresso_11u68.a" ; # arm-none-eabi-objdump -h -S "liblpc_board_nxp_lpcxpresso_11u68.a" >"liblpc_board_nxp_lpcxpresso_11u68.lss"
+	-../../../tools/bin/arm-none-eabi-size "liblpc_board_nxp_lpcxpresso_11u68.a" ; # arm-none-eabi-objdump -h -S "liblpc_board_nxp_lpcxpresso_11u68.a" >"liblpc_board_nxp_lpcxpresso_11u68.lss"
 	-@echo ' '
 
 .PHONY: all clean dependents

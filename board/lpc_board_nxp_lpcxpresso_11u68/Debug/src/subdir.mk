@@ -23,7 +23,7 @@ C_DEPS += \
 src/%.o: ../src/%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: MCU C Compiler'
-	arm-none-eabi-gcc -D__REDLIB__ -DDEBUG -D__CODE_RED -D__USE_LPCOPEN -DCORE_M0PLUS -D__USE_ROMDIVIDE -I"/Users/chmod775/Documents/LPCXpresso_8.2.2/workspace/lpc_chip_11u6x/inc" -I"/Users/chmod775/Documents/LPCXpresso_8.2.2/workspace/lpc_board_nxp_lpcxpresso_11u68/inc" -O0 -g3 -Wall -c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections -mcpu=cortex-m0 -mthumb -D__REDLIB__ -specs=redlib.specs -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	../../../tools/bin/arm-none-eabi-gcc -D__REDLIB__ -DDEBUG -D__CODE_RED -D__USE_LPCOPEN -DCORE_M0PLUS -D__USE_ROMDIVIDE -I"/Users/chmod775/Documents/LPCXpresso_8.2.2/workspace/lpc_chip_11u6x/inc" -I"/Users/chmod775/Documents/LPCXpresso_8.2.2/workspace/lpc_board_nxp_lpcxpresso_11u68/inc" -O0 -g3 -Wall -c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections -mcpu=cortex-m0 -mthumb -D__REDLIB__ -specs=redlib.specs -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

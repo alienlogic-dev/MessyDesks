@@ -112,7 +112,7 @@ int main(void) {
 
     while(1) {
         cycIdx++;
-        uint8_t data = *test.getOut(0);
+        test.getOut(0);
     }
 
     // Force the counter to be placed into memory
