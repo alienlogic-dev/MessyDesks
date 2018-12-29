@@ -1,1 +1,14 @@
 node_modules
+tools
+board/**/Debug/*
+!board/**/Debug/src/
+!board/**/Debug/*.mk
+!board/**/Debug/*.ld
+!board/**/Debug/makefile
+
+board/**/Debug/src/*
+!board/**/Debug/src/*.mk
+
+
+
+board/messydesk/src/messydesk.cpp
