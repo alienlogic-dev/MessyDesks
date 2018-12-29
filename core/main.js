@@ -274,7 +274,15 @@ draw.on('click', function(e) {
 	for (var idx in components) {
 		if (pointInRect(e, components[idx].svg.rbox())) {
 			clickedComponent = components[idx];
-			clickedComponent.select();
+
+			if (!e.metaKey)
+				clickedComponent.select();
+			else
+				if (clickedComponent.isSelected)
+					clickedComponent.deselect();
+				else
+					clickedComponent.select();
+					
 			break;
 		}
 	}
@@ -661,7 +669,7 @@ function drawToolbox() {
 
 	for (var idx in toolbox) {
 		var toolboxItem = toolbox[idx];
-		var newToolboxButton = '<button class="btn btn-outline-dark mr-2" onclick="addComponent(\'' + idx + '\')">' + idx.replace('_Component','') + '</button>';
+		var newToolboxButton = `<li class="list-group-item p-2 text-right" onclick="addComponent('${idx}')">${idx.replace('_Component','')}</li>`;
 		toolboxDiv.append(newToolboxButton);
 	}
 }
