@@ -7,32 +7,32 @@ class Component {
       inCount = inputsCount;  
       outCount = outputsCount;
 
-      inputs = new uint8_t*[inputsCount];
+      inputs = new uint32_t*[inputsCount];
       for (int idx = 0; idx < inCount; idx++)
       	inputs[idx] = NULL;
 
-      outputs = new uint8_t*[outputsCount];
+      outputs = new uint32_t*[outputsCount];
       for (int idx = 0; idx < outputsCount; idx++)
       	outputs[idx] = NULL;
 
-      outputsData = new uint8_t[outputsCount];
+      outputsData = new uint32_t[outputsCount];
 
       exeIdx = 0;
     }
 
     int inCount, outCount;
-    uint8_t** inputs;
-    uint8_t* outputsData;
-    uint8_t** outputs;
+    uint32_t** inputs;
+    uint32_t* outputsData;
+    uint32_t** outputs;
 
     unsigned int exeIdx;
 
-    void setIn(int index, uint8_t* value) {
+    void setIn(int index, uint32_t* value) {
     	if (value)
         inputs[index] = value;
     }
 
-    uint8_t* getOut(int index) {
+    uint32_t* getOut(int index) {
       if (cycIdx > exeIdx) {
         execute();
         for (int idx = 0; idx < inCount; idx++)
@@ -46,11 +46,11 @@ class Component {
 };
 class CONST: public Component {
   public:
-    CONST(uint8_t value) : Component(0, 1) {
+    CONST(uint32_t value) : Component(0, 1) {
     	outValue = value;
     }
 
-    uint8_t outValue;
+    uint32_t outValue;
 
     void execute() {
       outputsData[0] = outValue;
@@ -63,7 +63,7 @@ class NOR_Component: public Component {
     NOR_Component(int inputsCount) : Component((inputsCount > 2 ? inputsCount : 2), 1) {}
 
     void execute() {
-    	uint8_t res = 0;
+    	uint32_t res = 0;
     	if (inputs[0]) {
 				res = *inputs[0];
         for (int idx = 1; idx < inCount; idx++)
@@ -80,7 +80,7 @@ class BIN2DEC_Component: public Component {
     BIN2DEC_Component(int size) : Component((size > 2 ? size : 2), 1) {}
 
     void execute() {
-        uint8_t data = 0;
+        uint32_t data = 0;
         for (int idx = 0; idx < inCount; idx++)
         	if (inputs[idx])
             data = data | ((*inputs[idx]) ? (1 << idx) : 0);
@@ -96,7 +96,7 @@ class DEC2BIN_Component: public Component {
 
     void execute() {
     	if (inputs[0]) {
-        uint8_t data = *inputs[0];
+        uint32_t data = *inputs[0];
         for (int idx = 0; idx < outCount; idx++) {
           outputsData[idx] = (data >> idx) & 0x01;
         	this->outputs[idx] = &outputsData[idx];
@@ -109,7 +109,7 @@ class TRI_Component: public Component {
     TRI_Component() : Component(3, 1) {}
 
     void execute() {
-    	uint8_t *res = NULL;
+    	uint32_t *res = NULL;
     	if (inputs[2]) {
     		if (*inputs[2])
     			res = inputs[1];
@@ -123,10 +123,10 @@ class R_TRIG: public Component {
     	lastValue = 0;
     }
 
-    uint8_t lastValue;
+    uint32_t lastValue;
 
     void execute() {
-    	uint8_t val = 0;
+    	uint32_t val = 0;
     	if (inputs[0])
     		val = *inputs[0];
 
