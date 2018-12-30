@@ -458,7 +458,7 @@ function startComponentEdit(component) {
 		inSiliconMode = false;
 
 		wireboardSourceStack.push(sourceFromWireboard());
-	  componentEditStack.push(component.constructor.name.replace('_Component',''));
+	  componentEditStack.push(component.constructor.name);
 	  wireboardFromSource(component.constructor.source);
 
 	  drawEditbox();
@@ -466,7 +466,7 @@ function startComponentEdit(component) {
 		inSiliconMode = true;
 
 		wireboardSourceStack.push(sourceFromWireboard());
-	  componentEditStack.push(component.constructor.name.replace('_Component',''));
+	  componentEditStack.push(component.constructor.name);
 
 	  // Clear the wireboard
 		initWireboard();
@@ -480,7 +480,8 @@ function startComponentEdit(component) {
 function endLastComponentEdit() {
 	if (wireboardSourceStack.length > 0) {
 		if (inSiliconMode) {
-			applyComponentSilicon(componentEditStack[componentEditStack.length - 1], myCodeMirror.doc.getValue());
+			var ret = applyComponentSilicon(componentEditStack[componentEditStack.length - 1], myCodeMirror.doc.getValue());
+			ret.source = null;
 		} else
 			newComponentFromWireboard(componentEditStack[componentEditStack.length - 1]);
 
@@ -506,7 +507,7 @@ function switchToSilicon() {
 function compileSource(componentName, source) {
 	var compiledCode = [];
 
-	compiledCode.push(`class ${componentName}_Component extends Component {`);
+	compiledCode.push(`class ${componentName} extends Component {`);
 
 	// Create constructor
 	compiledCode.push('\tconstructor() {');
@@ -647,7 +648,7 @@ function newComponentFromSource(componentName, source) {
 	var componentSource = source;
 	var componentCode = compileSource(componentName, componentSource);
 
-	var ret = applyComponentSilicon(componentName + '_Component', componentCode);
+	var ret = applyComponentSilicon(componentName, componentCode);
 
 	// Add component source as static
 	ret.source = componentSource;
@@ -659,7 +660,6 @@ function newComponentFromWireboard(componentName) {
 	wires = [];
 }
 function newEmptyComponent() {
-
 	prompt({
 	    title: 'Enter new component name',
 	    value: 'empty'
@@ -698,7 +698,7 @@ function saveProject() {
 		var toolboxItem = toolbox[idx];
 
 		if (toolboxItem.source)
-			project.toolbox[idx.replace('_Component', '')] = toolboxItem.source;
+			project.toolbox[idx] = toolboxItem.source;
 	}
 
 	// Source from wireboard
@@ -732,7 +732,7 @@ function drawEditbox() {
   if (componentEditStack.length > 0) $('#editbox').removeClass('hidden'); else $('#editbox').addClass('hidden');
   $('#editbox .breadcrumb').html('');
   for (var idx in componentEditStack)
-  	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx] + '</li>');
+  	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx].replace('_Component','') + '</li>');
   drawSiliconbox();
 }
 function drawSiliconbox() {
@@ -773,7 +773,7 @@ function compile(lang) {
 	for (var idx in toolbox) {
 		var toolboxItem = toolbox[idx];
 		if (toolboxItem.source) {
-			var toolboxCode = cs(idx.replace('_Component', ''), toolboxItem.source);
+			var toolboxCode = cs(idx, toolboxItem.source);
 			compiledCode.push(toolboxCode);
 		}
 	}
