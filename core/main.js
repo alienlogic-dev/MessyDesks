@@ -34,8 +34,12 @@ class Component {
 		// Insert bidirectional pins
 		if (biList instanceof Array)
 			for (var i = 0; i < biList.length; i++) {
-				this.inputs.push(new Pin(this, inputIdx++, biList[i], true, true));
-				this.outputs.push(new Pin(this, outputIdx++, biList[i], false, true));
+				var pinName = biList[i];
+				if (pinName.length > 0)
+					if (this[pinName] === undefined)
+						this[pinName] = null;
+				this.inputs.push(new Pin(this, inputIdx++, pinName, true, true));
+				this.outputs.push(new Pin(this, outputIdx++, pinName, false, true));
 			}
 		else
 			for (var i = 0; i < biList; i++){
@@ -45,16 +49,26 @@ class Component {
 
 		// Create list of inputs
 		if (inputsList instanceof Array)
-			for (var i = 0; i < inputsList.length; i++)
-				this.inputs.push(new Pin(this, inputIdx++, inputsList[i], true));
+			for (var i = 0; i < inputsList.length; i++) {
+				var pinName = inputsList[i];
+				if (pinName.length > 0)
+					if (this[pinName] === undefined)
+						this[pinName] = null;
+				this.inputs.push(new Pin(this, inputIdx++, pinName, true));
+			}
 		else
 			for (var i = 0; i < inputsList; i++)
 				this.inputs.push(new Pin(this, inputIdx++, '', true));
 
 		// Create list of outputs
 		if (outputsList instanceof Array)
-			for (var i = 0; i < outputsList.length; i++)
-				this.outputs.push(new Pin(this, outputIdx++, outputsList[i], false));
+			for (var i = 0; i < outputsList.length; i++) {
+				var pinName = outputsList[i];
+				if (pinName.length > 0)
+					if (this[pinName] === undefined)
+						this[pinName] = null;
+				this.outputs.push(new Pin(this, outputIdx++, pinName, false));
+			}
 		else
 			for (var i = 0; i < outputsList; i++)
 				this.outputs.push(new Pin(this, outputIdx++, '', false));
@@ -195,14 +209,37 @@ class Component {
   /* Config */
   getConfig() { return null; }
 
-  /* Runtime */
+  /* Runtime */  
+  marshallingInputs() {
+  	for (var idx = 0; idx < this.inputs.length; idx++) {
+  		var pinName = this.inputs[idx].name;
+  		if (pinName.length > 0)
+	  		if (this[pinName] !== undefined)
+	  			this[pinName] = this.inputs[idx].value;
+  	}
+  }
+
+  marshallingOutputs() {
+  	for (var idx = 0; idx < this.outputs.length; idx++) {
+  		var pinName = this.outputs[idx].name;
+	  	if (pinName.length > 0)
+	  		if (this[pinName] !== undefined)
+		  		if (this[pinName] !== null)
+		  			this.outputs[idx].value = this[pinName];
+  	}
+  }
+
   execute() {}
 
   getOut(index) {
   	if (cycIdx > this.exeIdx) {
+  		this.marshallingInputs();
   		this.execute();
+  		this.marshallingOutputs();
+
   		for (var i = 0; i < this.inputs.length; i++)
   			this.inputs[i].value = null;
+
   		this.exeIdx = cycIdx;
   	}
   	return this.outputs[index].value;
