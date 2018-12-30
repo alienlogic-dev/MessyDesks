@@ -725,6 +725,8 @@ function saveProject() {
 
 		if (toolboxItem.source)
 			project.toolbox[idx] = toolboxItem.source;
+		else
+			project.toolbox[idx] = { silicon: toolboxItem.toString() };
 	}
 
 	// Source from wireboard
@@ -738,7 +740,10 @@ function loadProject(projectJSON) {
 	// Load the toolbox
 	for (var idx in project.toolbox) {
 		var toolboxItem = project.toolbox[idx];
-		newComponentFromSource(idx, toolboxItem);
+		if (toolboxItem.silicon)
+			applyComponentSilicon(idx, toolboxItem.silicon);
+		else
+			newComponentFromSource(idx, toolboxItem);
 	}
 
 	wireboardFromSource(project.source);
@@ -783,7 +788,7 @@ function saveProjectToFile() {
 	//prompt('Enter project filename', 'project')
 	//.then((filename) => {
 	//	if ((filename != null) && (filename != ""))
-	download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
+	download(JSON.stringify(saveProject()), 'project.prj', 'text/plain');
 	//});
 }
 
