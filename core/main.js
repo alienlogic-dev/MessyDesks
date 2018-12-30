@@ -454,36 +454,32 @@ function wireboardFromSource(source) {
 var wireboardSourceStack = [];
 var componentEditStack = [];
 function startComponentEdit(component) {
+	wireboardSourceStack.push(sourceFromWireboard());
+  componentEditStack.push(component);
+
 	if (component.constructor.source) {
 		inSiliconMode = false;
-
-		wireboardSourceStack.push(sourceFromWireboard());
-	  componentEditStack.push(component.constructor.name);
 	  wireboardFromSource(component.constructor.source);
-
-	  drawEditbox();
+		drawEditbox();
 	} else {
 		inSiliconMode = true;
-
-		wireboardSourceStack.push(sourceFromWireboard());
-	  componentEditStack.push(component.constructor.name);
 
 	  // Clear the wireboard
 		initWireboard();
 		components = [];
 		wires = [];
 
-	  drawEditbox();
+		drawEditbox();
 		myCodeMirror.doc.setValue(component.constructor.toString());
 	}
 }
 function endLastComponentEdit() {
 	if (wireboardSourceStack.length > 0) {
 		if (inSiliconMode) {
-			var ret = applyComponentSilicon(componentEditStack[componentEditStack.length - 1], myCodeMirror.doc.getValue());
+			var ret = applyComponentSilicon(componentEditStack[componentEditStack.length - 1].constructor.name, myCodeMirror.doc.getValue());
 			ret.source = null;
 		} else
-			newComponentFromWireboard(componentEditStack[componentEditStack.length - 1]);
+			newComponentFromWireboard(componentEditStack[componentEditStack.length - 1].constructor.name);
 
 		var lastSource = wireboardSourceStack[wireboardSourceStack.length - 1];
 		wireboardFromSource(lastSource);
@@ -499,8 +495,20 @@ function endLastComponentEdit() {
 
 var inSiliconMode = false;
 function switchToSilicon() {
+	if ((inSiliconMode == false) && (components.length > 0))
+		if (!confirm('Do you want to switch to Silicon code?\nWARNING: Cannot be undone.'))
+			return;
+
+	if (inSiliconMode)
+		if (!confirm('Do you want to switch back to blocks?\nWARNING: All the logic will be lost.'))
+			return;
+
 	inSiliconMode = !inSiliconMode;
 	drawSiliconbox();
+	if (inSiliconMode) {
+		var ret = newComponentFromWireboard(componentEditStack[componentEditStack.length - 1].constructor.name);
+		myCodeMirror.doc.setValue(ret.toString());
+	}
 }
 
 // Compiler
@@ -652,12 +660,17 @@ function newComponentFromSource(componentName, source) {
 
 	// Add component source as static
 	ret.source = componentSource;
+
+	return ret;
 }
 function newComponentFromWireboard(componentName) {
-	newComponentFromSource(componentName, sourceFromWireboard());
+	var ret = newComponentFromSource(componentName, sourceFromWireboard());
+
 	initWireboard();
 	components = [];
 	wires = [];
+
+	return ret;
 }
 function newEmptyComponent() {
 	prompt({
@@ -732,16 +745,16 @@ function drawEditbox() {
   if (componentEditStack.length > 0) $('#editbox').removeClass('hidden'); else $('#editbox').addClass('hidden');
   $('#editbox .breadcrumb').html('');
   for (var idx in componentEditStack)
-  	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx].replace('_Component','') + '</li>');
+  	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx].constructor.name.replace('_Component','') + '</li>');
   drawSiliconbox();
 }
 function drawSiliconbox() {
-	if ((wireboardSourceStack.length > 0) && (components.length == 0))
+	if ((wireboardSourceStack.length > 0))
 		$('#btnSwitchToSilicon').removeClass('hide');
 	else
 		$('#btnSwitchToSilicon').addClass('hide');
 
-	if (inSiliconMode && (wireboardSourceStack.length > 0) && (components.length == 0)){
+	if (inSiliconMode && (wireboardSourceStack.length > 0)){
 		$(myCodeMirror.getWrapperElement()).removeClass('hide');
 		$('#drawing').addClass('hide');
 		$('#btnSwitchToSilicon').addClass('btn-dark');
