@@ -45,7 +45,7 @@
       .editbox {
         font-size: 1em;
       }
-      .editbox.hidden > button {
+      .editbox.hidden > div {
         display: none;
       }
       .editbox.hidden > ol {
@@ -123,8 +123,10 @@
     <div class="workbox">
       <div class="toolbox p-2 d-flex justify-content-between">
         <div id="editbox" class="editbox hidden">
-          <button class="btn btn-primary float-left mr-2 hidden" onclick="endLastComponentEdit()"><i class="fas fa-check"></i></button>
-
+          <div class="btn-group float-left mr-2 hidden" role="group">
+            <button class="btn btn-dark" onclick="cancelLastComponentEdit()"><i class="fas fa-times"></i></button>
+            <button class="btn btn-primary" onclick="endLastComponentEdit()"><i class="fas fa-check"></i></button>
+          </div>
           <ol class="breadcrumb m-0 p-2 pl-3 pr-3 hidden">
             <li class="breadcrumb-item">test</li>
             <li class="breadcrumb-item">test</li>

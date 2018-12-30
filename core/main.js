@@ -473,6 +473,19 @@ function startComponentEdit(component) {
 		myCodeMirror.doc.setValue(component.constructor.toString());
 	}
 }
+function cancelLastComponentEdit() {
+	if (wireboardSourceStack.length > 0) {
+		var lastSource = wireboardSourceStack[wireboardSourceStack.length - 1];
+		wireboardFromSource(lastSource);
+
+		wireboardSourceStack.splice(-1, 1);
+		componentEditStack.splice(-1, 1);
+	}
+	else
+		console.error('No editing pending!');
+
+	drawEditbox();
+}
 function endLastComponentEdit() {
 	if (wireboardSourceStack.length > 0) {
 		if (inSiliconMode) {
