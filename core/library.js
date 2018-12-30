@@ -718,6 +718,7 @@ class PIN_OUT extends Component {
   }
 }
 
+var toolbox_original = { 'CONST': CONST, 'PIN_IN': PIN_IN, 'INPUT': INPUT, 'PIN_OUT': PIN_OUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'R_TRIG': R_TRIG, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
 var toolbox = { 'CONST': CONST, 'PIN_IN': PIN_IN, 'INPUT': INPUT, 'PIN_OUT': PIN_OUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'R_TRIG': R_TRIG, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
 
 drawToolbox();

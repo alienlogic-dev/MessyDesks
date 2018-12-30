@@ -722,11 +722,14 @@ function saveProject() {
 	// Source of toolbox components
 	for (var idx in toolbox) {
 		var toolboxItem = toolbox[idx];
+		var toolboxItem_original = toolbox_original[idx];
 
-		if (toolboxItem.source)
-			project.toolbox[idx] = toolboxItem.source;
-		else
-			project.toolbox[idx] = { silicon: toolboxItem.toString() };
+		if (toolboxItem !== toolboxItem_original) {
+			if (toolboxItem.source)
+				project.toolbox[idx] = toolboxItem.source;
+			else
+				project.toolbox[idx] = { silicon: toolboxItem.toString() };
+		} 
 	}
 
 	// Source from wireboard
