@@ -59,6 +59,14 @@
         margin-top: 50px;
         height: calc(100vh - 50px);
       }
+
+      .compilerbox {
+        position: fixed;
+        left: 150px;
+        right: 0;
+        bottom: 0;
+        z-index: 100;
+      }
     </style>
     <style type="text/css">
       .inputfile {
@@ -144,6 +152,11 @@
       
       <div id="drawing" class="wireboard"></div>
       <textarea id="siliconCodeArea" class="hide">function test() { var a = 'abc'; }</textarea>
+    
+      <div class="compilerbox p-2 hide">
+        <button class="btn btn-primary" onclick="selectCompilerCode('js')">JS</button>
+        <button class="btn btn-light" onclick="selectCompilerCode('cpp')">C++</button>
+      </div>
     </div>
 
 

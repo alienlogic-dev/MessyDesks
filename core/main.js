@@ -488,6 +488,14 @@ function wireboardFromSource(source) {
 	}
 }
 
+var siliconCodes = {};
+var selectedSiliconCode = 'js';
+function selectCompilerCode(lang) {
+	siliconCodes[selectedSiliconCode] = myCodeMirror.doc.getValue();
+	selectedSiliconCode = lang;
+	myCodeMirror.doc.setValue(siliconCodes[selectedSiliconCode]);
+}
+
 var wireboardSourceStack = [];
 var componentEditStack = [];
 function startComponentEdit(component) {
@@ -507,7 +515,15 @@ function startComponentEdit(component) {
 		wires = [];
 
 		drawEditbox();
-		myCodeMirror.doc.setValue(component.constructor.toString());
+
+		selectedSiliconCode = 'js';
+		siliconCodes['js'] = component.constructor.toString();
+		siliconCodes['cpp'] = component.constructor.cpp;
+
+		myCodeMirror.doc.setValue(siliconCodes['js']);
+
+		if (component.constructor.cpp)
+			$('.compilerbox').removeClass('hide');
 	}
 }
 function cancelLastComponentEdit() {
@@ -527,7 +543,10 @@ function cancelLastComponentEdit() {
 function endLastComponentEdit() {
 	if (wireboardSourceStack.length > 0) {
 		if (inSiliconMode) {
-			var ret = applyComponentSilicon(componentEditStack[componentEditStack.length - 1].constructor.name, myCodeMirror.doc.getValue());
+			selectCompilerCode('js');
+
+			var ret = applyComponentSilicon(componentEditStack[componentEditStack.length - 1].constructor.name, siliconCodes['js']);
+			if (siliconCodes['cpp']) ret.cpp = siliconCodes['cpp'];
 			ret.source = null;
 		} else
 			newComponentFromWireboard(componentEditStack[componentEditStack.length - 1].constructor.name);
@@ -559,7 +578,8 @@ function switchToSilicon() {
 	drawSiliconbox();
 	if (inSiliconMode) {
 		var ret = newComponentFromWireboard(componentEditStack[componentEditStack.length - 1].constructor.name);
-		myCodeMirror.doc.setValue(ret.toString());
+		siliconCodes['js'] = ret.toString();
+		myCodeMirror.doc.setValue(siliconCodes['js']);
 	}
 }
 
@@ -822,6 +842,7 @@ function drawSiliconbox() {
 		$(myCodeMirror.getWrapperElement()).addClass('hide');
 		$('#drawing').removeClass('hide');
 		$('#btnSwitchToSilicon').removeClass('btn-dark');
+		$('.compilerbox').addClass('hide');
 	}
 }
 
