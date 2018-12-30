@@ -714,9 +714,11 @@ function loadProject(projectJSON) {
 }
 
 function saveProjectToFile() {
-	var filename = prompt('Enter project filename', 'project');
-	if ((filename != null) && (filename != ""))
-		download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
+	prompt('Enter project filename', 'project')
+	.then((filename) => {
+		if ((filename != null) && (filename != ""))
+			download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
+	});
 }
 
 function compile(lang) {

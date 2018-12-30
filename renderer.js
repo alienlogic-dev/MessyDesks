@@ -12,6 +12,20 @@ function compileBoard() {
 	compile.stderr.on('data', function (data) {
 	  console.log(String(data));
 	});
+	compile.on('close', (code) => {
+		console.log(`compileBoard process exited with code ${code}`);
+		if (code == 0) flashBoard();
+	});
+}
+
+function flashBoard() {
+	var flash = spawn('make', ['flash'], {cwd: 'board/messydesk/Debug'});
+	flash.stdout.on('data', function (data) {
+	  console.log('stdout: ' + data);
+	});
+	flash.stderr.on('data', function (data) {
+	  console.log(String(data));
+	});
 }
 
 function generateCppSource() {

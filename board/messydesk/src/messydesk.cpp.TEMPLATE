@@ -56,16 +56,14 @@ void marshalling_IN() {
 }
 
 void marshalling_OUT() {
-    uint32_t t[10];
+    uint32_t t[2] =  { 0, 0 };
 
-    t[0] = 0;
     for (uint32_t idx = 0; idx < MAXGPIO; idx++)
         if (gpio_out_values[idx] > 0)
             t[gpioports[idx]] |= (1 << gpiopins[idx]);
 
     LPC_GPIO->PIN[0] = t[0];
-    //LPC_GPIO->PIN[1] = 0xff;
-    //LPC_GPIO->W[1] = t[1];
+    LPC_GPIO->PIN[1] = t[1];
 }
 
 /* Board specific components */
@@ -123,10 +121,16 @@ int main(void) {
 #endif
 #endif
     for (int i = 0; i < 16; i++) {
-        setGPIOAsOutput(i, true);
-    	writeGPIO(i, true);
+        setGPIOAsOutput(i, false);
+    	writeGPIO(i, false);
     }
 
+    Chip_GPIO_SetPinDIROutput(LPC_GPIO, 2, 2); // LED STOP
+    Chip_GPIO_SetPinDIROutput(LPC_GPIO, 2, 7); // LED RUN
+
+    Chip_GPIO_SetPinState(LPC_GPIO, 2, 2, true);
+    Chip_GPIO_SetPinState(LPC_GPIO, 2, 7, false);
+    
     // TODO: insert code here
 
     MAIN_Component test = MAIN_Component();
