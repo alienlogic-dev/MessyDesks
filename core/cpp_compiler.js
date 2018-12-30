@@ -1,6 +1,131 @@
+CONST.cpp = `
+class CONST: public Component {
+  public:
+    CONST(uint32_t value) : Component(0, 1) {
+    	outValue = value;
+    }
+
+    uint32_t outValue;
+
+    void execute() {
+      outputsData[0] = outValue;
+      this->outputs[0] = &outputsData[0];
+    }
+};
+`;
+
+NOR_Component.cpp = `
+class NOR_Component: public Component {
+  public:
+    NOR_Component() : Component(2, 1) {}
+    NOR_Component(int inputsCount) : Component((inputsCount > 2 ? inputsCount : 2), 1) {}
+
+    void execute() {
+    	uint32_t res = 0;
+    	if (inputs[0]) {
+				res = *inputs[0];
+        for (int idx = 1; idx < inCount; idx++)
+        	if (inputs[idx])
+          	res = res || *inputs[idx];
+    	}
+      outputsData[0] = !res;
+      this->outputs[0] = &outputsData[0];
+    }
+};
+`;
+
+BIN2DEC_Component.cpp = `
+class BIN2DEC_Component: public Component {
+  public:
+    BIN2DEC_Component() : Component(8, 1) {}
+    BIN2DEC_Component(int size) : Component((size > 2 ? size : 2), 1) {}
+
+    void execute() {
+        uint32_t data = 0;
+        for (int idx = 0; idx < inCount; idx++)
+        	if (inputs[idx])
+            data = data | ((*inputs[idx]) ? (1 << idx) : 0);
+
+        outputsData[0] = data;
+        this->outputs[0] = &outputsData[0];
+    }
+};
+`;
+
+DEC2BIN_Component.cpp = `
+class DEC2BIN_Component: public Component {
+  public:
+    DEC2BIN_Component() : Component(1, 8) {}
+    DEC2BIN_Component(int size) : Component(1, (size > 2 ? size : 2)) {}
+
+    void execute() {
+    	if (inputs[0]) {
+        uint32_t data = *inputs[0];
+        for (int idx = 0; idx < outCount; idx++) {
+          outputsData[idx] = (data >> idx) & 0x01;
+        	this->outputs[idx] = &outputsData[idx];
+        }
+    	}
+    }
+};
+`;
+
+TRI_Component.cpp = `
+class TRI_Component: public Component {
+  public:
+    TRI_Component() : Component(3, 1) {}
+
+    void execute() {
+    	uint32_t *res = NULL;
+    	if (inputs[2]) {
+    		if (*inputs[2])
+    			res = inputs[1];
+    	}
+      this->outputs[0] = res;
+    }
+};
+`;
+
+R_TRIG.cpp = `
+class R_TRIG: public Component {
+  public:
+    R_TRIG() : Component(1, 1) {
+    	lastValue = 0;
+    }
+
+    uint32_t lastValue;
+
+    void execute() {
+    	uint32_t val = 0;
+    	if (inputs[0])
+    		val = *inputs[0];
+
+      outputsData[0] = (val != lastValue) && (val == 1);
+      this->outputs[0] = &outputsData[0];
+
+      lastValue = val;
+    }
+};
+`;
+
+BUTTON.cpp = `
+class BUTTON: public Component {
+  public:
+    BUTTON() : Component(0, 0) {}
+};
+`;
+
+BCD_7Seg.cpp = `
+class BCD_7Seg: public Component {
+  public:
+    BCD_7Seg() : Component(0, 0) {}
+};
+`;
+
 class cpp_compiler {
 	static framework () {
-		return `unsigned int cycIdx = 0;
+		return `
+unsigned int cycIdx = 0;
 class Component {
   public:
     Component(int inputsCount, int outputsCount) {
@@ -43,107 +168,6 @@ class Component {
     }
 
     virtual void execute() {}
-};
-class CONST: public Component {
-  public:
-    CONST(uint32_t value) : Component(0, 1) {
-    	outValue = value;
-    }
-
-    uint32_t outValue;
-
-    void execute() {
-      outputsData[0] = outValue;
-      this->outputs[0] = &outputsData[0];
-    }
-};
-class NOR_Component: public Component {
-  public:
-    NOR_Component() : Component(2, 1) {}
-    NOR_Component(int inputsCount) : Component((inputsCount > 2 ? inputsCount : 2), 1) {}
-
-    void execute() {
-    	uint32_t res = 0;
-    	if (inputs[0]) {
-				res = *inputs[0];
-        for (int idx = 1; idx < inCount; idx++)
-        	if (inputs[idx])
-          	res = res || *inputs[idx];
-    	}
-      outputsData[0] = !res;
-      this->outputs[0] = &outputsData[0];
-    }
-};
-class BIN2DEC_Component: public Component {
-  public:
-    BIN2DEC_Component() : Component(8, 1) {}
-    BIN2DEC_Component(int size) : Component((size > 2 ? size : 2), 1) {}
-
-    void execute() {
-        uint32_t data = 0;
-        for (int idx = 0; idx < inCount; idx++)
-        	if (inputs[idx])
-            data = data | ((*inputs[idx]) ? (1 << idx) : 0);
-
-        outputsData[0] = data;
-        this->outputs[0] = &outputsData[0];
-    }
-};
-class DEC2BIN_Component: public Component {
-  public:
-    DEC2BIN_Component() : Component(1, 8) {}
-    DEC2BIN_Component(int size) : Component(1, (size > 2 ? size : 2)) {}
-
-    void execute() {
-    	if (inputs[0]) {
-        uint32_t data = *inputs[0];
-        for (int idx = 0; idx < outCount; idx++) {
-          outputsData[idx] = (data >> idx) & 0x01;
-        	this->outputs[idx] = &outputsData[idx];
-        }        		
-    	}
-    }
-};
-class TRI_Component: public Component {
-  public:
-    TRI_Component() : Component(3, 1) {}
-
-    void execute() {
-    	uint32_t *res = NULL;
-    	if (inputs[2]) {
-    		if (*inputs[2])
-    			res = inputs[1];
-    	}
-      this->outputs[0] = res;
-    }
-};
-class R_TRIG: public Component {
-  public:
-    R_TRIG() : Component(1, 1) {
-    	lastValue = 0;
-    }
-
-    uint32_t lastValue;
-
-    void execute() {
-    	uint32_t val = 0;
-    	if (inputs[0])
-    		val = *inputs[0];
-
-      outputsData[0] = (val != lastValue) && (val == 1);
-      this->outputs[0] = &outputsData[0];
-
-      lastValue = val;
-    }
-};
-/* DUMMY */
-class BUTTON: public Component {
-  public:
-    BUTTON() : Component(0, 0) {}
-};
-class BCD_7Seg: public Component {
-  public:
-    BCD_7Seg() : Component(0, 0) {}
 };
 `;
 	}

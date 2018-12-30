@@ -837,7 +837,7 @@ function saveProjectToFile() {
 function compile(lang) {
 	var fr = function(){return ''};
 	var cs = compileSource;
-	if (lang == 'c++') {
+	if (lang == 'cpp') {
 		cs = cpp_compiler.compileSource;
 		fr = cpp_compiler.framework;
 	}
@@ -848,6 +848,9 @@ function compile(lang) {
 		if (toolboxItem.source) {
 			var toolboxCode = cs(idx, toolboxItem.source);
 			compiledCode.push(toolboxCode);
+		} else {
+			if (toolboxItem[lang])
+				compiledCode.push(toolboxItem[lang]);
 		}
 	}
 
@@ -896,21 +899,21 @@ function initWireboard() {
 
 // Function to download data to a file
 function download(data, filename, type) {
-    var file = new Blob([data], {type: type});
-    if (window.navigator.msSaveOrOpenBlob) // IE10+
-        window.navigator.msSaveOrOpenBlob(file, filename);
-    else { // Others
-        var a = document.createElement("a"),
-                url = URL.createObjectURL(file);
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function() {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);  
-        }, 0); 
-    }
+  var file = new Blob([data], {type: type});
+  if (window.navigator.msSaveOrOpenBlob) // IE10+
+      window.navigator.msSaveOrOpenBlob(file, filename);
+  else { // Others
+      var a = document.createElement("a"),
+              url = URL.createObjectURL(file);
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);  
+      }, 0); 
+  }
 }
 
 // Simulation
