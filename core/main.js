@@ -521,6 +521,7 @@ function cancelLastComponentEdit() {
 	else
 		console.error('No editing pending!');
 
+	inSiliconMode = false; // Impossible to end a component edit into another silicon code component
 	drawEditbox();
 }
 function endLastComponentEdit() {
@@ -540,6 +541,7 @@ function endLastComponentEdit() {
 	else
 		console.error('No editing pending!');
 
+	inSiliconMode = false; // Impossible to end a component edit into another silicon code component
 	drawEditbox();
 }
 

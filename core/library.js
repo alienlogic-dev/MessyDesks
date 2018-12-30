@@ -646,11 +646,13 @@ class PIN_IN extends Component {
   }
 
   dblClickEvent(e) {
-    if (e.shiftKey)
-      this.pinNumber--;
-    else
-      this.pinNumber++;
-    this.aliasSVG.text(this.pinNumber.toString());
+    prompt('Enter pin number', this.pinNumber)
+    .then((value) => {
+      if ((value != null) && (value != "")) {
+        this.pinNumber = value;
+        this.aliasSVG.text(this.pinNumber.toString());
+      }
+    });
   }
 
   drawBody(wpx, hpx) {
@@ -687,11 +689,13 @@ class PIN_OUT extends Component {
   }
 
   dblClickEvent(e) {
-    if (e.shiftKey)
-      this.pinNumber--;
-    else
-      this.pinNumber++;
-    this.aliasSVG.text(this.pinNumber.toString());
+    prompt('Enter pin number', this.pinNumber)
+    .then((value) => {
+      if ((value != null) && (value != "")) {
+        this.pinNumber = value;
+        this.aliasSVG.text(this.pinNumber.toString());
+      }
+    });
   }
 
   drawBody(wpx, hpx) {
