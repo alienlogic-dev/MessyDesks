@@ -1,5 +1,3 @@
-const prompt = require('electron-prompt');
-
 class Pin {
 	constructor(component, ID, name, isInput = true, isBidirectional = false) {
 		this.ID = ID;
@@ -255,16 +253,14 @@ $(document).keydown(function(e) {
 		for (var idx = components.length - 1; idx >= 0; idx--) {
 			var componentItem = components[idx];
 
-			if (componentItem.isSelected) {
-				removeWiresFromComponent(componentItem);
-				componentItem.svg.remove();
-				components.splice(idx, 1);
-			}
+			if (componentItem.isSelected)
+				removeComponent(componentItem);
 		}
 		return false;
 	}
 });
 
+// GUI
 draw.on('click', function(e) {
 	var clickedComponent = null;
 
@@ -297,6 +293,8 @@ function pointInRect(p, rect) {
 
 // Wireboard
 initWireboard();
+var myCodeMirror = CodeMirror.fromTextArea($('#siliconCodeArea')[0]);
+$(myCodeMirror.getWrapperElement()).addClass('hide');
 
 var components = [];
 var componentsIdx = 0;
@@ -308,6 +306,16 @@ function addComponent(componentName) {
 	inst.svg.move(200,200);
 	componentsSVG.add(inst.svg);
 	components.push(inst);
+
+	drawSiliconbox();
+}
+function removeComponent(component) {
+	removeWiresFromComponent(component);
+	component.svg.remove();
+	var idx = components.indexOf(component);
+	components.splice(idx, 1);
+
+	drawSiliconbox();
 }
 
 var wires = [];
@@ -445,7 +453,6 @@ function wireboardFromSource(source) {
 
 var wireboardSourceStack = [];
 var componentEditStack = [];
-
 function startComponentEdit(component) {
 	if (component.constructor.source) {
 		wireboardSourceStack.push(sourceFromWireboard());
@@ -455,7 +462,6 @@ function startComponentEdit(component) {
 	  drawEditbox();
 	}
 }
-
 function endLastComponentEdit() {
 	if (wireboardSourceStack.length > 0) {
 		newComponentFromWireboard(componentEditStack[componentEditStack.length - 1]);
@@ -472,11 +478,10 @@ function endLastComponentEdit() {
 	drawEditbox();
 }
 
-function drawEditbox() {
-  if (componentEditStack.length > 0) $('#editbox').removeClass('hidden'); else $('#editbox').addClass('hidden');
-  $('#editbox .breadcrumb').html('');
-  for (var idx in componentEditStack)
-  	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx] + '</li>');
+var inSiliconMode = false;
+function switchToSilicon() {
+	inSiliconMode = !inSiliconMode;
+	drawSiliconbox();
 }
 
 // Compiler
@@ -618,7 +623,6 @@ function compileSource(componentName, source) {
 
 	return compiledCode.join('\n');
 }
-
 function newComponentFromSource(componentName, source) {
 	var compiledCode = [];
 
@@ -641,14 +645,12 @@ function newComponentFromSource(componentName, source) {
 	// Add component source as static
 	ret.source = componentSource;
 }
-
 function newComponentFromWireboard(componentName) {
 	newComponentFromSource(componentName, sourceFromWireboard());
 	initWireboard();
 	components = [];
 	wires = [];
 }
-
 function newEmptyComponent() {
 
 	prompt({
@@ -668,19 +670,10 @@ function newEmptyComponent() {
 	.catch(console.error);
 }
 
+
+
 // Project
 var toolbox = { };
-
-function drawToolbox() {
-	var toolboxDiv = $('#toolbox');
-	toolboxDiv.html('');
-
-	for (var idx in toolbox) {
-		var toolboxItem = toolbox[idx];
-		var newToolboxButton = `<li class="list-group-item p-2 text-right" onclick="addComponent('${idx}')">${idx.replace('_Component','')}</li>`;
-		toolboxDiv.append(newToolboxButton);
-	}
-}
 
 function saveProject() {
 	var project = {
@@ -713,12 +706,48 @@ function loadProject(projectJSON) {
 	wireboardFromSource(project.source);
 }
 
+function drawToolbox() {
+	var toolboxDiv = $('#toolbox');
+	toolboxDiv.html('');
+
+	for (var idx in toolbox) {
+		var toolboxItem = toolbox[idx];
+		var newToolboxButton = `<li class="list-group-item p-2 text-right" onclick="addComponent('${idx}')">${idx.replace('_Component','')}</li>`;
+		toolboxDiv.append(newToolboxButton);
+	}
+}
+function drawEditbox() {
+  if (componentEditStack.length > 0) $('#editbox').removeClass('hidden'); else $('#editbox').addClass('hidden');
+  $('#editbox .breadcrumb').html('');
+  for (var idx in componentEditStack)
+  	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx] + '</li>');
+  drawSiliconbox();
+}
+function drawSiliconbox() {
+	if ((wireboardSourceStack.length > 0) && (components.length == 0))
+		$('#btnSwitchToSilicon').removeClass('hide');
+	else
+		$('#btnSwitchToSilicon').addClass('hide');
+
+	if (inSiliconMode){
+		$(myCodeMirror.getWrapperElement()).removeClass('hide');
+		$('#drawing').addClass('hide');
+		$('#btnSwitchToSilicon').addClass('btn-dark');
+	}
+	else{
+		$(myCodeMirror.getWrapperElement()).addClass('hide');
+		$('#drawing').removeClass('hide');
+		$('#btnSwitchToSilicon').removeClass('btn-dark');
+	}
+}
+
+
 function saveProjectToFile() {
-	prompt('Enter project filename', 'project')
-	.then((filename) => {
-		if ((filename != null) && (filename != ""))
-			download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
-	});
+	//prompt('Enter project filename', 'project')
+	//.then((filename) => {
+	//	if ((filename != null) && (filename != ""))
+	download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
+	//});
 }
 
 function compile(lang) {

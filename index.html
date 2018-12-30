@@ -9,10 +9,16 @@
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <!-- Fontawesome CSS -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
-    
+    <!-- Codemirror CSS -->
+    <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css">
+
     <title>MessyDesk</title>
 
     <style type="text/css">
+      .hide {
+        display: none;
+      }
+
       .pin:hover {
         stroke: red;
       }
@@ -33,6 +39,7 @@
         left: 150px;
         top: 0;
         text-align: right;
+        z-index: 1;
       }
 
 
@@ -48,6 +55,9 @@
 
       .workbox {
         margin-left: 150px;
+      }
+      .workbox .CodeMirror {
+        margin-top: 50px;
       }
     </style>
     <style type="text/css">
@@ -106,7 +116,7 @@
     
     <div class="componentbox">
       <ul id="toolbox" class="list-group list-group-flush">
-        <li class="list-group-item">Cras justo odio</li>
+        <li class="list-group-item">Loading...</li>
       </ul>
     </div>
 
@@ -122,6 +132,7 @@
           </ol>
         </div>
         <div>
+          <button id="btnSwitchToSilicon" class="btn btn-light hide" onclick="switchToSilicon()"><i class="fas fa-code"></i></button>
           <label class="btn btn-dark m-0" for="file"><i class="far fa-folder-open"></i></label>
           <button class="btn btn-dark" onclick="saveProjectToFile()"><i class="far fa-save"></i></button>
           <button class="btn btn-dark" onclick="newEmptyComponent()"><i class="far fa-plus-square"></i></button>
@@ -130,7 +141,9 @@
       </div>
       
       <div id="drawing" class="wireboard"></div>
+      <textarea id="siliconCodeArea" class="hide">function test() { var a = 'abc'; }</textarea>
     </div>
+
 
     <script>
       // You can also require other files to run in this process
@@ -141,8 +154,11 @@
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
     <script>window.$ = window.jQuery = require('jquery');</script>
+    <script>const prompt = require('electron-prompt');</script>
 
     <script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="node_modules/codemirror/lib/codemirror.js"></script>
+    <script src="node_modules/codemirror/mode/javascript/javascript.js"></script>
 
     <script type="text/javascript" src="node_modules/svg.js/dist/svg.min.js"></script>
     <script type="text/javascript" src="core/svg.draggable.min.js"></script>
