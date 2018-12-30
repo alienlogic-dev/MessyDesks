@@ -31,7 +31,7 @@ function flashBoard() {
 function generateCppSource() {
 	var sourcePath = 'board/messydesk/src/messydesk.cpp';
 	
-	var cppSource = compile('c++');
+	var cppSource = compile('cpp');
 
 	fs.readFile(sourcePath + '.TEMPLATE', 'utf8', function(err, contents) {
 	  var cppSourceWithFramework = contents.replace('###DESK_FRAMEWORK###', cppSource.framework).replace('###DESK_WIREBOARD###', cppSource.wireboard);

@@ -175,7 +175,7 @@ class Component {
 	static compileSource(componentName, source) {
 		var compiledCode = [];
 
-		compiledCode.push(`class ${componentName}_Component : public Component {`);
+		compiledCode.push(`class ${componentName} : public Component {`);
 
 		// Create constructor
 		compiledCode.push('\tpublic:');
@@ -220,7 +220,7 @@ class Component {
 				outputPinCount++;
 			}
 		}
-		compiledCode.push(`\t\t${componentName}_Component() : Component(${inputAliases.length}, ${outputAliases.length}) ${compiledInstancesCode.length ? ', ' : ''} ${compiledInstancesCode.join(', ')} {}`);
+		compiledCode.push(`\t\t${componentName}() : Component(${inputAliases.length}, ${outputAliases.length}) ${compiledInstancesCode.length ? ', ' : ''} ${compiledInstancesCode.join(', ')} {}`);
 
 		// Connect wires
 		compiledCode.push('\t\tvoid execute() {');

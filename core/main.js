@@ -854,14 +854,14 @@ function compile(lang) {
 		}
 	}
 
-	var wireboardCode = cs('MAIN', sourceFromWireboard());
+	var wireboardCode = cs('MAIN_Component', sourceFromWireboard());
 	compiledCode.push(wireboardCode);
 
 	var compiledCodeString = fr() + '\n\n' + compiledCode.join('\n');
 	return {
 		complete: compiledCodeString,
 		framework: fr(),
-		wireboard : compiledCode.join('\n')
+		wireboard: compiledCode.join('\n')
 	};
 }
 
