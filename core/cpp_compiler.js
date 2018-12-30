@@ -1,5 +1,5 @@
-CONST.cpp = `
-class CONST: public Component {
+CONST.cpp =
+`class CONST: public Component {
   public:
     CONST(uint32_t value) : Component(0, 1) {
     	outValue = value;
@@ -11,11 +11,10 @@ class CONST: public Component {
       outputsData[0] = outValue;
       this->outputs[0] = &outputsData[0];
     }
-};
-`;
+};`;
 
-NOR_Component.cpp = `
-class NOR_Component: public Component {
+NOR_Component.cpp = 
+`class NOR_Component: public Component {
   public:
     NOR_Component() : Component(2, 1) {}
     NOR_Component(int inputsCount) : Component((inputsCount > 2 ? inputsCount : 2), 1) {}
@@ -31,11 +30,10 @@ class NOR_Component: public Component {
       outputsData[0] = !res;
       this->outputs[0] = &outputsData[0];
     }
-};
-`;
+};`;
 
-BIN2DEC_Component.cpp = `
-class BIN2DEC_Component: public Component {
+BIN2DEC_Component.cpp = 
+`class BIN2DEC_Component: public Component {
   public:
     BIN2DEC_Component() : Component(8, 1) {}
     BIN2DEC_Component(int size) : Component((size > 2 ? size : 2), 1) {}
@@ -49,11 +47,10 @@ class BIN2DEC_Component: public Component {
         outputsData[0] = data;
         this->outputs[0] = &outputsData[0];
     }
-};
-`;
+};`;
 
-DEC2BIN_Component.cpp = `
-class DEC2BIN_Component: public Component {
+DEC2BIN_Component.cpp = 
+`class DEC2BIN_Component: public Component {
   public:
     DEC2BIN_Component() : Component(1, 8) {}
     DEC2BIN_Component(int size) : Component(1, (size > 2 ? size : 2)) {}
@@ -67,11 +64,10 @@ class DEC2BIN_Component: public Component {
         }
     	}
     }
-};
-`;
+};`;
 
-TRI_Component.cpp = `
-class TRI_Component: public Component {
+TRI_Component.cpp = 
+`class TRI_Component: public Component {
   public:
     TRI_Component() : Component(3, 1) {}
 
@@ -83,11 +79,10 @@ class TRI_Component: public Component {
     	}
       this->outputs[0] = res;
     }
-};
-`;
+};`;
 
-R_TRIG.cpp = `
-class R_TRIG: public Component {
+R_TRIG.cpp =
+`class R_TRIG: public Component {
   public:
     R_TRIG() : Component(1, 1) {
     	lastValue = 0;
@@ -105,22 +100,19 @@ class R_TRIG: public Component {
 
       lastValue = val;
     }
-};
-`;
+};`;
 
-BUTTON.cpp = `
-class BUTTON: public Component {
+BUTTON.cpp =
+`class BUTTON: public Component {
   public:
     BUTTON() : Component(0, 0) {}
-};
-`;
+};`;
 
-BCD_7Seg.cpp = `
-class BCD_7Seg: public Component {
+BCD_7Seg.cpp = 
+`class BCD_7Seg: public Component {
   public:
     BCD_7Seg() : Component(0, 0) {}
-};
-`;
+};`;
 
 class cpp_compiler {
 	static framework () {

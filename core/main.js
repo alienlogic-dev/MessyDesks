@@ -491,8 +491,13 @@ function wireboardFromSource(source) {
 var siliconCodes = {};
 var selectedSiliconCode = 'js';
 function selectCompilerCode(lang) {
+	$('.compilerbox').children().removeClass('btn-light').removeClass('btn-primary');
+	$('.compilerbox').children().addClass('btn-light');
+	$(`.code-${lang}`).removeClass('btn-light').addClass('btn-primary');
+
 	siliconCodes[selectedSiliconCode] = myCodeMirror.doc.getValue();
 	selectedSiliconCode = lang;
+	if (!siliconCodes[selectedSiliconCode]) siliconCodes[selectedSiliconCode] = '';
 	myCodeMirror.doc.setValue(siliconCodes[selectedSiliconCode]);
 }
 
@@ -522,8 +527,8 @@ function startComponentEdit(component) {
 
 		myCodeMirror.doc.setValue(siliconCodes['js']);
 
-		if (component.constructor.cpp)
-			$('.compilerbox').removeClass('hide');
+		//if (component.constructor.cpp)
+		$('.compilerbox').removeClass('hide');
 	}
 }
 function cancelLastComponentEdit() {
@@ -537,6 +542,7 @@ function cancelLastComponentEdit() {
 	else
 		console.error('No editing pending!');
 
+	selectCompilerCode('js');
 	inSiliconMode = false; // Impossible to end a component edit into another silicon code component
 	drawEditbox();
 }
