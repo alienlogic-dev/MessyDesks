@@ -793,7 +793,7 @@ function saveProject() {
 			if (toolboxItem.source)
 				project.toolbox[idx] = toolboxItem.source;
 			else
-				project.toolbox[idx] = { silicon: toolboxItem.toString() };
+				project.toolbox[idx] = { silicon: toolboxItem.toString(), codes: { cpp: toolboxItem.cpp } };
 		} 
 	}
 
@@ -808,10 +808,15 @@ function loadProject(projectJSON) {
 	// Load the toolbox
 	for (var idx in project.toolbox) {
 		var toolboxItem = project.toolbox[idx];
+		
+		var ret = null;
 		if (toolboxItem.silicon)
-			applyComponentSilicon(idx, toolboxItem.silicon);
+			ret = applyComponentSilicon(idx, toolboxItem.silicon);
 		else
-			newComponentFromSource(idx, toolboxItem);
+			ret = newComponentFromSource(idx, toolboxItem);
+
+		for (var codeIdx in toolboxItem.codes)
+			ret[codeIdx] = toolboxItem.codes[codeIdx];
 	}
 
 	wireboardFromSource(project.source);
