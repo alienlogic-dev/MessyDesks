@@ -305,3 +305,5 @@ class Component {
 		return compiledCode.join('\n');
 	}
 }
+
+availableCompilers['cpp'] = cpp_compiler;

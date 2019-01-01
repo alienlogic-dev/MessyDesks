@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="10" height="10"/>
+  </defs>
+  <rect x="150" y="90" width="60" height="60" rx="10" ry="10" style="fill: rgb(123, 31, 162);"/>
+  <g transform="matrix(1, 0, 0, 1, -2.5, 5)">
+    <polyline style="fill: none; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(255, 255, 255); stroke-width: 5px;" points="164 100 184 100 169 115 184 130 164 130"/>
+    <path style="fill: none; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(255, 255, 255); stroke-width: 5px;" d="M 185 100 L 185 130 L 202.5 115 L 185 100 Z"/>
+  </g>
+</svg>

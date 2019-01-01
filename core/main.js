@@ -488,17 +488,21 @@ function wireboardFromSource(source) {
 	}
 }
 
-var siliconCodes = {};
-var selectedSiliconCode = 'js';
-function selectCompilerCode(lang) {
+var editorCodes = {};
+var selectedEditorCode = 'silicon';
+function startEditorCode() {
+	selectedEditorCode = 'silicon';
+	selectEditorCode(selectedEditorCode);
+}
+function selectEditorCode(lang) {
 	$('.compilerbox').children().removeClass('btn-light').removeClass('btn-primary');
 	$('.compilerbox').children().addClass('btn-light');
 	$(`.code-${lang}`).removeClass('btn-light').addClass('btn-primary');
 
-	siliconCodes[selectedSiliconCode] = myCodeMirror.doc.getValue();
-	selectedSiliconCode = lang;
-	if (!siliconCodes[selectedSiliconCode]) siliconCodes[selectedSiliconCode] = '';
-	myCodeMirror.doc.setValue(siliconCodes[selectedSiliconCode]);
+	if (lang != selectedEditorCode) editorCodes[selectedEditorCode] = myCodeMirror.doc.getValue(); // Save changes to selected editor
+	selectedEditorCode = lang;
+	if (!editorCodes[selectedEditorCode]) editorCodes[selectedEditorCode] = '';
+	myCodeMirror.doc.setValue(editorCodes[selectedEditorCode]);
 }
 
 var wireboardSourceStack = [];
@@ -521,14 +525,10 @@ function startComponentEdit(component) {
 
 		drawEditbox();
 
-		selectedSiliconCode = 'js';
-		siliconCodes['js'] = component.constructor.toString();
-		siliconCodes['cpp'] = component.constructor.cpp;
-
-		myCodeMirror.doc.setValue(siliconCodes['js']);
-
-		//if (component.constructor.cpp)
-		$('.compilerbox').removeClass('hide');
+		editorCodes['silicon'] = component.constructor.toString();
+		for (var idx in availableCompilers)
+			editorCodes[idx] = component.constructor[idx];
+		startEditorCode();
 	}
 }
 function cancelLastComponentEdit() {
@@ -542,17 +542,20 @@ function cancelLastComponentEdit() {
 	else
 		console.error('No editing pending!');
 
-	selectCompilerCode('js');
+	selectEditorCode('silicon');
 	inSiliconMode = false; // Impossible to end a component edit into another silicon code component
 	drawEditbox();
 }
 function endLastComponentEdit() {
 	if (wireboardSourceStack.length > 0) {
 		if (inSiliconMode) {
-			selectCompilerCode('js');
+			selectEditorCode('silicon');
 
-			var ret = applyComponentSilicon(componentEditStack[componentEditStack.length - 1].constructor.name, siliconCodes['js']);
-			if (siliconCodes['cpp']) ret.cpp = siliconCodes['cpp'];
+			var ret = applyComponentSilicon(componentEditStack[componentEditStack.length - 1].constructor.name, editorCodes['silicon']);
+			for (var idx in availableCompilers)
+				if (editorCodes[idx])
+					ret[idx] = editorCodes[idx];
+
 			ret.source = null;
 		} else
 			newComponentFromWireboard(componentEditStack[componentEditStack.length - 1].constructor.name);
@@ -584,8 +587,10 @@ function switchToSilicon() {
 	drawSiliconbox();
 	if (inSiliconMode) {
 		var ret = newComponentFromWireboard(componentEditStack[componentEditStack.length - 1].constructor.name);
-		siliconCodes['js'] = ret.toString();
-		myCodeMirror.doc.setValue(siliconCodes['js']);
+		editorCodes['silicon'] = ret.toString();
+		for (var idx in availableCompilers)
+			editorCodes[idx] = crossCompileSource(idx, componentEditStack[componentEditStack.length - 1].constructor.name, ret.source);
+		startEditorCode();
 	}
 }
 
@@ -849,6 +854,7 @@ function drawSiliconbox() {
 		$(myCodeMirror.getWrapperElement()).removeClass('hide');
 		$('#drawing').addClass('hide');
 		$('#btnSwitchToSilicon').addClass('btn-dark');
+		$('.compilerbox').removeClass('hide');
 	} else{
 		$(myCodeMirror.getWrapperElement()).addClass('hide');
 		$('#drawing').removeClass('hide');
@@ -866,35 +872,44 @@ function saveProjectToFile() {
 	//});
 }
 
-function compile(lang) {
-	var fr = function(){return ''};
-	var cs = compileSource;
-	if (lang == 'cpp') {
-		cs = cpp_compiler.compileSource;
-		fr = cpp_compiler.framework;
-	}
+/* Cross compile in other languages */
+var availableCompilers = {};
 
-	var compiledCode = [];
-	for (var idx in toolbox) {
-		var toolboxItem = toolbox[idx];
-		if (toolboxItem.source) {
-			var toolboxCode = cs(idx, toolboxItem.source);
-			compiledCode.push(toolboxCode);
-		} else {
-			if (toolboxItem[lang])
-				compiledCode.push(toolboxItem[lang]);
+function crossCompileSource(lang, componentName, source) {
+	if (availableCompilers[lang]) {
+		var cs = availableCompilers[lang].compileSource;
+		return cs(componentName, source);;
+	}
+	return null;
+}
+
+function crossCompile(lang) {
+	if (availableCompilers[lang]) {
+		var fr = availableCompilers[lang].framework;
+
+		var compiledCode = [];
+		for (var idx in toolbox) {
+			var toolboxItem = toolbox[idx];
+			if (toolboxItem.source) {
+				var toolboxCode = crossCompileSource(lang, idx, toolboxItem.source);
+				compiledCode.push(toolboxCode);
+			} else {
+				if (toolboxItem[lang])
+					compiledCode.push(toolboxItem[lang]);
+			}
 		}
+
+		var wireboardCode = crossCompileSource(lang, 'MAIN_Component', sourceFromWireboard());
+		compiledCode.push(wireboardCode);
+
+		var compiledCodeString = fr() + '\n\n' + compiledCode.join('\n');
+		return {
+			complete: compiledCodeString,
+			framework: fr(),
+			wireboard: compiledCode.join('\n')
+		};
 	}
-
-	var wireboardCode = cs('MAIN_Component', sourceFromWireboard());
-	compiledCode.push(wireboardCode);
-
-	var compiledCodeString = fr() + '\n\n' + compiledCode.join('\n');
-	return {
-		complete: compiledCodeString,
-		framework: fr(),
-		wireboard: compiledCode.join('\n')
-	};
+	return null;
 }
 
 var openFile = function(event) {

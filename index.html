@@ -132,8 +132,8 @@
       <div class="toolbox p-2 d-flex justify-content-between">
         <div id="editbox" class="editbox hidden">
           <div class="btn-group float-left mr-2 hidden" role="group">
-            <button class="btn btn-dark" onclick="cancelLastComponentEdit()"><i class="fas fa-times"></i></button>
-            <button class="btn btn-primary" onclick="endLastComponentEdit()"><i class="fas fa-check"></i></button>
+            <button class="btn btn-dark" onclick="cancelLastComponentEdit()"><i class="fas fa-times fa-fw"></i></button>
+            <button class="btn btn-primary" onclick="endLastComponentEdit()"><i class="fas fa-check fa-fw"></i></button>
           </div>
           <ol class="breadcrumb m-0 p-2 pl-3 pr-3 hidden">
             <li class="breadcrumb-item">test</li>
@@ -146,7 +146,7 @@
           <label class="btn btn-dark m-0" for="file"><i class="far fa-folder-open"></i></label>
           <button class="btn btn-dark" onclick="saveProjectToFile()"><i class="far fa-save"></i></button>
           <button class="btn btn-dark" onclick="newEmptyComponent()"><i class="far fa-plus-square"></i></button>
-          <button id="btnCompileBoard" class="btn btn-dark text-success"><i class="fas fa-microchip"></i></button>
+          <button id="btnCompileBoard" class="btn btn-dark"><i class="fas fa-circle-notch fa-spin hide"></i><i class="fas fa-microchip"></i></button>
         </div>
       </div>
       
@@ -154,8 +154,8 @@
       <textarea id="siliconCodeArea" class="hide">function test() { var a = 'abc'; }</textarea>
     
       <div class="compilerbox p-2 hide">
-        <button class="btn btn-primary code-js" onclick="selectCompilerCode('js')">JS</button>
-        <button class="btn btn-light code-cpp" onclick="selectCompilerCode('cpp')">C++</button>
+        <button class="btn btn-primary code-silicon" onclick="selectEditorCode('silicon')">SILICON</button>
+        <button class="btn btn-light code-cpp" onclick="selectEditorCode('cpp')">C++</button>
       </div>
     </div>
 
