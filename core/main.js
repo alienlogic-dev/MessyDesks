@@ -174,6 +174,25 @@ class Component {
 
   drawSymbol(svg) { }
 
+  /* Configuration modal */
+  openConfig() {
+  	var configModalContent = this.createConfigModal();
+  	if (configModalContent) {
+  		$('#modalComponentOptions .modal-body').html(configModalContent);
+  		$('#modalComponentOptions').off('click', '.btnComponentOptionsApply');
+  		$('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
+			    var data = event.data;
+			    var ret = data.applyConfig();
+  				if (ret) $('#modalComponentOptions').modal('hide');
+			});
+  		$('#modalComponentOptions').modal('show');
+  	}
+  }
+  applyConfig() { }
+
+  createConfigModal() { }
+
+  /* Mouse */
   pinClickedEvent(e) {
   	if (e.shiftKey) {
   		var value = prompt('Enter value', this.value);
@@ -193,7 +212,10 @@ class Component {
   mouseDownEvent(e) { }
   mouseUpEvent(e) { }
   dblClickEvent(e) {
-  	startComponentEdit(this);
+  	if (e.altKey)
+  		startComponentEdit(this);
+  	else
+  		this.openConfig();
   }
 
   /* Selection */

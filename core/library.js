@@ -8,8 +8,8 @@ class CONST extends Component {
     if (config)
       this.value = config.value;
   }
-
-  dblClickEvent(e) {
+/*
+  openConfig() {
     prompt('Enter const value', this.value)
     .then((value) => {
       if ((value != null) && (value != "")) {
@@ -17,6 +17,22 @@ class CONST extends Component {
         this.valueSVG.text(this.value.toString());
       }
     });
+  }
+*/
+
+  createConfigModal() {
+    return `
+            <div class="form-group">
+            Hello {{yourName}}!
+              <input id="constValue" ng-model="yourName" type="email" class="form-control" placeholder="Value" >
+            </div>
+            `;
+  }
+
+  applyConfig(e) {
+    var value = $('#constValue').val();
+    this.value = value;
+    return true;
   }
 
   drawBody(wpx, hpx) {
@@ -56,7 +72,7 @@ class INPUT extends Component {
   		this.alias = config.alias;
   }
 
-  dblClickEvent(e) {
+  openConfig(e) {
   	var name = prompt('Enter input name', this.alias);
 
 		if ((name != null) && (name != "")) {
@@ -98,7 +114,7 @@ class OUTPUT extends Component {
   		this.alias = config.alias;
   }
 
-  dblClickEvent(e) {
+  openConfig(e) {
   	var name = prompt('Enter output name', this.alias);
 
 		if ((name != null) && (name != "")) {
@@ -309,7 +325,7 @@ class CLOCK extends Component {
   	}
   }
 
-  dblClickEvent(e) {
+  openConfig(e) {
   	var interval = prompt('Enter interval', this.interval);
 
 		if ((interval != null) && (interval != "")) {
@@ -387,7 +403,7 @@ class NOR_Component extends Component {
   	};
   }
 
-  dblClickEvent(e) {
+  openConfig(e) {
   }
 }
 
@@ -465,7 +481,7 @@ class RAM_Component extends Component {
   	}
   }
 
-  dblClickEvent(e) {
+  openConfig(e) {
   	var value = prompt('Enter value @ 3', 0);
 
 		if ((value != null) && (value != "")) {
@@ -645,7 +661,7 @@ class PIN_IN extends Component {
       this.pinNumber = config.pinNumber;
   }
 
-  dblClickEvent(e) {
+  openConfig(e) {
     prompt('Enter pin number', this.pinNumber)
     .then((value) => {
       if ((value != null) && (value != "")) {
@@ -688,7 +704,7 @@ class PIN_OUT extends Component {
       this.pinNumber = config.pinNumber;
   }
 
-  dblClickEvent(e) {
+  openConfig(e) {
     prompt('Enter pin number', this.pinNumber)
     .then((value) => {
       if ((value != null) && (value != "")) {
