@@ -862,17 +862,17 @@ function drawSiliconbox() {
 		if (inSiliconMode){
 			$(myCodeMirror.getWrapperElement()).removeClass('hide');
 			$('#drawing').addClass('hide');
-			$('#btnSwitchToSilicon').addClass('hide');
+			$('#btnSwitchToSilicon, #btnNewComponent').addClass('hide');
 			$('#btnSwitchCode').removeClass('hide');
 		} else{
 			$(myCodeMirror.getWrapperElement()).addClass('hide');
 			$('#drawing').removeClass('hide');
-			$('#btnSwitchToSilicon').removeClass('hide');
+			$('#btnSwitchToSilicon, #btnNewComponent').removeClass('hide');
 			$('#btnSwitchCode').addClass('hide');
 		}
 	} else {
 		$(myCodeMirror.getWrapperElement()).addClass('hide');
-		$('#drawing').removeClass('hide');
+		$('#drawing, #btnNewComponent').removeClass('hide');
 		$('#btnSwitchToSilicon').addClass('hide');
 		$('#btnSwitchCode').addClass('hide');
 	}
