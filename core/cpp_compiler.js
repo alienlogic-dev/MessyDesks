@@ -306,4 +306,4 @@ class Component {
 	}
 }
 
-availableCompilers['cpp'] = cpp_compiler;
+availableCompilers['C++'] = cpp_compiler;

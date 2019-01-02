@@ -794,8 +794,12 @@ function saveProject() {
 		if (toolboxItem !== toolboxItem_original) {
 			if (toolboxItem.source)
 				project.toolbox[idx] = toolboxItem.source;
-			else
-				project.toolbox[idx] = { silicon: toolboxItem.toString(), codes: { cpp: toolboxItem.cpp } };
+			else {
+				var codes = {};
+				for (var idx in availableCompilers)
+					codes[idx] = toolboxItem[idx];
+				project.toolbox[idx] = { silicon: toolboxItem.toString(), codes: codes };
+			}
 		} 
 	}
 
