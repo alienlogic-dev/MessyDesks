@@ -661,6 +661,11 @@ class PIN_IN extends Component {
       this.pinNumber = config.pinNumber;
   }
 
+  createSVG() {
+    super.createSVG();
+    this.svgName.text(this.pinNumber.toString());
+  }
+
   createConfigModal() {
     return `
             <div class="form-group">
@@ -692,6 +697,12 @@ class PIN_OUT extends Component {
     this.pinNumber = 0;
     if (config)
       this.pinNumber = config.pinNumber;
+
+  }
+
+  createSVG() {
+    super.createSVG();
+    this.svgName.text(this.pinNumber.toString());
   }
 
   createConfigModal() {

@@ -391,8 +391,13 @@ function pinClicked(pin) {
 			return;
 		}
 
+		var newWire = null;
+
 		if (pin.isBidirectional && pinSelected.isBidirectional) {
-			wires.push({ I: pin, O: pinSelected });
+			newWire = { I: pin, O: pinSelected };
+			wires.push(newWire);
+
+			newWire = { I: pinSelected, O: pin };
 			wires.push({ I: pinSelected, O: pin });
 		} else {
 			if (pin.isInput == pinSelected.isInput) {
@@ -401,21 +406,20 @@ function pinClicked(pin) {
 				return;
 			}
 
-			wires.push({ I: (pin.isInput) ? pin : pinSelected, O: (pin.isInput) ? pinSelected : pin });
+			newWire = { I: (pin.isInput) ? pin : pinSelected, O: (pin.isInput) ? pinSelected : pin };
+			wires.push(newWire);
 		}
 
-		// TEMP //
-		var con = new WireConnection(pinSelected.svg, pin.svg, wiresSVG);
-
-		pin.con = con;
-		pinSelected.con = con;
+		if (newWire) {
+			var con = new WireConnection(pinSelected.svg, pin.svg, wiresSVG);
+			newWire.con = con;
+		}
 
 		pinSelected = null;
 	}
 }
 function removeWire(wire) {
-	wire.O.con.remove();
-	wire.I.con.remove();
+	wire.con.remove();
 	var idx = wires.indexOf(wire);
 	wires.splice(idx, 1);
 }
@@ -498,16 +502,14 @@ function wireboardFromSource(source) {
 			var pinO = componentO[0].outputs[wireItem.O.pin];
 			var pinI = componentI[0].inputs[wireItem.I.pin];
 
-			wires.push({
+			var newWire = {
 				I: pinI,
 				O: pinO
-			});
+			};
+			wires.push(newWire);
 
-			// TEMP //
 			var con = new WireConnection(pinI.svg, pinO.svg, wiresSVG);
-
-			pinI.con = con;
-			pinO.con = con;
+			newWire.con = con;
 		}
 	}
 }
