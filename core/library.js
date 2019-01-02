@@ -8,30 +8,21 @@ class CONST extends Component {
     if (config)
       this.value = config.value;
   }
-/*
-  openConfig() {
-    prompt('Enter const value', this.value)
-    .then((value) => {
-      if ((value != null) && (value != "")) {
-        this.value = value;
-        this.valueSVG.text(this.value.toString());
-      }
-    });
-  }
-*/
 
   createConfigModal() {
     return `
             <div class="form-group">
-            Hello {{yourName}}!
-              <input id="constValue" ng-model="yourName" type="email" class="form-control" placeholder="Value" >
+              <input id="constValue" ng-model="yourName" type="text" class="form-control" placeholder="Value" value="${this.value}">
             </div>
             `;
   }
 
   applyConfig(e) {
     var value = $('#constValue').val();
-    this.value = value;
+    if ((value != null) && (value != "")) {
+      this.value = value;
+      this.valueSVG.text(this.value.toString());
+    }
     return true;
   }
 
@@ -325,12 +316,21 @@ class CLOCK extends Component {
   	}
   }
 
-  openConfig(e) {
-  	var interval = prompt('Enter interval', this.interval);
+  createConfigModal() {
+    return `
+            <div class="form-group">
+              <input id="constValue" ng-model="yourName" type="number" class="form-control" placeholder="Value" value="${this.interval}">
+            </div>
+            `;
+  }
 
-		if ((interval != null) && (interval != "")) {
-		  this.interval = +interval;
-		}
+  applyConfig(e) {
+    var value = $('#constValue').val();
+    if ((value != null) && (value != "")) {
+      this.interval = +value;
+      this.svgName.text(this.interval.toString());
+    }
+    return true;
   }
 
   getConfig() {
@@ -661,31 +661,21 @@ class PIN_IN extends Component {
       this.pinNumber = config.pinNumber;
   }
 
-  openConfig(e) {
-    prompt('Enter pin number', this.pinNumber)
-    .then((value) => {
-      if ((value != null) && (value != "")) {
-        this.pinNumber = value;
-        this.aliasSVG.text(this.pinNumber.toString());
-      }
-    });
+  createConfigModal() {
+    return `
+            <div class="form-group">
+              <input id="constValue" ng-model="yourName" type="number" class="form-control" placeholder="Value" value="${this.pinNumber}">
+            </div>
+            `;
   }
 
-  drawBody(wpx, hpx) {
-    this.svgBody = this.svg.rect(wpx, hpx)
-      .radius(2)
-      .move(0, 0)
-      .fill('#cccccc')
-      .stroke({ color: '#666666', width: 2 });
-
-    this.aliasSVG = this.svg
-      .text(this.pinNumber.toString())
-      .font({
-              family:   'Menlo'
-            , size:     12
-            , anchor:   'middle'
-            })
-      .move(wpx / 2, -15);
+  applyConfig(e) {
+    var value = $('#constValue').val();
+    if ((value != null) && (value != "")) {
+      this.pinNumber = +value;
+      this.svgName.text(this.pinNumber.toString());
+    }
+    return true;
   }
 
   getConfig() {
@@ -704,31 +694,21 @@ class PIN_OUT extends Component {
       this.pinNumber = config.pinNumber;
   }
 
-  openConfig(e) {
-    prompt('Enter pin number', this.pinNumber)
-    .then((value) => {
-      if ((value != null) && (value != "")) {
-        this.pinNumber = value;
-        this.aliasSVG.text(this.pinNumber.toString());
-      }
-    });
+  createConfigModal() {
+    return `
+            <div class="form-group">
+              <input id="constValue" ng-model="yourName" type="number" class="form-control" placeholder="Value" value="${this.pinNumber}">
+            </div>
+            `;
   }
 
-  drawBody(wpx, hpx) {
-    this.svgBody = this.svg.rect(wpx, hpx)
-      .radius(2)
-      .move(0, 0)
-      .fill('#cccccc')
-      .stroke({ color: '#666666', width: 2 });
-
-    this.aliasSVG = this.svg
-      .text(this.pinNumber.toString())
-      .font({
-              family:   'Menlo'
-            , size:     12
-            , anchor:   'middle'
-            })
-      .move(wpx / 2, -15);
+  applyConfig(e) {
+    var value = $('#constValue').val();
+    if ((value != null) && (value != "")) {
+      this.pinNumber = +value;
+      this.svgName.text(this.pinNumber.toString());
+    }
+    return true;
   }
 
   getConfig() {

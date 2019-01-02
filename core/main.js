@@ -110,7 +110,7 @@ class Component {
 			.fill('#cccccc')
 			.stroke({ color: '#666666', width: 2 });
 
-		this.svg
+		this.svgName = this.svg
 			.text(this.constructor.name.replace('_Component',''))
 			.font({
 						  family:   'Menlo'
@@ -291,31 +291,33 @@ var wiresSVG = new SVG.G();
 
 // Selection
 $(document).keydown(function(e) {
-	//console.log(e.keyCode);
-	if ((e.keyCode == 79) && e.metaKey) { // CMD/CTRL + O -> Open project
-		$('#file').click();
-		return false;
-	}
-
-	if ((e.keyCode == 83) && e.metaKey) { // CMD/CTRL + S -> Save project
-		saveProjectToFile();
-		return false;
-	}
-
-	if ((e.keyCode == 65) && e.metaKey) { // CMD/CTRL + A -> Select all
-		for (var idx in components)
-			components[idx].select();
-		return false;
-	}
-
-	if (e.keyCode == 8) { // DEL -> Delete selected components
-		for (var idx = components.length - 1; idx >= 0; idx--) {
-			var componentItem = components[idx];
-
-			if (componentItem.isSelected)
-				removeComponent(componentItem);
+	if (!($('#modalComponentOptions').data('bs.modal') || {})._isShown) {
+		//console.log(e.keyCode);
+		if ((e.keyCode == 79) && e.metaKey) { // CMD/CTRL + O -> Open project
+			$('#file').click();
+			return false;
 		}
-		return false;
+
+		if ((e.keyCode == 83) && e.metaKey) { // CMD/CTRL + S -> Save project
+			saveProjectToFile();
+			return false;
+		}
+
+		if ((e.keyCode == 65) && e.metaKey) { // CMD/CTRL + A -> Select all
+			for (var idx in components)
+				components[idx].select();
+			return false;
+		}
+
+		if (e.keyCode == 8) { // DEL -> Delete selected components
+			for (var idx = components.length - 1; idx >= 0; idx--) {
+				var componentItem = components[idx];
+
+				if (componentItem.isSelected)
+					removeComponent(componentItem);
+			}
+			return false;
+		}
 	}
 });
 
@@ -1049,3 +1051,8 @@ setInterval(function() {
 		}
 	}
 }, 250);
+
+// Focus on first input element into component options modal
+$('#modalComponentOptions').on('shown.bs.modal', function () {
+  $('#modalComponentOptions input').first().trigger('focus')
+})
