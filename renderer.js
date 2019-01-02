@@ -12,7 +12,7 @@ function compileBoard() {
 	compile.stderr.on('data', function (data) {
 	  console.log(String(data));
 		$('#btnCompileBoard > .fa-circle-notch').addClass('hide');
-		$('#btnCompileBoard > .fa-microchip').removeClass('hide');
+		$('#btnCompileBoard > .fa-cubes').removeClass('hide');
 		$('#btnCompileBoard').removeClass('text-success').addClass('text-danger');
 	});
 	compile.on('close', (code) => {
@@ -33,7 +33,7 @@ function flashBoard() {
 	});
 	flash.on('close', (code) => {
 		$('#btnCompileBoard > .fa-circle-notch').addClass('hide');
-		$('#btnCompileBoard > .fa-microchip').removeClass('hide');
+		$('#btnCompileBoard > .fa-cubes').removeClass('hide');
 		console.log(`flashBoard process exited with code ${code}`);
 	});
 }
@@ -43,7 +43,7 @@ function generateCppSource() {
 
 	$('#btnCompileBoard').removeClass('text-danger').removeClass('text-success');
 	$('#btnCompileBoard > .fa-circle-notch').removeClass('hide');
-	$('#btnCompileBoard > .fa-microchip').addClass('hide');
+	$('#btnCompileBoard > .fa-cubes').addClass('hide');
 
 	var cppSource = crossCompile(selectedCompiler);
 

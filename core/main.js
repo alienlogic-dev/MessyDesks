@@ -839,10 +839,18 @@ function drawToolbox() {
 	}
 }
 function drawEditbox() {
-  if (componentEditStack.length > 0) $('#editbox').removeClass('hidden'); else $('#editbox').addClass('hidden');
+  if (componentEditStack.length > 0) {
+  	$('#editbox').removeClass('hidden');
+		$('#btnSaveProject, #btnOpenProject, #btnSwitchCompiler, #btnCompileBoard').addClass('hide');
+	} else {
+	  $('#editbox').addClass('hidden');
+		$('#btnSaveProject, #btnOpenProject, #btnSwitchCompiler, #btnCompileBoard').removeClass('hide');
+	}
+
   $('#editbox .breadcrumb').html('');
   for (var idx in componentEditStack)
   	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx].constructor.name.replace('_Component','') + '</li>');
+  
   drawSiliconbox();
 }
 function drawSiliconbox() {
