@@ -25,9 +25,9 @@
 /* End of Framework for MessyDesk */
 
 /* Board Abstraction Logic */
-#define MAXGPIO 16
-static const uint8_t gpioports[MAXGPIO] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static const uint8_t gpiopins[MAXGPIO] = {24, 7, 2, 6, 8, 9, 18, 19, 20, 23, 16, 22, 11, 12, 13, 14};
+#define MAXGPIO 17
+static const uint8_t gpioports[MAXGPIO] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static const uint8_t gpiopins[MAXGPIO] = {24, 7, 2, 6, 8, 9, 18, 19, 20, 23, 16, 22, 11, 12, 13, 14, 1};
 bool gpio_in_values[MAXGPIO];
 bool gpio_out_values[MAXGPIO];
 

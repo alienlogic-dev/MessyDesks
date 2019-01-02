@@ -1,4 +1,4 @@
-CONST.cpp =
+CONST['C++'] =
 `class CONST: public Component {
   public:
     CONST(uint32_t value) : Component(0, 1) {
@@ -13,7 +13,7 @@ CONST.cpp =
     }
 };`;
 
-NOR_Component.cpp = 
+NOR_Component['C++'] = 
 `class NOR_Component: public Component {
   public:
     NOR_Component() : Component(2, 1) {}
@@ -32,7 +32,7 @@ NOR_Component.cpp =
     }
 };`;
 
-BIN2DEC_Component.cpp = 
+BIN2DEC_Component['C++'] = 
 `class BIN2DEC_Component: public Component {
   public:
     BIN2DEC_Component() : Component(8, 1) {}
@@ -49,7 +49,7 @@ BIN2DEC_Component.cpp =
     }
 };`;
 
-DEC2BIN_Component.cpp = 
+DEC2BIN_Component['C++'] = 
 `class DEC2BIN_Component: public Component {
   public:
     DEC2BIN_Component() : Component(1, 8) {}
@@ -66,7 +66,7 @@ DEC2BIN_Component.cpp =
     }
 };`;
 
-TRI_Component.cpp = 
+TRI_Component['C++'] = 
 `class TRI_Component: public Component {
   public:
     TRI_Component() : Component(3, 1) {}
@@ -81,7 +81,7 @@ TRI_Component.cpp =
     }
 };`;
 
-R_TRIG.cpp =
+R_TRIG['C++'] =
 `class R_TRIG: public Component {
   public:
     R_TRIG() : Component(1, 1) {
@@ -102,13 +102,13 @@ R_TRIG.cpp =
     }
 };`;
 
-BUTTON.cpp =
+BUTTON['C++'] =
 `class BUTTON: public Component {
   public:
     BUTTON() : Component(0, 0) {}
 };`;
 
-BCD_7Seg.cpp = 
+BCD_7Seg['C++'] = 
 `class BCD_7Seg: public Component {
   public:
     BCD_7Seg() : Component(0, 0) {}
@@ -306,4 +306,4 @@ class Component {
 	}
 }
 
-availableCompilers['C++'] = cpp_compiler;
+signNewCompiler('C++', cpp_compiler);

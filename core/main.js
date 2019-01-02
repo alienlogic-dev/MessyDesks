@@ -796,8 +796,8 @@ function saveProject() {
 				project.toolbox[idx] = toolboxItem.source;
 			else {
 				var codes = {};
-				for (var idx in availableCompilers)
-					codes[idx] = toolboxItem[idx];
+				for (var codeIdx in availableCompilers)
+					codes[codeIdx] = toolboxItem[codeIdx];
 				project.toolbox[idx] = { silicon: toolboxItem.toString(), codes: codes };
 			}
 		} 
@@ -881,6 +881,17 @@ function saveProjectToFile() {
 
 /* Cross compile in other languages */
 var availableCompilers = {};
+var selectedCompiler = '';
+
+function signNewCompiler(name, compilerClass) {
+	availableCompilers[name] = compilerClass;
+
+	$('#btnSwitchCompiler > .dropdown-menu').html('');
+	for (var idx in availableCompilers)
+		$('#btnSwitchCompiler > .dropdown-menu').append(`<button class="dropdown-item" type="button" onclick="selectCompiler('${idx}')">${idx}</button>`);
+
+	selectCompiler(name);
+}
 
 function crossCompileSource(lang, componentName, source) {
 	if (availableCompilers[lang]) {
@@ -918,6 +929,13 @@ function crossCompile(lang) {
 	}
 	return null;
 }
+
+function selectCompiler(lang) {
+	$('#btnSwitchCompiler > button').text(lang);
+	selectedCompiler = lang;
+}
+
+
 
 var openFile = function(event) {
   var input = event.target;

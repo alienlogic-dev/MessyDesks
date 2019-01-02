@@ -45,7 +45,7 @@ function generateCppSource() {
 	$('#btnCompileBoard > .fa-circle-notch').removeClass('hide');
 	$('#btnCompileBoard > .fa-microchip').addClass('hide');
 
-	var cppSource = crossCompile('cpp');
+	var cppSource = crossCompile(selectedCompiler);
 
 	fs.readFile(sourcePath + '.TEMPLATE', 'utf8', function(err, contents) {
 	  var cppSourceWithFramework = contents.replace('###DESK_FRAMEWORK###', cppSource.framework).replace('###DESK_WIREBOARD###', cppSource.wireboard);

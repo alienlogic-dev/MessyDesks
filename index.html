@@ -143,14 +143,10 @@
             <button class="btn btn-dark" onclick="cancelLastComponentEdit()"><i class="fas fa-times fa-fw"></i></button>
             <button class="btn btn-primary" onclick="endLastComponentEdit()"><i class="fas fa-check fa-fw"></i></button>
           </div>
-          <ol class="breadcrumb m-0 p-2 pl-3 pr-3 hidden">
-            <li class="breadcrumb-item">test</li>
-          </ol>
-        </div>
-        <div>
-          <button id="btnSwitchToSilicon" class="btn btn-outline-dark hide" onclick="switchToSilicon()"><i class="fas fa-code"></i></button>
-          
-          <div id="btnSwitchCode" class="dropdown hide">
+
+          <button id="btnSwitchToSilicon" class="btn btn-dark float-left mr-2 hide" onclick="switchToSilicon()"><i class="fas fa-code"></i></button>
+
+          <div id="btnSwitchCode" class="dropdown float-left mr-2 hide">
             <button class="btn btn-dark dropdown-toggle" type="button" data-toggle="dropdown">
               Silicon
             </button>
@@ -159,9 +155,31 @@
             </div>
           </div>
 
+          <ol class="breadcrumb m-0 p-2 pl-3 pr-3 hidden">
+            <li class="breadcrumb-item">test</li>
+          </ol>
+        </div>
+
+        <div>
           <label class="btn btn-dark m-0" for="file"><i class="far fa-folder-open"></i></label>
           <button class="btn btn-dark" onclick="saveProjectToFile()"><i class="far fa-save"></i></button>
           <button class="btn btn-dark" onclick="newEmptyComponent()"><i class="far fa-plus-square"></i></button>
+          
+          <div class="btn-group" role="group">
+            <div id="btnSwitchCompiler" class="btn-group" role="group">
+              <button type="button" class="btn btn-dark dropdown-toggle" data-toggle="dropdown">
+                C++
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="#"></a>
+              </div>
+            </div>
+            <button id="btnCompileBoard" type="button" class="btn btn-dark">
+              <i class="fas fa-circle-notch fa-spin hide"></i>
+              <i class="fas fa-cubes"></i>
+            </button>
+          </div>
+
           <button id="btnCompileBoard" class="btn btn-dark"><i class="fas fa-circle-notch fa-spin hide"></i><i class="fas fa-microchip"></i></button>
         </div>
       </div>
@@ -170,11 +188,6 @@
       <textarea id="siliconCodeArea" class="hide">function test() { var a = 'abc'; }</textarea>
     </div>
 
-
-    <script>
-      // You can also require other files to run in this process
-      require('./renderer.js')
-    </script>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -196,6 +209,10 @@
     <script type="text/javascript" src="core/library.js"></script>
     <script type="text/javascript" src="core/cpp_compiler.js"></script>
 
+    <script>
+      // You can also require other files to run in this process
+      require('./renderer.js')
+    </script>
 
   </body>
 </html>
