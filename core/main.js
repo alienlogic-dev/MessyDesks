@@ -492,17 +492,19 @@ var editorCodes = {};
 var selectedEditorCode = 'silicon';
 function startEditorCode() {
 	selectedEditorCode = 'silicon';
+	myCodeMirror.doc.setValue(editorCodes[selectedEditorCode]);
 	selectEditorCode(selectedEditorCode);
 }
 function selectEditorCode(lang) {
-	$('.compilerbox').children().removeClass('btn-light').removeClass('btn-primary');
-	$('.compilerbox').children().addClass('btn-light');
-	$(`.code-${lang}`).removeClass('btn-light').addClass('btn-primary');
-
-	if (lang != selectedEditorCode) editorCodes[selectedEditorCode] = myCodeMirror.doc.getValue(); // Save changes to selected editor
+	editorCodes[selectedEditorCode] = myCodeMirror.doc.getValue(); // Save changes to selected old editor
+	
 	selectedEditorCode = lang;
-	if (!editorCodes[selectedEditorCode]) editorCodes[selectedEditorCode] = '';
-	myCodeMirror.doc.setValue(editorCodes[selectedEditorCode]);
+	if (!editorCodes[selectedEditorCode])
+		editorCodes[selectedEditorCode] = '';
+	myCodeMirror.doc.setValue(editorCodes[selectedEditorCode]); // Select the new editor
+
+	// Change button text
+	$('#btnSwitchCode > button').text(lang);
 }
 
 var wireboardSourceStack = [];
@@ -549,7 +551,7 @@ function cancelLastComponentEdit() {
 function endLastComponentEdit() {
 	if (wireboardSourceStack.length > 0) {
 		if (inSiliconMode) {
-			selectEditorCode('silicon');
+			selectEditorCode('silicon'); // Apply editor changes
 
 			var ret = applyComponentSilicon(componentEditStack[componentEditStack.length - 1].constructor.name, editorCodes['silicon']);
 			for (var idx in availableCompilers)
@@ -575,24 +577,19 @@ function endLastComponentEdit() {
 
 var inSiliconMode = false;
 function switchToSilicon() {
-	if ((inSiliconMode == false) && (components.length > 0))
-		if (!confirm('Do you want to switch to Silicon code?\nWARNING: Cannot be undone.'))
-			return;
+	if (!confirm('Do you want to switch to Silicon code?\nWARNING: Cannot be undone.'))
+		return;
 
-	if (inSiliconMode)
-		if (!confirm('Do you want to switch back to blocks?\nWARNING: All the logic will be lost.'))
-			return;
-
-	inSiliconMode = !inSiliconMode;
+	inSiliconMode = true;
 	drawSiliconbox();
-	if (inSiliconMode) {
-		var ret = newComponentFromWireboard(componentEditStack[componentEditStack.length - 1].constructor.name);
-		editorCodes['silicon'] = ret.toString();
-		for (var idx in availableCompilers)
-			editorCodes[idx] = crossCompileSource(idx, componentEditStack[componentEditStack.length - 1].constructor.name, ret.source);
-		startEditorCode();
-	}
+
+	var ret = newComponentFromWireboard(componentEditStack[componentEditStack.length - 1].constructor.name);
+	editorCodes['silicon'] = ret.toString();
+	for (var idx in availableCompilers)
+		editorCodes[idx] = crossCompileSource(idx, componentEditStack[componentEditStack.length - 1].constructor.name, ret.source);
+	startEditorCode();
 }
+
 
 // Compiler
 function compileSource(componentName, source) {
@@ -845,21 +842,27 @@ function drawEditbox() {
   drawSiliconbox();
 }
 function drawSiliconbox() {
-	if ((wireboardSourceStack.length > 0))
-		$('#btnSwitchToSilicon').removeClass('hide');
-	else
-		$('#btnSwitchToSilicon').addClass('hide');
+	$('#btnSwitchCode > .dropdown-menu').html(`<button class="dropdown-item" type="button" onclick="selectEditorCode('silicon')">Silicon</button>`);
+	for (var idx in availableCompilers)
+		$('#btnSwitchCode > .dropdown-menu').append(`<button class="dropdown-item" type="button" onclick="selectEditorCode('${idx}')">${idx}</button>`);
 
-	if (inSiliconMode && (wireboardSourceStack.length > 0)){
-		$(myCodeMirror.getWrapperElement()).removeClass('hide');
-		$('#drawing').addClass('hide');
-		$('#btnSwitchToSilicon').addClass('btn-dark');
-		$('.compilerbox').removeClass('hide');
-	} else{
+	if (wireboardSourceStack.length > 0) {
+		if (inSiliconMode){
+			$(myCodeMirror.getWrapperElement()).removeClass('hide');
+			$('#drawing').addClass('hide');
+			$('#btnSwitchToSilicon').addClass('hide');
+			$('#btnSwitchCode').removeClass('hide');
+		} else{
+			$(myCodeMirror.getWrapperElement()).addClass('hide');
+			$('#drawing').removeClass('hide');
+			$('#btnSwitchToSilicon').removeClass('hide');
+			$('#btnSwitchCode').addClass('hide');
+		}
+	} else {
 		$(myCodeMirror.getWrapperElement()).addClass('hide');
 		$('#drawing').removeClass('hide');
-		$('#btnSwitchToSilicon').removeClass('btn-dark');
-		$('.compilerbox').addClass('hide');
+		$('#btnSwitchToSilicon').addClass('hide');
+		$('#btnSwitchCode').addClass('hide');
 	}
 }
 

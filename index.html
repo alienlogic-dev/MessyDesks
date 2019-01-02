@@ -16,7 +16,7 @@
 
     <style type="text/css">
       .hide {
-        display: none;
+        display: none!important;
       }
 
       .pin:hover {
@@ -66,6 +66,14 @@
         right: 0;
         bottom: 0;
         z-index: 100;
+      }
+
+      .dropdown {
+        display: inline-block;
+      }
+
+      .CodeMirror {
+        z-index: 0;
       }
     </style>
     <style type="text/css">
@@ -137,12 +145,20 @@
           </div>
           <ol class="breadcrumb m-0 p-2 pl-3 pr-3 hidden">
             <li class="breadcrumb-item">test</li>
-            <li class="breadcrumb-item">test</li>
-            <li class="breadcrumb-item">test</li>
           </ol>
         </div>
         <div>
-          <button id="btnSwitchToSilicon" class="btn btn-light hide" onclick="switchToSilicon()"><i class="fas fa-code"></i></button>
+          <button id="btnSwitchToSilicon" class="btn btn-outline-dark hide" onclick="switchToSilicon()"><i class="fas fa-code"></i></button>
+          
+          <div id="btnSwitchCode" class="dropdown hide">
+            <button class="btn btn-dark dropdown-toggle" type="button" data-toggle="dropdown">
+              Silicon
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" type="button" onclick="selectEditorCode('silicon')">Silicon</button>
+            </div>
+          </div>
+
           <label class="btn btn-dark m-0" for="file"><i class="far fa-folder-open"></i></label>
           <button class="btn btn-dark" onclick="saveProjectToFile()"><i class="far fa-save"></i></button>
           <button class="btn btn-dark" onclick="newEmptyComponent()"><i class="far fa-plus-square"></i></button>
@@ -152,11 +168,6 @@
       
       <div id="drawing" class="wireboard"></div>
       <textarea id="siliconCodeArea" class="hide">function test() { var a = 'abc'; }</textarea>
-    
-      <div class="compilerbox p-2 hide">
-        <button class="btn btn-primary code-silicon" onclick="selectEditorCode('silicon')">SILICON</button>
-        <button class="btn btn-light code-cpp" onclick="selectEditorCode('cpp')">C++</button>
-      </div>
     </div>
 
 
@@ -171,6 +182,7 @@
     <script>window.$ = window.jQuery = require('jquery');</script>
     <script>const prompt = require('electron-prompt');</script>
 
+    <script type="text/javascript" src="node_modules/popper.js/dist/umd/popper.min.js"></script>
     <script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="node_modules/codemirror/lib/codemirror.js"></script>
     <script src="node_modules/codemirror/mode/javascript/javascript.js"></script>
