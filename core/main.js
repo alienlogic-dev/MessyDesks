@@ -1038,6 +1038,11 @@ function download(data, filename, type) {
 // Simulation
 function simStep() {
 	cycIdx++;
+	for (var idx = 0; idx < components.length; idx++) {
+		var componentItem = components[idx];
+		componentItem.getOut();
+	}
+
 	for (var idx = 0; idx < wires.length; idx++) {
 		var wireItem = wires[idx];
 		if (wireItem) {
@@ -1045,12 +1050,6 @@ function simStep() {
 			var pinO = wireItem.O;
 			pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
 		}
-	}
-
-	for (var idx = 0; idx < components.length; idx++) {
-		var componentItem = components[idx];
-		if (componentItem.outputs.length == 0)
-			componentItem.getOut();
 	}
 }
 
@@ -1061,6 +1060,7 @@ setInterval(function() {
 setInterval(function() {
 	for (var idx = 0; idx < components.length; idx++) {
 		var componentItem = components[idx];
+		componentItem.getOut();
 
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {
