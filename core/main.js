@@ -175,8 +175,7 @@ class Component {
   drawSymbol(svg) { }
 
   /* Configuration modal */
-  openConfig() {
-  	var configModalContent = this.createConfigModal();
+  openConfig(configModalContent) {
   	if (configModalContent) {
   		$('#modalComponentOptions .modal-body').html(configModalContent);
   		$('#modalComponentOptions').off('click', '.btnComponentOptionsApply');
@@ -211,11 +210,19 @@ class Component {
 
   mouseDownEvent(e) { }
   mouseUpEvent(e) { }
+  mouseDblClickEvent(e) { }
+
   dblClickEvent(e) {
   	if (e.altKey)
   		startComponentEdit(this);
-  	else
-  		this.openConfig();
+  	else {
+  		var configModalContent = this.createConfigModal();
+  		if (configModalContent)
+  			this.openConfig(configModalContent);
+  		else
+  			if (!this.mouseDblClickEvent(e))
+  				startComponentEdit(this);
+  	}
   }
 
   /* Selection */

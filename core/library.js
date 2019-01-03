@@ -165,6 +165,7 @@ class BUTTON extends Component {
     this.btnSVG.fill('#ccc');
     this.outputs[0].value = 0;
   }
+  mouseDblClickEvent(e) { return true; }
 }
 
 class LED extends Component {
