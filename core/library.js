@@ -175,6 +175,8 @@ class LED extends Component {
     this.minHeight = 5;
 
     this.ledSVG = null;
+
+    this.status = 0;
   }
 
   drawSymbol(svg) {
@@ -186,7 +188,11 @@ class LED extends Component {
   }
 
   execute() {
-    if (+this.inputs[0].value)
+    this.status = +this.inputs[0].value;
+  }
+
+  draw() {
+    if (+this.status)
       this.ledSVG.fill('#ff0000').stroke({ color: '#cc0000', width: 2 });
     else
       this.ledSVG.fill('#3f0000').stroke({ color: '#330000', width: 2 });
@@ -200,6 +206,7 @@ class Disp_7Seg extends Component {
     this.minWidth = 12;
     
     this.ledSVG = null;
+    this.values = [0,0,0,0,0,0,0];
   }
 
   drawSymbol(svg) {
@@ -230,14 +237,19 @@ class Disp_7Seg extends Component {
   }
 
   execute() {
-    this.segA.fill(+this.inputs[0].value ? '#ff0000' : '#3f0000');
-    this.segB.fill(+this.inputs[1].value ? '#ff0000' : '#3f0000');
-    this.segC.fill(+this.inputs[2].value ? '#ff0000' : '#3f0000');
-    this.segD.fill(+this.inputs[3].value ? '#ff0000' : '#3f0000');
-    this.segE.fill(+this.inputs[4].value ? '#ff0000' : '#3f0000');
-    this.segF.fill(+this.inputs[5].value ? '#ff0000' : '#3f0000');
-    this.segG.fill(+this.inputs[6].value ? '#ff0000' : '#3f0000');
-    this.segDOT.fill(+this.inputs[7].value ? '#ff0000' : '#3f0000');
+    for (var idx in this.inputs)
+      this.values[idx] = this.inputs[idx].value;
+  }
+
+  draw() {
+    this.segA.fill(+this.values[0] ? '#ff0000' : '#3f0000');
+    this.segB.fill(+this.values[1] ? '#ff0000' : '#3f0000');
+    this.segC.fill(+this.values[2] ? '#ff0000' : '#3f0000');
+    this.segD.fill(+this.values[3] ? '#ff0000' : '#3f0000');
+    this.segE.fill(+this.values[4] ? '#ff0000' : '#3f0000');
+    this.segF.fill(+this.values[5] ? '#ff0000' : '#3f0000');
+    this.segG.fill(+this.values[6] ? '#ff0000' : '#3f0000');
+    this.segDOT.fill(+this.values[7] ? '#ff0000' : '#3f0000');
   }
 }
 
@@ -249,6 +261,7 @@ class BCD_7Seg extends Component {
     
     this.ledSVG = null;
     this.segMap = [0x3F, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x67, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71];
+    this.segData = 0x00;
   }
 
   drawSymbol(svg) {
@@ -285,15 +298,17 @@ class BCD_7Seg extends Component {
       data = data | (dPin ? (1 << idx) : 0);
     }
 
-    var segData = this.segMap[data];
+    this.segData = this.segMap[data];
+  }
 
-    this.segA.fill(segData & 0x01 ? '#ff0000' : '#3f0000');
-    this.segB.fill(segData & 0x02 ? '#ff0000' : '#3f0000');
-    this.segC.fill(segData & 0x04 ? '#ff0000' : '#3f0000');
-    this.segD.fill(segData & 0x08 ? '#ff0000' : '#3f0000');
-    this.segE.fill(segData & 0x10 ? '#ff0000' : '#3f0000');
-    this.segF.fill(segData & 0x20 ? '#ff0000' : '#3f0000');
-    this.segG.fill(segData & 0x40 ? '#ff0000' : '#3f0000');
+  draw() {
+    this.segA.fill(this.segData & 0x01 ? '#ff0000' : '#3f0000');
+    this.segB.fill(this.segData & 0x02 ? '#ff0000' : '#3f0000');
+    this.segC.fill(this.segData & 0x04 ? '#ff0000' : '#3f0000');
+    this.segD.fill(this.segData & 0x08 ? '#ff0000' : '#3f0000');
+    this.segE.fill(this.segData & 0x10 ? '#ff0000' : '#3f0000');
+    this.segF.fill(this.segData & 0x20 ? '#ff0000' : '#3f0000');
+    this.segG.fill(this.segData & 0x40 ? '#ff0000' : '#3f0000');
   }
 }
 

@@ -264,7 +264,8 @@ class Component {
 
   		this.exeIdx = cycIdx;
   	}
-  	return this.outputs[index].value;
+  	if (index !== undefined)
+  		return this.outputs[index].value;
   }
 
   setIn(index, value) {
@@ -272,12 +273,17 @@ class Component {
   		this.inputs[index].value = value;
   }
 
-  update() {
+  /* Refresh */  
+  draw() {}
+
+  refresh() {
   	for (var idx = 0; idx < this.inputs.length; idx++)
   		this.inputs[idx].svg.fill((this.inputs[idx].value == null) ? '#ccc' : (+this.inputs[idx].value ? '#0f0' : '#f00'));
 
   	for (var idx = 0; idx < this.outputs.length; idx++)
   		this.outputs[idx].svg.fill((this.outputs[idx].value == null) ? '#ccc' : (+this.outputs[idx].value ? '#0f0' : '#f00'));
+  
+  	this.draw();
   }
 }
 
@@ -1033,6 +1039,12 @@ function simStep() {
 			pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
 		}
 	}
+
+	for (var idx = 0; idx < components.length; idx++) {
+		var componentItem = components[idx];
+		if (componentItem.outputs.length == 0)
+			componentItem.getOut();
+	}
 }
 
 setInterval(function() {
@@ -1043,13 +1055,10 @@ setInterval(function() {
 	for (var idx = 0; idx < components.length; idx++) {
 		var componentItem = components[idx];
 
-		if (componentItem.outputs.length == 0)
-			componentItem.execute();
-
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {
 		} else {
-			componentItem.update();
+			componentItem.refresh();
 		}
 	}
 }, 250);
