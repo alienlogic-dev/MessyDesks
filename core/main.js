@@ -1110,10 +1110,9 @@ function getAloneComponentsFromSource(source) {
 	return aloneComponents;
 }
 
-function childrensOrderOfComponentFromSource(source, componentId, actual) {
+function childrensOrderOfComponentFromSource(source, componentId, childrens) {
 	var myChildrens = [];
-	var childrens = [];
-	if (!actual) actual = [];
+	if (!childrens) childrens = [];
 
   for (var idx = 0; idx < source.wires.length; idx++) {
 		var wireItem = source.wires[idx];
@@ -1129,15 +1128,19 @@ function childrensOrderOfComponentFromSource(source, componentId, actual) {
 
 	for (var idx in myChildrens) {
 		var childrenItem = myChildrens[idx];
-		if (!childrens.includes(childrenItem))
+		
+		if (!childrens.includes(childrenItem)) {
 			childrens.push(childrenItem);
-		if (!actual.includes(childrenItem))
-			childrens = childrens.concat(childrensOrderOfComponentFromSource(source, childrenItem, childrens));
+			childrensOrderOfComponentFromSource(source, childrenItem, childrens);
+    } else {
+			var fIdx = childrens.indexOf(childrenItem);
+			childrens.splice(fIdx, 1);
+			childrens.push(childrenItem);
+    }
   }
 
 	return childrens;
 }
-
 
 
 var simInterval = 1000;

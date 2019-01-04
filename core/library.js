@@ -176,6 +176,8 @@ class LED extends Component {
     this.minHeight = 5;
 
     this.ledSVG = null;
+
+    this.value = null;
   }
 
   drawSymbol(svg) {
@@ -187,10 +189,11 @@ class LED extends Component {
   }
 
   execute() {
+    this.value = +this.inputs[0].value;
   }
 
   draw() {
-    if (+this.inputs[0].value)
+    if (+this.value)
       this.ledSVG.fill('#ff0000').stroke({ color: '#cc0000', width: 2 });
     else
       this.ledSVG.fill('#3f0000').stroke({ color: '#330000', width: 2 });
