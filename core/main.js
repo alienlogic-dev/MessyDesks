@@ -259,8 +259,7 @@ class Component {
   }
 
   execute() {}
-
-  getOut(index) {
+  run() {
   	if (cycIdx > this.exeIdx) {
   		this.marshallingInputs();
   		this.execute();
@@ -271,6 +270,9 @@ class Component {
 
   		this.exeIdx = cycIdx;
   	}
+  }
+
+  getOut(index) {
   	if (index !== undefined)
   		return this.outputs[index].value;
   }
@@ -525,6 +527,9 @@ function wireboardFromSource(source) {
 			newWire.con = con;
 		}
 	}
+
+	// Simulation
+	simOrder = generateExecutionOrderFromSource(source);
 }
 
 var editorCodes = {};
@@ -1036,13 +1041,11 @@ function download(data, filename, type) {
 }
 
 // Simulation
+var simOrder = [];
 function simStep() {
-	cycIdx++;
-	for (var idx = 0; idx < components.length; idx++) {
-		var componentItem = components[idx];
-		componentItem.getOut();
-	}
 
+	//executeFromComponentsOrder(simOrder);
+/*
 	for (var idx = 0; idx < wires.length; idx++) {
 		var wireItem = wires[idx];
 		if (wireItem) {
@@ -1051,16 +1054,106 @@ function simStep() {
 			pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
 		}
 	}
+*/
+	cycIdx++;
+
 }
 
-setInterval(function() {
+function selectAll(components) {
+  for (var idx in components)
+    components[idx].select();
+}
+function deselectAll(components) {
+  for (var idx in components)
+    components[idx].deselect();
+}
+
+function executeFromComponentsOrder(order) {
+	for (var idx = order.length - 1; idx >= 0; idx--) {
+		var orderItem = order[idx];
+		var componentItem = components.filter(t => t.id == orderItem)[0];
+		componentItem.run();
+
+		var componentOutputWires = wires.filter(t => t.O.component === componentItem);
+		for (var wIdx in componentOutputWires) {
+			var wireItem = componentOutputWires[wIdx];
+			if (wireItem) {
+				var pinI = wireItem.I;
+				var pinO = wireItem.O;
+				pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
+			}
+		}
+		console.log(componentItem, componentOutputWires);
+	}
+}
+
+function generateExecutionOrderFromSource(source) {
+	var executionOrder = [];
+
+	var aloneComponents = getAloneComponentsFromSource(source);
+	for (var idx in aloneComponents) {
+		var componentItem = aloneComponents[idx];
+		executionOrder.push(componentItem.id);
+		var childrens = childrensOrderOfComponentFromSource(source, componentItem.id);
+		for (var cIdx in childrens)
+			if (!executionOrder.includes(childrens[cIdx]))
+				executionOrder.push(childrens[cIdx]);
+	}
+
+	return executionOrder;
+}
+
+function getAloneComponentsFromSource(source) {
+	var aloneComponents = [];
+
+	for (var idx = 0; idx < source.components.length; idx++) {
+    var componentItem = source.components[idx];
+		var wire = source.wires.filter(t => (t.O.component == componentItem.id));
+		if (wire.length == 0)
+			aloneComponents.push(componentItem);
+	}
+
+	return aloneComponents;
+}
+
+function childrensOrderOfComponentFromSource(source, componentId, actual) {
+	var childrens = [];
+	if (!actual) actual = [];
+
+  for (var idx = 0; idx < source.wires.length; idx++) {
+		var wireItem = source.wires[idx];
+		if (wireItem) {
+			var pinI = wireItem.I;
+			var pinO = wireItem.O;
+
+			if (pinI.component == componentId)
+				if (!childrens.includes(pinO.component))
+					childrens.push(pinO.component);
+		}
+  }
+
+	for (var idx in childrens) {
+		var childrenItem = childrens[idx];
+		if (!actual.includes(childrenItem))
+			childrens = childrens.concat(childrensOrderOfComponentFromSource(source, childrenItem, childrens));
+  }
+
+	return childrens;
+}
+
+
+
+var simInterval = 5;
+var simEvent = function() {
 	simStep();
-}, 5);
+  setTimeout(simEvent, simInterval);
+}
+//setTimeout(simEvent, simInterval);
 
 setInterval(function() {
 	for (var idx = 0; idx < components.length; idx++) {
 		var componentItem = components[idx];
-		componentItem.getOut();
+		//componentItem.getOut();
 
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {
