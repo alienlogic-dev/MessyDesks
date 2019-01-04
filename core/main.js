@@ -1043,34 +1043,10 @@ function download(data, filename, type) {
 // Simulation
 var simOrder = [];
 function simStep() {
-
-	//executeFromComponentsOrder(simOrder);
-/*
-	for (var idx = 0; idx < wires.length; idx++) {
-		var wireItem = wires[idx];
-		if (wireItem) {
-			var pinI = wireItem.I;
-			var pinO = wireItem.O;
-			pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
-		}
-	}
-*/
 	cycIdx++;
 
-}
-
-function selectAll(components) {
-  for (var idx in components)
-    components[idx].select();
-}
-function deselectAll(components) {
-  for (var idx in components)
-    components[idx].deselect();
-}
-
-function executeFromComponentsOrder(order) {
-	for (var idx = order.length - 1; idx >= 0; idx--) {
-		var orderItem = order[idx];
+	for (var idx = simOrder.length - 1; idx >= 0; idx--) {
+		var orderItem = simOrder[idx];
 		var componentItem = components.filter(t => t.id == orderItem)[0];
 		componentItem.run();
 
@@ -1083,8 +1059,16 @@ function executeFromComponentsOrder(order) {
 				pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
 			}
 		}
-		console.log(componentItem, componentOutputWires);
 	}
+}
+
+function selectAll(components) {
+  for (var idx in components)
+    components[idx].select();
+}
+function deselectAll(components) {
+  for (var idx in components)
+    components[idx].deselect();
 }
 
 function generateExecutionOrderFromSource(source) {
@@ -1143,17 +1127,16 @@ function childrensOrderOfComponentFromSource(source, componentId, actual) {
 
 
 
-var simInterval = 5;
+var simInterval = 1000;
 var simEvent = function() {
 	simStep();
   setTimeout(simEvent, simInterval);
 }
-//setTimeout(simEvent, simInterval);
+setTimeout(simEvent, simInterval);
 
 setInterval(function() {
 	for (var idx = 0; idx < components.length; idx++) {
 		var componentItem = components[idx];
-		//componentItem.getOut();
 
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {
