@@ -192,24 +192,6 @@ class Component {
 			aliases[componentItem.id] = instanceName;
 		}
 
-		// Count inputs and outputs
-		var inputPinCount = 0;
-		var inputAliases = [];
-		var outputPinCount = 0;
-		var outputAliases = [];
-		for (var idx in source.components) {
-			var componentItem = source.components[idx];
-
-			if (componentItem.name == 'INPUT') {
-				if (componentItem.config) inputAliases.push(componentItem.config.alias); else inputAliases.push('');
-				inputPinCount++
-			} else if (componentItem.name == 'OUTPUT') {
-				if (componentItem.config) outputAliases.push(componentItem.config.alias); else outputAliases.push('');
-				outputPinCount++;
-			}
-		}
-		compiledCode.push(`\t\t${componentName}() : Component(${inputAliases.length}, ${outputAliases.length}) ${compiledInstancesCode.length ? ', ' : ''} ${compiledInstancesCode.join(', ')} {}`);
-
 		// Find multiple input pins
 		var uniquePins = [];
 		var duplicatedPins = [];
@@ -227,13 +209,30 @@ class Component {
 				}
 			}
 		}
-
 		var componentsWithMultipleInputs = duplicatedPins.map(t => t.component);
 
-		// Connect wires
-		compiledCode.push('\t\tvoid execute() {');
-
+		// Get components order
 		var order = generateExecutionOrderFromSource(source);
+
+		// Count inputs and outputs
+		var inputPinCount = 0;
+		var inputAliases = [];
+		var outputPinCount = 0;
+		var outputAliases = [];
+		for (var idx in source.components) {
+			var componentItem = source.components[idx];
+
+			if (componentItem.name == 'INPUT') {
+				if (componentItem.config) inputAliases.push(componentItem.config.alias); else inputAliases.push('');
+				inputPinCount++
+			} else if (componentItem.name == 'OUTPUT') {
+				if (componentItem.config) outputAliases.push(componentItem.config.alias); else outputAliases.push('');
+				outputPinCount++;
+			}
+		}
+		compiledCode.push(`\t\t${componentName}() : Component(${inputAliases.length}, ${outputAliases.length}) ${compiledInstancesCode.length ? ', ' : ''} ${compiledInstancesCode.join(', ')} {`);
+		
+
 
 		for (var idx in order) {
 			var orderItem = order[idx];
@@ -241,7 +240,7 @@ class Component {
 			var componentOutputWires = source.wires.filter(t => t.O.component == orderItem.id);
 
 			if ((orderItem.name != 'INPUT') && (orderItem.name != 'OUTPUT'))
-				compiledCode.push( `\t\t${aliases[orderItem.id]}.run();` );		
+				compiledCode.push( `\t\t\t${aliases[orderItem.id]}.run();` );		
 
 			for (var wIdx in componentOutputWires) {
 				var wireItem = componentOutputWires[wIdx];
@@ -252,18 +251,60 @@ class Component {
 					var pinO = wireItem.O;
 					var componentO = source.components.filter(t => t.id == pinO.component)[0];
 
-					var outCode = `${aliases[pinO.component]}.outputs[${pinO.pin}]`;
-					if (componentO.name == 'INPUT')
-						outCode = `inputs[${aliases[componentO.id]}]`;
+					if (!componentsWithMultipleInputs.includes(pinI.component)) {
+						var outCode = `${aliases[pinO.component]}.outputs[${pinO.pin}]`;
+						if (componentO.name == 'INPUT')
+							outCode = `inputs[${aliases[componentO.id]}]`;
 
-					var inCode = `${aliases[pinI.component]}.inputs[${pinI.pin}] = ${outCode}`;
-					if (componentsWithMultipleInputs.includes(pinI.component))
-						inCode = `${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
+						var inCode = `${aliases[pinI.component]}.inputs[${pinI.pin}] = ${outCode}`;
+						if (componentsWithMultipleInputs.includes(pinI.component))
+							inCode = `${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
 
-					if (componentI.name == 'OUTPUT')
-						inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
+						if (componentI.name == 'OUTPUT')
+							inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
 
-					compiledCode.push( '\t\t' + inCode + ';' );		
+						compiledCode.push( '\t\t\t' + inCode + ';' );
+					}
+				}
+			}
+		}
+
+		compiledCode.push('\t\t}');
+
+		// Connect wires
+		compiledCode.push('\t\tvoid execute() {');
+
+		for (var idx in order) {
+			var orderItem = order[idx];
+
+			var componentOutputWires = source.wires.filter(t => t.O.component == orderItem.id);
+
+			if ((orderItem.name != 'INPUT') && (orderItem.name != 'OUTPUT'))
+				compiledCode.push( `\t\t\t${aliases[orderItem.id]}.run();` );
+
+			for (var wIdx in componentOutputWires) {
+				var wireItem = componentOutputWires[wIdx];
+				if (wireItem) {
+					var pinI = wireItem.I;
+					var componentI = source.components.filter(t => t.id == pinI.component)[0];
+
+					var pinO = wireItem.O;
+					var componentO = source.components.filter(t => t.id == pinO.component)[0];
+
+					if (componentsWithMultipleInputs.includes(pinI.component) || (componentO.name == 'INPUT') || (componentI.name == 'OUTPUT')) {
+						var outCode = `${aliases[pinO.component]}.outputs[${pinO.pin}]`;
+						if (componentO.name == 'INPUT')
+							outCode = `inputs[${aliases[componentO.id]}]`;
+
+						var inCode = `${aliases[pinI.component]}.inputs[${pinI.pin}] = ${outCode}`;
+						if (componentsWithMultipleInputs.includes(pinI.component))
+							inCode = `${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
+
+						if (componentI.name == 'OUTPUT')
+							inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
+
+						compiledCode.push( '\t\t\t' + inCode + ';' );
+					}
 				}
 			}
 		}
