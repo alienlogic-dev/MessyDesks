@@ -1049,7 +1049,8 @@ function simStep() {
 
 	for (var idx = 0; idx < simOrder.length; idx++) {
 		var orderItem = simOrder[idx];
-		var componentItem = components.filter(t => t.id == orderItem)[0];
+
+		var componentItem = components.filter(t => t.id == orderItem.id)[0];
 		var ret = componentItem.run();
 
 		if (ret) {
@@ -1075,6 +1076,24 @@ function deselectAll(components) {
     components[idx].deselect();
 }
 
+
+function generateExecutionOrderFromSource(source) {
+	var executionOrder = [];
+
+	findChildrensOfComponentsFromSource(source);
+
+	var aloneComponents = getAloneComponentsFromSource(source);
+	for (var idx in aloneComponents) {
+		var componentItem = aloneComponents[idx];
+
+		var componentOrder = [componentItem];
+		componentOrder = componentOrder.concat(generateOrderFromSourceComponent(componentItem));
+		executionOrder = executionOrder.concat(componentOrder);
+	}
+	console.log(source);
+	return executionOrder.reverse();
+}
+
 function findChildrensOfComponentsFromSource(source) {
 	for (var idx in source.components) {
     var componentItem = source.components[idx];
@@ -1091,30 +1110,29 @@ function findChildrensOfComponentsFromSource(source) {
 	}
 }
 
-function generateOrderFromSourceComponent(source, componentID) {
-	
-}
+function generateOrderFromSourceComponent(component, order, callStack) {
+	if (!order) order = [];
 
-function generateExecutionOrderFromSource(source) {
-	var executionOrder = [];
+	if (!callStack) callStack = [];
+	callStack.push(component);
 
-	var aloneComponents = getAloneComponentsFromSource(source);
-	for (var idx in aloneComponents) {
-		var componentItem = aloneComponents[idx];
+	for (var cIdx in component.childrens) {
+		var componentItem = component.childrens[cIdx];
+		if (componentItem) {
+			if (!callStack.includes(componentItem)) {
+				if (order.includes(componentItem)) {
+					var fIdx = order.indexOf(componentItem);
+					order.splice(fIdx, 1);
+	      }
+				order.push(componentItem);
+	      generateOrderFromSourceComponent(componentItem, order, callStack);
+	    }
+		}
+  }
 
-		var childrens = [];
-		childrens.push(componentItem.id);
+	callStack.pop();
 
-		childrens = childrens.concat(childrensOrderOfComponentFromSource(source, componentItem.id));
-
-		childrens = childrens.reverse();
-
-		for (var cIdx in childrens)
-			if (!executionOrder.includes(childrens[cIdx]))
-				executionOrder.push(childrens[cIdx]);
-	}
-
-	return executionOrder;
+	return order;
 }
 
 function getAloneComponentsFromSource(source) {
@@ -1128,38 +1146,6 @@ function getAloneComponentsFromSource(source) {
 	}
 
 	return aloneComponents;
-}
-
-function childrensOrderOfComponentFromSource(source, componentId, childrens) {
-	var myChildrens = [];
-	if (!childrens) childrens = [];
-
-  for (var idx = 0; idx < source.wires.length; idx++) {
-		var wireItem = source.wires[idx];
-		if (wireItem) {
-			var pinI = wireItem.I;
-			var pinO = wireItem.O;
-
-			if (pinI.component == componentId)
-				if (!myChildrens.includes(pinO.component))
-					myChildrens.push(pinO.component);
-		}
-  }
-
-	for (var idx in myChildrens) {
-		var childrenItem = myChildrens[idx];
-		
-		if (!childrens.includes(childrenItem)) {
-			childrens.push(childrenItem);
-			childrensOrderOfComponentFromSource(source, childrenItem, childrens);
-    } else {
-			var fIdx = childrens.indexOf(childrenItem);
-			childrens.splice(fIdx, 1);
-			childrens.push(childrenItem);
-    }
-  }
-
-	return childrens;
 }
 
 
