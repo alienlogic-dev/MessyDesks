@@ -216,6 +216,26 @@ class Component {
 		}
 		compiledCode.push(`\t\t${componentName}() : Component(${inputAliases.length}, ${outputAliases.length}) ${compiledInstancesCode.length ? ', ' : ''} ${compiledInstancesCode.join(', ')} {}`);
 
+		// Find multiple input pins
+		var uniquePins = [];
+		var duplicatedPins = [];
+		for (var idx in source.wires) {
+			var wireItem = source.wires[idx];
+			if (wireItem) {
+				var pinItem = wireItem.I;
+				var uniqueFilter = uniquePins.filter(t => (t.component == pinItem.component) && (t.pin == pinItem.pin));
+				if (uniqueFilter.length == 0)
+					uniquePins.push(pinItem);
+				else {
+					var duplicateFilter = duplicatedPins.filter(t => (t.component == pinItem.component) && (t.pin == pinItem.pin));
+					if (duplicateFilter.length == 0)
+						duplicatedPins.push(pinItem);
+				}
+			}
+		}
+
+		var componentsWithMultipleInputs = duplicatedPins.map(t => t.component);
+
 		// Connect wires
 		compiledCode.push('\t\tvoid execute() {');
 
@@ -242,7 +262,10 @@ class Component {
 					if (componentO.name == 'INPUT')
 						outCode = `inputs[${aliases[componentO.id]}]`;
 
-					var inCode = `${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
+					var inCode = `${aliases[pinI.component]}.inputs[${pinI.pin}] = ${outCode}`;
+					if (componentsWithMultipleInputs.includes(pinI.component))
+						inCode = `${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
+
 					if (componentI.name == 'OUTPUT')
 						inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
 
@@ -251,85 +274,6 @@ class Component {
 			}
 		}
 
-/*
-		var wires = source.wires.slice(0);
-
-		// Inputs
-		for (var idx = 0; idx < wires.length; idx++) {
-			var wireItem = wires[idx];
-			if (wireItem) {
-				var pinI = wireItem.I;
-				var componentI = source.components[pinI.component];
-
-				var pinO = wireItem.O;
-				var componentO = source.components[pinO.component];
-
-				if (componentO.name == 'INPUT') {
-					var	outCode = `inputs[${aliases[componentO.id]}]`;
-
-					var inCode = `${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
-
-					if (componentI.name == 'OUTPUT')
-						inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
-
-					compiledCode.push( '\t\t\t' + inCode + ';' );
-
-					wires[idx] = null;
-				}
-			}
-		}
-
-		// Normal
-		for (var idx = 0; idx < wires.length; idx++) {
-			var wireItem = wires[idx];
-			if (wireItem) {
-				var pinI = wireItem.I;
-				var componentI = source.components[pinI.component];
-
-				var pinO = wireItem.O;
-				var componentO = source.components[pinO.component];
-
-				if ((componentI.name != 'OUTPUT') && (componentI.name != 'OUTPUT')) {
-					var outCode = `${aliases[pinO.component]}.getOut(${pinO.pin})`;
-
-					var inCode = `${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
-
-					compiledCode.push( '\t\t\t' + inCode + ';' );
-
-					wires[idx] = null;
-				}			
-			}
-		}
-
-		// Outputs
-		for (var idx = 0; idx < wires.length; idx++) {
-			var wireItem = wires[idx];
-			if (wireItem) {
-				var pinI = wireItem.I;
-				var componentI = source.components[pinI.component];
-
-				var pinO = wireItem.O;
-				var componentO = source.components[pinO.component];
-
-
-				if (componentI.name == 'OUTPUT') {
-					var outCode = `${aliases[pinO.component]}.getOut(${pinO.pin})`;
-
-					if (componentO.name == 'INPUT')
-						outCode = `inputs[${aliases[componentO.id]}]`;
-
-					var inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
-
-					compiledCode.push( '\t\t\t' + inCode + ';' );
-
-					wires[idx] = null;
-				}			
-			}
-		}
-
-		if (wires.filter(t => t != null).length > 0)
-			console.error('Something went wrong compiling the wires!');
-*/
 		compiledCode.push('\t\t}');
 
 		// Add private instances
