@@ -458,7 +458,7 @@ function removeWiresFromComponent(component) {
 
 function sourceFromWireboard() {
 	var source = {
-		components: {},
+		components: [],
 		wires: []
 	};
 
@@ -472,7 +472,7 @@ function sourceFromWireboard() {
 			x: componentItem.svg.x(),
 			y: componentItem.svg.y()
 		};
-		source.components[componentItem.id] = newComponent;
+		source.components.push(newComponent);
 	}
 
 	// Wires
@@ -715,10 +715,10 @@ function compileSource(componentName, source) {
 			var wireItem = componentOutputWires[wIdx];
 			if (wireItem) {
 				var pinI = wireItem.I;
-				var componentI = source.components[pinI.component];
+				var componentI = source.components.filter(t => t.id == pinI.component)[0];
 
 				var pinO = wireItem.O;
-				var componentO = source.components[pinO.component];
+				var componentO = source.components.filter(t => t.id == pinO.component)[0];
 
 				var outCode = `this.${aliases[pinO.component]}.getOut(${pinO.pin})`;
 				if (componentO.name == 'INPUT')
@@ -771,7 +771,7 @@ function newEmptyComponent() {
 				alert('Component alredy exists!');
 			else
 				newComponentFromSource(name, {
-					components: {},
+					components: [],
 					wires: []
 				});
 	})
@@ -1050,9 +1050,8 @@ function generateExecutionOrderFromSource(source) {
 	for (var idx in aloneComponents) {
 		var componentItem = aloneComponents[idx];
 
-		var componentOrder = [componentItem];
-		componentOrder = componentOrder.concat(generateOrderFromSourceComponent(componentItem));
-		executionOrder = executionOrder.concat(componentOrder);
+		executionOrder.push(componentItem);
+		executionOrder = generateOrderFromSourceComponent(componentItem, executionOrder);
 	}
 
 	return executionOrder.reverse();
@@ -1067,7 +1066,7 @@ function updateChildrensOfSourceComponents(source) {
 			for (var wIdx in inputWires) {
 				var pinOComponent = inputWires[wIdx].O.component;
 				if (!childrens[pinOComponent] && (pinOComponent != componentItem.id))
-					childrens[pinOComponent] = source.components[pinOComponent];
+					childrens[pinOComponent] = source.components.filter(t => t.id == pinOComponent)[0];
 			}
 			componentItem.childrens = childrens;
 		}			

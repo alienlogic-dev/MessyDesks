@@ -150,16 +150,18 @@ class Component {
     }
 
     uint32_t* getOut(int index) {
+      return outputs[index];
+    }
+
+    virtual void execute() {}
+    void run() {
       if (cycIdx > exeIdx) {
         execute();
         for (int idx = 0; idx < inCount; idx++)
         	inputs[idx] = NULL;
         exeIdx = cycIdx;   
       }
-      return outputs[index];
     }
-
-    virtual void execute() {}
 };
 `;
 	}
@@ -216,6 +218,40 @@ class Component {
 
 		// Connect wires
 		compiledCode.push('\t\tvoid execute() {');
+
+		var order = generateExecutionOrderFromSource(source);
+
+		for (var idx in order) {
+			var orderItem = order[idx];
+
+			var componentOutputWires = source.wires.filter(t => t.O.component == orderItem.id);
+
+			if ((orderItem.name != 'INPUT') && (orderItem.name != 'OUTPUT'))
+				compiledCode.push( `\t\t${aliases[orderItem.id]}.run();` );		
+
+			for (var wIdx in componentOutputWires) {
+				var wireItem = componentOutputWires[wIdx];
+				if (wireItem) {
+					var pinI = wireItem.I;
+					var componentI = source.components.filter(t => t.id == pinI.component)[0];
+
+					var pinO = wireItem.O;
+					var componentO = source.components.filter(t => t.id == pinO.component)[0];
+
+					var outCode = `${aliases[pinO.component]}.outputs[${pinO.pin}]`;
+					if (componentO.name == 'INPUT')
+						outCode = `inputs[${aliases[componentO.id]}]`;
+
+					var inCode = `${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
+					if (componentI.name == 'OUTPUT')
+						inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
+
+					compiledCode.push( '\t\t' + inCode + ';' );		
+				}
+			}
+		}
+
+/*
 		var wires = source.wires.slice(0);
 
 		// Inputs
@@ -293,7 +329,7 @@ class Component {
 
 		if (wires.filter(t => t != null).length > 0)
 			console.error('Something went wrong compiling the wires!');
-
+*/
 		compiledCode.push('\t\t}');
 
 		// Add private instances
