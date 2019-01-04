@@ -137,7 +137,7 @@ int main(void) {
 
     while(1) {
         marshalling_IN();
-        cycIdx++;
+        //cycIdx++;
         test.run();
         marshalling_OUT();
     }

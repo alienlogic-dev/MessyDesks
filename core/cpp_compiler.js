@@ -9,7 +9,6 @@ CONST['C++'] =
 
     void execute() {
       outputsData[0] = outValue;
-      this->outputs[0] = &outputsData[0];
     }
 };`;
 
@@ -28,7 +27,6 @@ NOR_Component['C++'] =
           	res = res || *inputs[idx];
     	}
       outputsData[0] = !res;
-      this->outputs[0] = &outputsData[0];
     }
 };`;
 
@@ -45,7 +43,6 @@ BIN2DEC_Component['C++'] =
             data = data | ((*inputs[idx]) ? (1 << idx) : 0);
 
         outputsData[0] = data;
-        this->outputs[0] = &outputsData[0];
     }
 };`;
 
@@ -60,7 +57,6 @@ DEC2BIN_Component['C++'] =
         uint32_t data = *inputs[0];
         for (int idx = 0; idx < outCount; idx++) {
           outputsData[idx] = (data >> idx) & 0x01;
-        	this->outputs[idx] = &outputsData[idx];
         }
     	}
     }
@@ -96,7 +92,6 @@ R_TRIG['C++'] =
     		val = *inputs[0];
 
       outputsData[0] = (val != lastValue) && (val == 1);
-      this->outputs[0] = &outputsData[0];
 
       lastValue = val;
     }
@@ -128,11 +123,10 @@ class Component {
       for (int idx = 0; idx < inCount; idx++)
       	inputs[idx] = NULL;
 
+      outputsData = new uint32_t[outputsCount];
       outputs = new uint32_t*[outputsCount];
       for (int idx = 0; idx < outputsCount; idx++)
-      	outputs[idx] = NULL;
-
-      outputsData = new uint32_t[outputsCount];
+      	outputs[idx] = &outputsData[idx];
 
       exeIdx = 0;
     }
@@ -142,9 +136,11 @@ class Component {
     uint32_t* outputsData;
     uint32_t** outputs;
 
+    bool nullAfterExecute = false;
     unsigned int exeIdx;
 
     void setIn(int index, uint32_t* value) {
+    	nullAfterExecute = true;
     	if (value)
         inputs[index] = value;
     }
@@ -155,12 +151,10 @@ class Component {
 
     virtual void execute() {}
     void run() {
-      if (cycIdx > exeIdx) {
-        execute();
-        for (int idx = 0; idx < inCount; idx++)
-        	inputs[idx] = NULL;
-        exeIdx = cycIdx;   
-      }
+      execute();
+      if (nullAfterExecute)
+	      for (int idx = 0; idx < inCount; idx++)
+	      	inputs[idx] = NULL;
     }
 };
 `;

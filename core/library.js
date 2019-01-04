@@ -256,6 +256,7 @@ class BCD_7Seg extends Component {
     
     this.ledSVG = null;
     this.segMap = [0x3F, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x67, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71];
+    this.segData = 0x00;
   }
 
   drawSymbol(svg) {
@@ -285,21 +286,24 @@ class BCD_7Seg extends Component {
     svg.size(31.8, 50);
   }
 
-  draw() {
+  execute() {
     var data = 0;
     for (var idx = 0; idx < this.inputs.length; idx++) {
       var dPin = +this.inputs[idx].value;
       data = data | (dPin ? (1 << idx) : 0);
     }
 
-    var segData = this.segMap[data];
-    this.segA.fill(segData & 0x01 ? '#ff0000' : '#3f0000');
-    this.segB.fill(segData & 0x02 ? '#ff0000' : '#3f0000');
-    this.segC.fill(segData & 0x04 ? '#ff0000' : '#3f0000');
-    this.segD.fill(segData & 0x08 ? '#ff0000' : '#3f0000');
-    this.segE.fill(segData & 0x10 ? '#ff0000' : '#3f0000');
-    this.segF.fill(segData & 0x20 ? '#ff0000' : '#3f0000');
-    this.segG.fill(segData & 0x40 ? '#ff0000' : '#3f0000');
+    this.segData = this.segMap[data];
+  }
+
+  draw() {
+    this.segA.fill(this.segData & 0x01 ? '#ff0000' : '#3f0000');
+    this.segB.fill(this.segData & 0x02 ? '#ff0000' : '#3f0000');
+    this.segC.fill(this.segData & 0x04 ? '#ff0000' : '#3f0000');
+    this.segD.fill(this.segData & 0x08 ? '#ff0000' : '#3f0000');
+    this.segE.fill(this.segData & 0x10 ? '#ff0000' : '#3f0000');
+    this.segF.fill(this.segData & 0x20 ? '#ff0000' : '#3f0000');
+    this.segG.fill(this.segData & 0x40 ? '#ff0000' : '#3f0000');
   }
 }
 
