@@ -71,14 +71,13 @@ class PIN_IN: public Component {
   public:
     PIN_IN(uint8_t pin) : Component(0, 1) {
         pinNumber = pin;
+        setGPIOAsOutput(pinNumber, false);
     }
 
     uint8_t pinNumber = 0;
 
     void execute() {
-        setGPIOAsOutput(pinNumber, false);
         outputsData[0] = gpio_in_values[pinNumber];
-        this->outputs[0] = &outputsData[0];
     }
 };
 
@@ -86,6 +85,7 @@ class PIN_OUT: public Component {
   public:
     PIN_OUT(uint8_t pin) : Component(1, 0) {
         pinNumber = pin;
+        setGPIOAsOutput(pinNumber, true);
     }
 
     uint8_t pinNumber = 0;
@@ -93,13 +93,11 @@ class PIN_OUT: public Component {
     void setIn(int index, uint32_t* value) {
         if (value) {
             inputs[index] = value;
-            setGPIOAsOutput(pinNumber, true);
             gpio_out_values[pinNumber] = *inputs[0];
         }
     }
 
     void execute() {
-        setGPIOAsOutput(pinNumber, true);
         if (inputs[0])
             gpio_out_values[pinNumber] = *inputs[0];
     }
