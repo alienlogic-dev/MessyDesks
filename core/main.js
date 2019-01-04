@@ -531,7 +531,7 @@ function wireboardFromSource(source) {
 	}
 
 	// Simulation
-	simOrder = generateExecutionOrderFromSource(source);
+	updateSimOrderFromSource(source);
 }
 
 var editorCodes = {};
@@ -692,86 +692,40 @@ function compileSource(componentName, source) {
 
 	// Connect wires
 	compiledCode.push('\texecute() {');
-	var wires = source.wires.slice(0);
 
-	// Inputs
-	for (var idx = 0; idx < wires.length; idx++) {
-		var wireItem = wires[idx];
-		if (wireItem) {
-			var pinI = wireItem.I;
-			var componentI = source.components[pinI.component];
+	var order = generateExecutionOrderFromSource(source);
 
-			var pinO = wireItem.O;
-			var componentO = source.components[pinO.component];
+	for (var idx in order) {
+		var orderItem = order[idx];
 
-			if (componentO.name == 'INPUT') {
-				var	outCode = `this.inputs[${aliases[componentO.id]}].value`;
+		var componentOutputWires = source.wires.filter(t => t.O.component == orderItem.id);
+
+		if ((orderItem.name != 'INPUT') && (orderItem.name != 'OUTPUT'))
+			compiledCode.push( `\t\tthis.${aliases[orderItem.id]}.run();` );		
+
+		for (var wIdx in componentOutputWires) {
+			var wireItem = componentOutputWires[wIdx];
+			if (wireItem) {
+				var pinI = wireItem.I;
+				var componentI = source.components[pinI.component];
+
+				var pinO = wireItem.O;
+				var componentO = source.components[pinO.component];
+
+				var outCode = `this.${aliases[pinO.component]}.getOut(${pinO.pin})`;
+				if (componentO.name == 'INPUT')
+					outCode = `this.inputs[${aliases[componentO.id]}].value`;
 
 				var inCode = `this.${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
-
 				if (componentI.name == 'OUTPUT')
 					inCode = `this.outputs[${aliases[componentI.id]}].value = ${outCode}`;
 
-				compiledCode.push( '\t\t' + inCode + ';' );
-
-				wires[idx] = null;
+				compiledCode.push( '\t\t' + inCode + ';' );		
 			}
 		}
 	}
 
-	// Normal
-	for (var idx = 0; idx < wires.length; idx++) {
-		var wireItem = wires[idx];
-		if (wireItem) {
-			var pinI = wireItem.I;
-			var componentI = source.components[pinI.component];
-
-			var pinO = wireItem.O;
-			var componentO = source.components[pinO.component];
-
-			if ((componentI.name != 'OUTPUT') && (componentI.name != 'OUTPUT')) {
-				var outCode = `this.${aliases[pinO.component]}.getOut(${pinO.pin})`;
-
-				var inCode = `this.${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
-
-				compiledCode.push( '\t\t' + inCode + ';' );
-
-				wires[idx] = null;
-			}			
-		}
-	}
-
-	// Outputs
-	for (var idx = 0; idx < wires.length; idx++) {
-		var wireItem = wires[idx];
-		if (wireItem) {
-			var pinI = wireItem.I;
-			var componentI = source.components[pinI.component];
-
-			var pinO = wireItem.O;
-			var componentO = source.components[pinO.component];
-
-
-			if (componentI.name == 'OUTPUT') {
-				var outCode = `this.${aliases[pinO.component]}.getOut(${pinO.pin})`;
-
-				if (componentO.name == 'INPUT')
-					outCode = `this.inputs[${aliases[componentO.id]}].value`;
-
-				var inCode = `this.outputs[${aliases[componentI.id]}].value = ${outCode}`;
-
-				compiledCode.push( '\t\t' + inCode + ';' );
-
-				wires[idx] = null;
-			}			
-		}
-	}
-
-	if (wires.filter(t => t != null).length > 0)
-		console.error('Something went wrong compiling the wires!');
-
 	compiledCode.push('\t}');
-
 	compiledCode.push('}');
 
 	return compiledCode.join('\n');
@@ -1044,6 +998,11 @@ function download(data, filename, type) {
 
 // Simulation
 var simOrder = [];
+
+function updateSimOrderFromSource(source) {
+	simOrder = generateExecutionOrderFromSource(source);
+}
+
 function simStep() {
 	cycIdx++;
 
@@ -1062,25 +1021,15 @@ function simStep() {
 					var pinO = wireItem.O;
 					pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
 				}
-			}			
+			}
 		}
 	}
 }
 
-function selectAll(components) {
-  for (var idx in components)
-    components[idx].select();
-}
-function deselectAll(components) {
-  for (var idx in components)
-    components[idx].deselect();
-}
-
-
 function generateExecutionOrderFromSource(source) {
 	var executionOrder = [];
 
-	findChildrensOfComponentsFromSource(source);
+	updateChildrensOfSourceComponents(source);
 
 	var aloneComponents = getAloneComponentsFromSource(source);
 	for (var idx in aloneComponents) {
@@ -1090,11 +1039,11 @@ function generateExecutionOrderFromSource(source) {
 		componentOrder = componentOrder.concat(generateOrderFromSourceComponent(componentItem));
 		executionOrder = executionOrder.concat(componentOrder);
 	}
-	console.log(source);
+
 	return executionOrder.reverse();
 }
 
-function findChildrensOfComponentsFromSource(source) {
+function updateChildrensOfSourceComponents(source) {
 	for (var idx in source.components) {
     var componentItem = source.components[idx];
 		var inputWires = source.wires.filter(t => (t.I.component == componentItem.id));
