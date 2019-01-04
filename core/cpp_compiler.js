@@ -179,7 +179,7 @@ class Component {
 
 		var inputPinIndex = 0;
 		var outputPinIndex = 0;
-		for (var idx = 0; idx < source.components.length; idx++) {
+		for (var idx in source.components) {
 			var componentItem = source.components[idx];
 			var instanceName = componentItem.id;
 
@@ -201,7 +201,7 @@ class Component {
 		var inputAliases = [];
 		var outputPinCount = 0;
 		var outputAliases = [];
-		for (var idx = 0; idx < source.components.length; idx++) {
+		for (var idx in source.components) {
 			var componentItem = source.components[idx];
 
 			if (componentItem.name == 'INPUT') {
@@ -223,10 +223,10 @@ class Component {
 			var wireItem = wires[idx];
 			if (wireItem) {
 				var pinI = wireItem.I;
-				var componentI = source.components.filter(t => t.id == pinI.component)[0];
+				var componentI = source.components[pinI.component];
 
 				var pinO = wireItem.O;
-				var componentO = source.components.filter(t => t.id == pinO.component)[0];
+				var componentO = source.components[pinO.component];
 
 				if (componentO.name == 'INPUT') {
 					var	outCode = `inputs[${aliases[componentO.id]}]`;
@@ -248,10 +248,10 @@ class Component {
 			var wireItem = wires[idx];
 			if (wireItem) {
 				var pinI = wireItem.I;
-				var componentI = source.components.filter(t => t.id == pinI.component)[0];
+				var componentI = source.components[pinI.component];
 
 				var pinO = wireItem.O;
-				var componentO = source.components.filter(t => t.id == pinO.component)[0];
+				var componentO = source.components[pinO.component];
 
 				if ((componentI.name != 'OUTPUT') && (componentI.name != 'OUTPUT')) {
 					var outCode = `${aliases[pinO.component]}.getOut(${pinO.pin})`;
@@ -270,10 +270,10 @@ class Component {
 			var wireItem = wires[idx];
 			if (wireItem) {
 				var pinI = wireItem.I;
-				var componentI = source.components.filter(t => t.id == pinI.component)[0];
+				var componentI = source.components[pinI.component];
 
 				var pinO = wireItem.O;
-				var componentO = source.components.filter(t => t.id == pinO.component)[0];
+				var componentO = source.components[pinO.component];
 
 
 				if (componentI.name == 'OUTPUT') {

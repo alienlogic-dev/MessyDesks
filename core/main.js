@@ -450,7 +450,7 @@ function removeWiresFromComponent(component) {
 
 function sourceFromWireboard() {
 	var source = {
-		components: [],
+		components: {},
 		wires: []
 	};
 
@@ -464,7 +464,7 @@ function sourceFromWireboard() {
 			x: componentItem.svg.x(),
 			y: componentItem.svg.y()
 		};
-		source.components.push(newComponent);
+		source.components[componentItem.id] = newComponent;
 	}
 
 	// Wires
@@ -495,7 +495,7 @@ function wireboardFromSource(source) {
 	wires = [];
 	
 	// Components
-	for (var idx = 0; idx < source.components.length; idx++) {
+	for (var idx in source.components) {
 		var componentItem = source.components[idx];
 
 		var inst = new toolbox[componentItem.name](componentItem.config);
@@ -651,7 +651,7 @@ function compileSource(componentName, source) {
 	var inputAliases = [];
 	var outputPinCount = 0;
 	var outputAliases = [];
-	for (var idx = 0; idx < source.components.length; idx++) {
+	for (var idx in source.components) {
 		var componentItem = source.components[idx];
 
 		if (componentItem.name == 'INPUT') {
@@ -673,7 +673,7 @@ function compileSource(componentName, source) {
 
 	var inputPinIndex = 0;
 	var outputPinIndex = 0;
-	for (var idx = 0; idx < source.components.length; idx++) {
+	for (var idx in source.components) {
 		var componentItem = source.components[idx];
 		var instanceName = componentItem.id;
 
@@ -699,10 +699,10 @@ function compileSource(componentName, source) {
 		var wireItem = wires[idx];
 		if (wireItem) {
 			var pinI = wireItem.I;
-			var componentI = source.components.filter(t => t.id == pinI.component)[0];
+			var componentI = source.components[pinI.component];
 
 			var pinO = wireItem.O;
-			var componentO = source.components.filter(t => t.id == pinO.component)[0];
+			var componentO = source.components[pinO.component];
 
 			if (componentO.name == 'INPUT') {
 				var	outCode = `this.inputs[${aliases[componentO.id]}].value`;
@@ -724,10 +724,10 @@ function compileSource(componentName, source) {
 		var wireItem = wires[idx];
 		if (wireItem) {
 			var pinI = wireItem.I;
-			var componentI = source.components.filter(t => t.id == pinI.component)[0];
+			var componentI = source.components[pinI.component];
 
 			var pinO = wireItem.O;
-			var componentO = source.components.filter(t => t.id == pinO.component)[0];
+			var componentO = source.components[pinO.component];
 
 			if ((componentI.name != 'OUTPUT') && (componentI.name != 'OUTPUT')) {
 				var outCode = `this.${aliases[pinO.component]}.getOut(${pinO.pin})`;
@@ -746,10 +746,10 @@ function compileSource(componentName, source) {
 		var wireItem = wires[idx];
 		if (wireItem) {
 			var pinI = wireItem.I;
-			var componentI = source.components.filter(t => t.id == pinI.component)[0];
+			var componentI = source.components[pinI.component];
 
 			var pinO = wireItem.O;
-			var componentO = source.components.filter(t => t.id == pinO.component)[0];
+			var componentO = source.components[pinO.component];
 
 
 			if (componentI.name == 'OUTPUT') {
@@ -809,7 +809,7 @@ function newEmptyComponent() {
 				alert('Component alredy exists!');
 			else
 				newComponentFromSource(name, {
-					components: [],
+					components: {},
 					wires: []
 				});
 	})
@@ -1075,6 +1075,26 @@ function deselectAll(components) {
     components[idx].deselect();
 }
 
+function findChildrensOfComponentsFromSource(source) {
+	for (var idx in source.components) {
+    var componentItem = source.components[idx];
+		var inputWires = source.wires.filter(t => (t.I.component == componentItem.id));
+		if (inputWires.length > 0) {
+			var childrens = {};
+			for (var wIdx in inputWires) {
+				var pinOComponent = inputWires[wIdx].O.component;
+				if (!childrens[pinOComponent] && (pinOComponent != componentItem.id))
+					childrens[pinOComponent] = source.components[pinOComponent];
+			}
+			componentItem.childrens = childrens;
+    }			
+	}
+}
+
+function generateOrderFromSourceComponent(source, componentID) {
+	
+}
+
 function generateExecutionOrderFromSource(source) {
 	var executionOrder = [];
 
@@ -1100,7 +1120,7 @@ function generateExecutionOrderFromSource(source) {
 function getAloneComponentsFromSource(source) {
 	var aloneComponents = [];
 
-	for (var idx = 0; idx < source.components.length; idx++) {
+	for (var idx in source.components) {
     var componentItem = source.components[idx];
 		var wire = source.wires.filter(t => (t.O.component == componentItem.id));
 		if (wire.length == 0)
