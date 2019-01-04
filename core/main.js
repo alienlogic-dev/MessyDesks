@@ -76,18 +76,18 @@ class Component {
 		this.init();
 
 		if (withGUI) this.createSVG();
-  }
+	}
 
-  init() {}
+	init() {}
 
-  createSVG() {
-  	var w = this.minWidth;
-  	var wpx = w * 8;
+	createSVG() {
+		var w = this.minWidth;
+		var wpx = w * 8;
 
-  	var h = Math.max(this.minHeight, Math.max(this.inputs.length * 2, this.outputs.length * 2));
-  	var hpx = h * 8;
+		var h = Math.max(this.minHeight, Math.max(this.inputs.length * 2, this.outputs.length * 2));
+		var hpx = h * 8;
 
-  	this.svg = new SVG.G();
+		this.svg = new SVG.G();
 		this.svg.on('mousedown', this.mouseDownEvent, this);
 		this.svg.on('mouseup', this.mouseUpEvent, this);
 		this.svg.on('dblclick', this.dblClickEvent, this);
@@ -101,10 +101,10 @@ class Component {
 
 		symbolSVG.move((wpx / 2) - (symbolSVG.width() / 2), (hpx / 2) - (symbolSVG.height() / 2));
 		this.svg.add(symbolSVG);
-  }
+	}
 
-  drawBody(wpx, hpx) {
-  	this.svgBody = this.svg.rect(wpx, hpx)
+	drawBody(wpx, hpx) {
+		this.svgBody = this.svg.rect(wpx, hpx)
 			.radius(2)
 			.move(0, 0)
 			.fill('#cccccc')
@@ -113,14 +113,14 @@ class Component {
 		this.svgName = this.svg
 			.text(this.id)//this.constructor.name.replace('_Component',''))
 			.font({
-						  family:   'Menlo'
-						, size:     12
-						, anchor:   'middle'
+							family:	 'Menlo'
+						, size:		 12
+						, anchor:	 'middle'
 						})
 			.move(wpx / 2, -15);
-  }
+	}
 
-  drawPins(wpx, hpx) {
+	drawPins(wpx, hpx) {
 		var inStepSize = hpx / this.inputs.length;
 		for (var i = this.inputs.length - 1; i >= 0; i--) {
 			var item = this.inputs[i];
@@ -139,9 +139,9 @@ class Component {
 			this.svg
 				.text(item.name)
 				.font({
-							  family:   'Menlo'
-							, size:     9
-							, anchor:   'start'
+								family:	 'Menlo'
+							, size:		 9
+							, anchor:	 'start'
 							})
 				.move(6, (inStepSize * i) + (inStepSize / 2) - 6);
 		}
@@ -164,138 +164,138 @@ class Component {
 			this.svg
 				.text(item.name)
 				.font({
-							  family:   'Menlo'
-							, size:     9
-							, anchor:   'end'
+								family:	 'Menlo'
+							, size:		 9
+							, anchor:	 'end'
 							})
 				.move(wpx - 6, (outStepSize * i) + (outStepSize / 2) - 6);
 		}
-  }
-
-  drawSymbol(svg) { }
-
-  /* Configuration modal */
-  openConfig(configModalContent) {
-  	if (configModalContent) {
-  		$('#modalComponentOptions .modal-body').html(configModalContent);
-  		$('#modalComponentOptions').off('click', '.btnComponentOptionsApply');
-  		$('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
-			    var data = event.data;
-			    var ret = data.applyConfig();
-  				if (ret) $('#modalComponentOptions').modal('hide');
-			});
-  		$('#modalComponentOptions').modal('show');
-  	}
-  }
-  applyConfig() { }
-
-  createConfigModal() { }
-
-  /* Mouse */
-  pinClickedEvent(e) {
-  	if (e.shiftKey) {
-  		var value = prompt('Enter value', this.value);
-			if ((value != null) && (value != ""))
-			  this.value = value;
-  	}
-  	else
-  		if (e.altKey) {
-  			var wire = wires.filter(t => (t.I === this) || (t.O === this));
- 				for (var idx in wire)
-  				removeWire(wire[idx]);
-  		}
-  		else
-  			if (this.component.pinClicked) this.component.pinClicked(this);
-  }
-
-  mouseDownEvent(e) { }
-  mouseUpEvent(e) { }
-  mouseDblClickEvent(e) { }
-
-  dblClickEvent(e) {
-  	if (e.altKey)
-  		startComponentEdit(this);
-  	else {
-  		var configModalContent = this.createConfigModal();
-  		if (configModalContent)
-  			this.openConfig(configModalContent);
-  		else
-  			if (!this.mouseDblClickEvent(e))
-  				startComponentEdit(this);
-  	}
-  }
-
-  /* Selection */
-  select() {
-  	this.svgBody.stroke({ color: '#0000ff', width: 2 });
-  	this.isSelected = true;
-  }
-  deselect() {
-  	this.svgBody.stroke({ color: '#666666', width: 2 });
-  	this.isSelected = false;
 	}
 
-  /* Config */
-  getConfig() { return null; }
+	drawSymbol(svg) { }
 
-  /* Runtime */  
-  marshallingInputs() {
-  	for (var idx = 0; idx < this.inputs.length; idx++) {
-  		var pinName = this.inputs[idx].name;
-  		if (pinName.length > 0)
-	  		if (this[pinName] !== undefined)
-	  			this[pinName] = this.inputs[idx].value;
-  	}
-  }
+	/* Configuration modal */
+	openConfig(configModalContent) {
+		if (configModalContent) {
+			$('#modalComponentOptions .modal-body').html(configModalContent);
+			$('#modalComponentOptions').off('click', '.btnComponentOptionsApply');
+			$('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
+					var data = event.data;
+					var ret = data.applyConfig();
+					if (ret) $('#modalComponentOptions').modal('hide');
+			});
+			$('#modalComponentOptions').modal('show');
+		}
+	}
+	applyConfig() { }
 
-  marshallingOutputs() {
-  	for (var idx = 0; idx < this.outputs.length; idx++) {
-  		var pinName = this.outputs[idx].name;
-	  	if (pinName.length > 0)
-	  		if (this[pinName] !== undefined)
-		  		if (this[pinName] !== null)
-		  			this.outputs[idx].value = this[pinName];
-  	}
-  }
+	createConfigModal() { }
 
-  execute() {}
-  run() {
-  	if (cycIdx > this.exeIdx) {
-  		this.marshallingInputs();
-  		this.execute();
-  		this.marshallingOutputs();
+	/* Mouse */
+	pinClickedEvent(e) {
+		if (e.shiftKey) {
+			var value = prompt('Enter value', this.value);
+			if ((value != null) && (value != ""))
+				this.value = value;
+		}
+		else
+			if (e.altKey) {
+				var wire = wires.filter(t => (t.I === this) || (t.O === this));
+ 				for (var idx in wire)
+					removeWire(wire[idx]);
+			}
+			else
+				if (this.component.pinClicked) this.component.pinClicked(this);
+	}
 
-  		for (var i = 0; i < this.inputs.length; i++)
-  			this.inputs[i].value = null;
+	mouseDownEvent(e) { }
+	mouseUpEvent(e) { }
+	mouseDblClickEvent(e) { }
 
-  		this.exeIdx = cycIdx;
-  		return true;
-  	}
-  	return false;
-  }
+	dblClickEvent(e) {
+		if (e.altKey)
+			startComponentEdit(this);
+		else {
+			var configModalContent = this.createConfigModal();
+			if (configModalContent)
+				this.openConfig(configModalContent);
+			else
+				if (!this.mouseDblClickEvent(e))
+					startComponentEdit(this);
+		}
+	}
 
-  getOut(index) {
-  	if (index !== undefined)
-  		return this.outputs[index].value;
-  }
+	/* Selection */
+	select() {
+		this.svgBody.stroke({ color: '#0000ff', width: 2 });
+		this.isSelected = true;
+	}
+	deselect() {
+		this.svgBody.stroke({ color: '#666666', width: 2 });
+		this.isSelected = false;
+	}
 
-  setIn(index, value) {
-  	if (value != null)
-  		this.inputs[index].value = value;
-  }
+	/* Config */
+	getConfig() { return null; }
 
-  /* Refresh */  
-  draw() {}
+	/* Runtime */	
+	marshallingInputs() {
+		for (var idx = 0; idx < this.inputs.length; idx++) {
+			var pinName = this.inputs[idx].name;
+			if (pinName.length > 0)
+				if (this[pinName] !== undefined)
+					this[pinName] = this.inputs[idx].value;
+		}
+	}
 
-  refresh() {
-  	for (var idx = 0; idx < this.inputs.length; idx++)
-  		this.inputs[idx].svg.fill((this.inputs[idx].value == null) ? '#ccc' : (+this.inputs[idx].value ? '#0f0' : '#f00'));
+	marshallingOutputs() {
+		for (var idx = 0; idx < this.outputs.length; idx++) {
+			var pinName = this.outputs[idx].name;
+			if (pinName.length > 0)
+				if (this[pinName] !== undefined)
+					if (this[pinName] !== null)
+						this.outputs[idx].value = this[pinName];
+		}
+	}
 
-  	for (var idx = 0; idx < this.outputs.length; idx++)
-  		this.outputs[idx].svg.fill((this.outputs[idx].value == null) ? '#ccc' : (+this.outputs[idx].value ? '#0f0' : '#f00'));
-  
-  	this.draw();
-  }
+	execute() {}
+	run() {
+		if (cycIdx > this.exeIdx) {
+			this.marshallingInputs();
+			this.execute();
+			this.marshallingOutputs();
+
+			for (var i = 0; i < this.inputs.length; i++)
+				this.inputs[i].value = null;
+
+			this.exeIdx = cycIdx;
+			return true;
+		}
+		return false;
+	}
+
+	getOut(index) {
+		if (index !== undefined)
+			return this.outputs[index].value;
+	}
+
+	setIn(index, value) {
+		if (value != null)
+			this.inputs[index].value = value;
+	}
+
+	/* Refresh */	
+	draw() {}
+
+	refresh() {
+		for (var idx = 0; idx < this.inputs.length; idx++)
+			this.inputs[idx].svg.fill((this.inputs[idx].value == null) ? '#ccc' : (+this.inputs[idx].value ? '#0f0' : '#f00'));
+
+		for (var idx = 0; idx < this.outputs.length; idx++)
+			this.outputs[idx].svg.fill((this.outputs[idx].value == null) ? '#ccc' : (+this.outputs[idx].value ? '#0f0' : '#f00'));
+	
+		this.draw();
+	}
 }
 
 // initialize SVG.js
@@ -385,6 +385,8 @@ function addComponent(componentName) {
 	componentsSVG.add(inst.svg);
 	components.push(inst);
 
+	updateSimOrderFromWireboard();
+
 	drawSiliconbox();
 }
 function removeComponent(component) {
@@ -393,6 +395,8 @@ function removeComponent(component) {
 	var idx = components.indexOf(component);
 	components.splice(idx, 1);
 
+	updateSimOrderFromWireboard();
+	
 	drawSiliconbox();
 }
 
@@ -430,6 +434,8 @@ function pinClicked(pin) {
 		if (newWire) {
 			var con = new WireConnection(pinSelected.svg, pin.svg, wiresSVG);
 			newWire.con = con;
+			
+			updateSimOrderFromWireboard();
 		}
 
 		pinSelected = null;
@@ -439,6 +445,8 @@ function removeWire(wire) {
 	wire.con.remove();
 	var idx = wires.indexOf(wire);
 	wires.splice(idx, 1);
+
+	updateSimOrderFromWireboard();
 }
 function removeWiresFromComponent(component) {
 	for (var idx = wires.length - 1; idx >= 0; idx--) {
@@ -557,16 +565,16 @@ var wireboardSourceStack = [];
 var componentEditStack = [];
 function startComponentEdit(component) {
 	wireboardSourceStack.push(sourceFromWireboard());
-  componentEditStack.push(component);
+	componentEditStack.push(component);
 
 	if (component.constructor.source) {
 		inSiliconMode = false;
-	  wireboardFromSource(component.constructor.source);
+		wireboardFromSource(component.constructor.source);
 		drawEditbox();
 	} else {
 		inSiliconMode = true;
 
-	  // Clear the wireboard
+		// Clear the wireboard
 		initWireboard();
 		components = [];
 		wires = [];
@@ -754,8 +762,8 @@ function newComponentFromWireboard(componentName) {
 }
 function newEmptyComponent() {
 	prompt({
-	    title: 'Enter new component name',
-	    value: 'empty'
+			title: 'Enter new component name',
+			value: 'empty'
 	})
 	.then((name) => {
 		if ((name != null) && (name != ""))
@@ -839,19 +847,19 @@ function drawToolbox() {
 	}
 }
 function drawEditbox() {
-  if (componentEditStack.length > 0) {
-  	$('#editbox').removeClass('hidden');
+	if (componentEditStack.length > 0) {
+		$('#editbox').removeClass('hidden');
 		$('#btnSaveProject, #btnOpenProject, #btnSwitchCompiler, #btnCompileBoard').addClass('hide');
 	} else {
-	  $('#editbox').addClass('hidden');
+		$('#editbox').addClass('hidden');
 		$('#btnSaveProject, #btnOpenProject, #btnSwitchCompiler, #btnCompileBoard').removeClass('hide');
 	}
 
-  $('#editbox .breadcrumb').html('');
-  for (var idx in componentEditStack)
-  	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx].constructor.name.replace('_Component','') + '</li>');
-  
-  drawSiliconbox();
+	$('#editbox .breadcrumb').html('');
+	for (var idx in componentEditStack)
+		$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + componentEditStack[idx].constructor.name.replace('_Component','') + '</li>');
+	
+	drawSiliconbox();
 }
 function drawSiliconbox() {
 	$('#btnSwitchCode > .dropdown-menu').html(`<button class="dropdown-item" type="button" onclick="selectEditorCode('silicon')">Silicon</button>`);
@@ -946,14 +954,14 @@ function selectCompiler(lang) {
 
 
 var openFile = function(event) {
-  var input = event.target;
+	var input = event.target;
 
-  var reader = new FileReader();
-  reader.onload = function(){
-    var text = reader.result;
-    loadProject(text);
-  };
-  reader.readAsText(input.files[0]);
+	var reader = new FileReader();
+	reader.onload = function(){
+		var text = reader.result;
+		loadProject(text);
+	};
+	reader.readAsText(input.files[0]);
 };
 // Playground
 //addComponent('NOR_Component');
@@ -979,25 +987,30 @@ function initWireboard() {
 
 // Function to download data to a file
 function download(data, filename, type) {
-  var file = new Blob([data], {type: type});
-  if (window.navigator.msSaveOrOpenBlob) // IE10+
-      window.navigator.msSaveOrOpenBlob(file, filename);
-  else { // Others
-      var a = document.createElement("a"),
-              url = URL.createObjectURL(file);
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function() {
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);  
-      }, 0); 
-  }
+	var file = new Blob([data], {type: type});
+	if (window.navigator.msSaveOrOpenBlob) // IE10+
+			window.navigator.msSaveOrOpenBlob(file, filename);
+	else { // Others
+			var a = document.createElement("a"),
+							url = URL.createObjectURL(file);
+			a.href = url;
+			a.download = filename;
+			document.body.appendChild(a);
+			a.click();
+			setTimeout(function() {
+					document.body.removeChild(a);
+					window.URL.revokeObjectURL(url);	
+			}, 0); 
+	}
 }
 
 // Simulation
 var simOrder = [];
+
+function updateSimOrderFromWireboard() {
+	var source = sourceFromWireboard();
+	updateSimOrderFromSource(source);
+}
 
 function updateSimOrderFromSource(source) {
 	simOrder = generateExecutionOrderFromSource(source);
@@ -1010,18 +1023,20 @@ function simStep() {
 		var orderItem = simOrder[idx];
 
 		var componentItem = components.filter(t => t.id == orderItem.id)[0];
-		var ret = componentItem.run();
+		if (componentItem) {
+			var ret = componentItem.run();
 
-		if (ret) {
-			var componentOutputWires = wires.filter(t => t.O.component === componentItem);
-			for (var wIdx in componentOutputWires) {
-				var wireItem = componentOutputWires[wIdx];
-				if (wireItem) {
-					var pinI = wireItem.I;
-					var pinO = wireItem.O;
-					pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
+			if (ret) {
+				var componentOutputWires = wires.filter(t => t.O.component === componentItem);
+				for (var wIdx in componentOutputWires) {
+					var wireItem = componentOutputWires[wIdx];
+					if (wireItem) {
+						var pinI = wireItem.I;
+						var pinO = wireItem.O;
+						pinI.component.setIn(pinI.ID, pinO.component.getOut(pinO.ID));
+					}
 				}
-			}
+			}			
 		}
 	}
 }
@@ -1045,7 +1060,7 @@ function generateExecutionOrderFromSource(source) {
 
 function updateChildrensOfSourceComponents(source) {
 	for (var idx in source.components) {
-    var componentItem = source.components[idx];
+		var componentItem = source.components[idx];
 		var inputWires = source.wires.filter(t => (t.I.component == componentItem.id));
 		if (inputWires.length > 0) {
 			var childrens = {};
@@ -1055,7 +1070,7 @@ function updateChildrensOfSourceComponents(source) {
 					childrens[pinOComponent] = source.components[pinOComponent];
 			}
 			componentItem.childrens = childrens;
-    }			
+		}			
 	}
 }
 
@@ -1072,12 +1087,12 @@ function generateOrderFromSourceComponent(component, order, callStack) {
 				if (order.includes(componentItem)) {
 					var fIdx = order.indexOf(componentItem);
 					order.splice(fIdx, 1);
-	      }
+				}
 				order.push(componentItem);
-	      generateOrderFromSourceComponent(componentItem, order, callStack);
-	    }
+				generateOrderFromSourceComponent(componentItem, order, callStack);
+			}
 		}
-  }
+	}
 
 	callStack.pop();
 
@@ -1088,7 +1103,7 @@ function getAloneComponentsFromSource(source) {
 	var aloneComponents = [];
 
 	for (var idx in source.components) {
-    var componentItem = source.components[idx];
+		var componentItem = source.components[idx];
 		var wire = source.wires.filter(t => (t.O.component == componentItem.id));
 		if (wire.length == 0)
 			aloneComponents.push(componentItem);
@@ -1101,7 +1116,7 @@ function getAloneComponentsFromSource(source) {
 var simInterval = 1000;
 var simEvent = function() {
 	simStep();
-  setTimeout(simEvent, simInterval);
+	setTimeout(simEvent, simInterval);
 }
 setTimeout(simEvent, simInterval);
 
@@ -1119,5 +1134,5 @@ setInterval(function() {
 
 // Focus on first input element into component options modal
 $('#modalComponentOptions').on('shown.bs.modal', function () {
-  $('#modalComponentOptions input').first().trigger('focus')
+	$('#modalComponentOptions input').first().trigger('focus')
 })
