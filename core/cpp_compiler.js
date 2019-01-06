@@ -101,6 +101,7 @@ BUTTON['C++'] =
 `class BUTTON: public Component {
   public:
     BUTTON() : Component(0, 0) {}
+    void execute() { outputs[0] = NULL; }
 };`;
 
 BCD_7Seg['C++'] = 
