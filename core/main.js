@@ -1044,20 +1044,23 @@ function simStep() {
 function generateExecutionOrderFromSource(source) {
 	var executionOrder = [];
 
-	updateChildrensOfSourceComponents(source);
+	var componentsChildrens = generateChildrensOfSourceComponents(source);
+	console.log(componentsChildrens);
 
 	var aloneComponents = getAloneComponentsFromSource(source);
 	for (var idx in aloneComponents) {
 		var componentItem = aloneComponents[idx];
 
 		executionOrder.push(componentItem);
-		executionOrder = generateOrderFromSourceComponent(componentItem, executionOrder);
+		executionOrder = generateOrderFromSourceComponent(componentsChildrens, componentItem, executionOrder);
 	}
 
 	return executionOrder.reverse();
 }
 
-function updateChildrensOfSourceComponents(source) {
+function generateChildrensOfSourceComponents(source) {
+	var globalChildrens = {};
+
 	for (var idx in source.components) {
 		var componentItem = source.components[idx];
 		var inputWires = source.wires.filter(t => (t.I.component == componentItem.id));
@@ -1068,19 +1071,23 @@ function updateChildrensOfSourceComponents(source) {
 				if (!childrens[pinOComponent] && (pinOComponent != componentItem.id))
 					childrens[pinOComponent] = source.components.filter(t => t.id == pinOComponent)[0];
 			}
-			componentItem.childrens = childrens;
+			globalChildrens[componentItem.id] = childrens;
 		}			
 	}
+
+	return globalChildrens;
 }
 
-function generateOrderFromSourceComponent(component, order, callStack) {
+function generateOrderFromSourceComponent(childrens, component, order, callStack) {
 	if (!order) order = [];
 
 	if (!callStack) callStack = [];
 	callStack.push(component);
 
-	for (var cIdx in component.childrens) {
-		var componentItem = component.childrens[cIdx];
+	var componentChildrens = childrens[component.id];
+
+	for (var cIdx in componentChildrens) {
+		var componentItem = componentChildrens[cIdx];
 		if (componentItem) {
 			if (!callStack.includes(componentItem)) {
 				if (order.includes(componentItem)) {
@@ -1088,7 +1095,7 @@ function generateOrderFromSourceComponent(component, order, callStack) {
 					order.splice(fIdx, 1);
 				}
 				order.push(componentItem);
-				generateOrderFromSourceComponent(componentItem, order, callStack);
+				generateOrderFromSourceComponent(childrens, componentItem, order, callStack);
 			}
 		}
 	}
