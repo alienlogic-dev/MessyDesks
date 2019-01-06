@@ -135,6 +135,7 @@
   </head>
   <body>
     <input type="file" name="file" id="file" class="inputfile" accept=".prj" onchange="openFile(event)"/>
+    <input type="file" name="lib" id="lib" class="inputfile" accept=".prj" onchange="openAsLib(event)"/>
     
     <div class="componentbox">
       <ul id="toolbox" class="list-group list-group-flush">
@@ -167,7 +168,10 @@
         </div>
 
         <div>
-          <label id="btnOpenProject" class="btn btn-dark m-0" for="file"><i class="far fa-folder-open"></i></label>
+          <div class="btn-group" role="group" aria-label="Basic example">
+            <label id="btnOpenProject" class="btn btn-dark m-0" for="file"><i class="far fa-folder-open"></i></label>
+            <label id="btnOpenProject" class="btn btn-dark m-0" for="lib"><i class="fas fa-book-open"></i></label>
+          </div>
           <button id="btnSaveProject" class="btn btn-dark" onclick="saveProjectToFile()"><i class="far fa-save"></i></button>
           <button id="btnNewComponent" class="btn btn-dark" onclick="newEmptyComponent()"><i class="fas fa-microchip"></i></button>
           

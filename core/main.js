@@ -374,6 +374,24 @@ initWireboard();
 var myCodeMirror = CodeMirror.fromTextArea($('#siliconCodeArea')[0]);
 $(myCodeMirror.getWrapperElement()).addClass('hide');
 
+function initWireboard() {
+	draw.clear();
+
+	var pattern = draw.pattern(8, 8, function(add) {
+		add.line(8, 0, 8, 8).stroke('#ddd');
+		add.line(0, 8, 8, 8).stroke('#ddd');
+	})
+	draw.rect(wireboardWidth*8, wireboardHeight*8).fill(pattern);
+
+	// Clear wire drawings
+	componentsSVG.clear();
+	wiresSVG.clear();
+
+	// Add wires to top level
+	draw.add(componentsSVG);
+	draw.add(wiresSVG);
+}
+
 var components = [];
 var componentsIdx = 0;
 function addComponent(componentName) {
@@ -819,6 +837,19 @@ function saveProject() {
 function loadProject(projectJSON) {
 	var project = JSON.parse(projectJSON);
 
+	loadToolboxFromProject(project);
+
+	wireboardFromSource(project.source);
+}
+function loadProjectAsComponent(componentName, projectJSON) {
+	var project = JSON.parse(projectJSON);
+
+	loadToolboxFromProject(project);
+
+	newComponentFromSource(componentName, project.source);
+}
+
+function loadToolboxFromProject(project) {
 	// Load the toolbox
 	for (var idx in project.toolbox) {
 		var toolboxItem = project.toolbox[idx];
@@ -832,8 +863,6 @@ function loadProject(projectJSON) {
 		for (var codeIdx in toolboxItem.codes)
 			ret[codeIdx] = toolboxItem.codes[codeIdx];
 	}
-
-	wireboardFromSource(project.source);
 }
 
 function drawToolbox() {
@@ -885,7 +914,6 @@ function drawSiliconbox() {
 		$('#btnSwitchCode').addClass('hide');
 	}
 }
-
 
 function saveProjectToFile() {
 	//prompt('Enter project filename', 'project')
@@ -953,56 +981,7 @@ function selectCompiler(lang) {
 
 
 
-var openFile = function(event) {
-	var input = event.target;
 
-	var reader = new FileReader();
-	reader.onload = function(){
-		var text = reader.result;
-		loadProject(text);
-	};
-	reader.readAsText(input.files[0]);
-};
-// Playground
-//addComponent('NOR_Component');
-//addComponent('NOR_Component');
-
-function initWireboard() {
-	draw.clear();
-
-	var pattern = draw.pattern(8, 8, function(add) {
-		add.line(8, 0, 8, 8).stroke('#ddd');
-		add.line(0, 8, 8, 8).stroke('#ddd');
-	})
-	draw.rect(wireboardWidth*8, wireboardHeight*8).fill(pattern);
-
-	// Clear wire drawings
-	componentsSVG.clear();
-	wiresSVG.clear();
-
-	// Add wires to top level
-	draw.add(componentsSVG);
-	draw.add(wiresSVG);
-}
-
-// Function to download data to a file
-function download(data, filename, type) {
-	var file = new Blob([data], {type: type});
-	if (window.navigator.msSaveOrOpenBlob) // IE10+
-			window.navigator.msSaveOrOpenBlob(file, filename);
-	else { // Others
-			var a = document.createElement("a"),
-							url = URL.createObjectURL(file);
-			a.href = url;
-			a.download = filename;
-			document.body.appendChild(a);
-			a.click();
-			setTimeout(function() {
-					document.body.removeChild(a);
-					window.URL.revokeObjectURL(url);	
-			}, 0); 
-	}
-}
 
 // Simulation
 var simOrder = [];
@@ -1130,6 +1109,59 @@ setInterval(function() {
 		}
 	}
 }, 250);
+
+// Function to read data from a file
+var openFile = function(event) {
+	var input = event.target;
+
+	var reader = new FileReader();
+	reader.onload = function(){
+		var text = reader.result;
+		loadProject(text);
+	};
+	reader.readAsText(input.files[0]);
+};
+// Function to read data from a file
+var openAsLib = function(event) {
+	var input = event.target;
+
+	var reader = new FileReader();
+	reader.onload = function(){
+		var text = reader.result;
+
+		prompt({
+				title: 'Enter new component name',
+				value: 'empty'
+		})
+		.then((name) => {
+			if ((name != null) && (name != ""))
+				if (name in toolbox)
+					alert('Component alredy exists!');
+				else
+					loadProjectAsComponent(name, text);
+		})
+		.catch(console.error);
+	};
+	reader.readAsText(input.files[0]);
+};
+// Function to download data to a file
+function download(data, filename, type) {
+	var file = new Blob([data], {type: type});
+	if (window.navigator.msSaveOrOpenBlob) // IE10+
+			window.navigator.msSaveOrOpenBlob(file, filename);
+	else { // Others
+			var a = document.createElement("a"),
+							url = URL.createObjectURL(file);
+			a.href = url;
+			a.download = filename;
+			document.body.appendChild(a);
+			a.click();
+			setTimeout(function() {
+					document.body.removeChild(a);
+					window.URL.revokeObjectURL(url);	
+			}, 0); 
+	}
+}
 
 // Focus on first input element into component options modal
 $('#modalComponentOptions').on('shown.bs.modal', function () {
