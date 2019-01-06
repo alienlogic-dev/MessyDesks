@@ -265,6 +265,7 @@ class Component {
 			this.execute();
 			this.marshallingOutputs();
 
+			this.guiInputs = this.inputs.map(t => t.value).splice(0);
 			for (var i = 0; i < this.inputs.length; i++)
 				this.inputs[i].value = null;
 
@@ -288,11 +289,11 @@ class Component {
 	draw() {}
 
 	refresh() {
-		for (var idx = 0; idx < this.inputs.length; idx++)
-			this.inputs[idx].svg.fill((this.inputs[idx].value == null) ? '#ccc' : (+this.inputs[idx].value ? '#0f0' : '#f00'));
+		for (var idx = 0; idx < this.guiInputs.length; idx++)
+			this.inputs[idx].svg.fill((this.guiInputs[idx] == null) ? '#fc0' : (+this.guiInputs[idx] ? '#0c0' : '#c00'));
 
 		for (var idx = 0; idx < this.outputs.length; idx++)
-			this.outputs[idx].svg.fill((this.outputs[idx].value == null) ? '#ccc' : (+this.outputs[idx].value ? '#0f0' : '#f00'));
+			this.outputs[idx].svg.fill((this.outputs[idx].value == null) ? '#fff' : (+this.outputs[idx].value ? '#0c0' : '#c00'));
 	
 		this.draw();
 	}
@@ -1024,7 +1025,6 @@ function generateExecutionOrderFromSource(source) {
 	var executionOrder = [];
 
 	var componentsChildrens = generateChildrensOfSourceComponents(source);
-	console.log(componentsChildrens);
 
 	var aloneComponents = getAloneComponentsFromSource(source);
 	for (var idx in aloneComponents) {
