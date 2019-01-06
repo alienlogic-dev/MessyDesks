@@ -12,7 +12,7 @@ class CONST extends Component {
   createConfigModal() {
     return `
             <div class="form-group">
-              <input id="constValue" ng-model="yourName" type="text" class="form-control" placeholder="Value" value="${this.value}">
+              <input id="constValue" type="text" class="form-control" placeholder="Value" value="${this.value}">
             </div>
             `;
   }
@@ -63,13 +63,21 @@ class INPUT extends Component {
   		this.alias = config.alias;
   }
 
-  openConfig(e) {
-  	var name = prompt('Enter input name', this.alias);
+  createConfigModal() {
+    return `
+            <div class="form-group">
+              <input id="aliasValue" type="text" class="form-control" placeholder="Alias" value="${this.alias}">
+            </div>
+            `;
+  }
 
-		if ((name != null) && (name != "")) {
-		  this.alias = name;
-		  this.aliasSVG.text(this.alias);
-		}
+  applyConfig(e) {
+    var value = $('#aliasValue').val();
+    if ((value != null) && (value != "")) {
+      this.alias = value;
+      this.aliasSVG.text(this.alias);
+    }
+    return true;
   }
 
   drawBody(wpx, hpx) {
@@ -105,13 +113,21 @@ class OUTPUT extends Component {
   		this.alias = config.alias;
   }
 
-  openConfig(e) {
-  	var name = prompt('Enter output name', this.alias);
+  createConfigModal() {
+    return `
+            <div class="form-group">
+              <input id="aliasValue" type="text" class="form-control" placeholder="Alias" value="${this.alias}">
+            </div>
+            `;
+  }
 
-		if ((name != null) && (name != "")) {
-		  this.alias = name;
-		  this.aliasSVG.text(this.alias);
-		}
+  applyConfig(e) {
+    var value = $('#aliasValue').val();
+    if ((value != null) && (value != "")) {
+      this.alias = value;
+      this.aliasSVG.text(this.alias);
+    }
+    return true;
   }
 
   drawBody(wpx, hpx) {
@@ -146,6 +162,8 @@ class BUTTON extends Component {
     this.minHeight = 5;
 
     this.btnSVG = null;
+
+    this.outputs[0].value = 0;
   }
 
   drawSymbol(svg) {
@@ -380,6 +398,115 @@ class TRI_Component extends Component {
     } else {
       this.outputs[0].value = null;
     }
+  }
+}
+
+
+
+class NOT_Component extends Component {
+  constructor(config = null) {
+    super(1, 1);
+  }
+
+  drawSymbol(svg) {
+  }
+
+  execute() {
+    this.outputs[0].value = !(+this.inputs[0].value); 
+  }
+}
+
+class AND_Component extends Component {
+  constructor(config = null) {
+    var inputsCount = 2;
+    if (config)
+      inputsCount = config.inputsCount;
+
+    if (inputsCount < 2) inputsCount = 2;
+    super(inputsCount, 1);
+  }
+
+  drawSymbol(svg) {
+  }
+
+  execute() {
+    var res = (Boolean(+this.inputs[0].value) ? true : false);
+    for (var idx = 1; idx < this.inputs.length; idx++)
+      res = res && (Boolean(+this.inputs[idx].value) ? true : false);
+    this.outputs[0].value = res ? 1 : 0; 
+  }
+
+  getConfig() {
+    return {
+      inputsCount: this.inputs.length
+    };
+  }
+
+  openConfig(e) {
+  }
+}
+
+class NAND_Component extends Component {
+  constructor(config = null) {
+    var inputsCount = 2;
+    if (config)
+      inputsCount = config.inputsCount;
+
+    if (inputsCount < 2) inputsCount = 2;
+    super(inputsCount, 1);
+  }
+
+  drawSymbol(svg) {
+  }
+
+  execute() {
+    var res = (Boolean(+this.inputs[0].value) ? true : false);
+    for (var idx = 1; idx < this.inputs.length; idx++)
+      res = res && (Boolean(+this.inputs[idx].value) ? true : false);
+    this.outputs[0].value = !res ? 1 : 0; 
+  }
+
+  getConfig() {
+    return {
+      inputsCount: this.inputs.length
+    };
+  }
+
+  openConfig(e) {
+  }
+}
+
+class OR_Component extends Component {
+  constructor(config = null) {
+    var inputsCount = 2;
+    if (config)
+      inputsCount = config.inputsCount;
+
+    if (inputsCount < 2) inputsCount = 2;
+    super(inputsCount, 1);
+  }
+
+  drawSymbol(svg) {
+    svg.svg('<path d="M 0 0 Q 11.2 0 14 8 Q 11.2 16 0 16 Q 2.8 16 2.8 8 Q 2.8 0 0 0 Z"></path>')
+      .size(17,16)
+      .fill('#cccccc')
+      .stroke({ color: '#000', width: 1 });
+  }
+
+  execute() {
+    var res = (Boolean(+this.inputs[0].value) ? true : false);
+    for (var idx = 1; idx < this.inputs.length; idx++)
+      res = res || (Boolean(+this.inputs[idx].value) ? true : false);
+    this.outputs[0].value = res ? 1 : 0; 
+  }
+
+  getConfig() {
+    return {
+      inputsCount: this.inputs.length
+    };
+  }
+
+  openConfig(e) {
   }
 }
 
@@ -739,7 +866,34 @@ class PIN_OUT extends Component {
   }
 }
 
-var toolbox_original = { 'CONST': CONST, 'PIN_IN': PIN_IN, 'INPUT': INPUT, 'PIN_OUT': PIN_OUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'R_TRIG': R_TRIG, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
-var toolbox = { 'CONST': CONST, 'PIN_IN': PIN_IN, 'INPUT': INPUT, 'PIN_OUT': PIN_OUT, 'OUTPUT': OUTPUT, 'BUTTON': BUTTON, 'LED': LED, 'Disp_7Seg': Disp_7Seg, 'BCD_7Seg': BCD_7Seg, 'CLOCK': CLOCK, 'R_TRIG': R_TRIG, 'TRI_Component': TRI_Component, 'NOR_Component': NOR_Component, 'SR_Component': SR_Component, 'RAM_Component': RAM_Component, 'CPU6502_Component': CPU6502_Component, 'ToBus_Component': ToBus_Component, 'FromBus_Component': FromBus_Component, 'BIN2DEC_Component': BIN2DEC_Component, 'DEC2BIN_Component': DEC2BIN_Component };
+var toolbox = {
+  'CONST': CONST,
+  'PIN_IN': PIN_IN,
+  'INPUT': INPUT,
+  'PIN_OUT': PIN_OUT,
+  'OUTPUT': OUTPUT,
+  'BUTTON': BUTTON,
+  'LED': LED,
+  'Disp_7Seg': Disp_7Seg,
+  'BCD_7Seg': BCD_7Seg,
+  'CLOCK': CLOCK,
+  'R_TRIG': R_TRIG,
+  'TRI_Component': TRI_Component,
+  
+  'NOT_Component': NOT_Component,
+  'AND_Component': AND_Component,
+  'NAND_Component': NAND_Component,
+  'OR_Component': OR_Component,
+  'NOR_Component': NOR_Component,
+
+  'SR_Component': SR_Component,
+  'RAM_Component': RAM_Component,
+  'CPU6502_Component': CPU6502_Component,
+  'ToBus_Component': ToBus_Component,
+  'FromBus_Component': FromBus_Component,
+  'BIN2DEC_Component': BIN2DEC_Component,
+  'DEC2BIN_Component': DEC2BIN_Component
+};
+var toolbox_original = Object.assign({}, toolbox);
 
 drawToolbox();

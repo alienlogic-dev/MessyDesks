@@ -111,7 +111,7 @@ class Component {
 			.stroke({ color: '#666666', width: 2 });
 
 		this.svgName = this.svg
-			.text(this.id)//this.constructor.name.replace('_Component',''))
+			.text(this.constructor.name.replace('_Component',''))
 			.font({
 							family:	 'Menlo'
 						, size:		 12
@@ -289,7 +289,7 @@ class Component {
 	draw() {}
 
 	refresh() {
-		for (var idx = 0; idx < this.guiInputs.length; idx++)
+		for (var idx in this.guiInputs)
 			this.inputs[idx].svg.fill((this.guiInputs[idx] == null) ? '#fc0' : (+this.guiInputs[idx] ? '#0c0' : '#c00'));
 
 		for (var idx = 0; idx < this.outputs.length; idx++)

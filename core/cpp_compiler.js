@@ -12,6 +12,74 @@ CONST['C++'] =
     }
 };`;
 
+
+NOT_Component['C++'] = 
+`class NOT_Component: public Component {
+  public:
+    NOT_Component() : Component(1, 1) {}
+
+    void execute() {
+    	uint32_t res = 0;
+    	if (inputs[0])
+				res = *inputs[0];
+      outputsData[0] = !res;
+    }
+};`;
+
+AND_Component['C++'] = 
+`class AND_Component: public Component {
+  public:
+    AND_Component() : Component(2, 1) {}
+    AND_Component(int inputsCount) : Component((inputsCount > 2 ? inputsCount : 2), 1) {}
+
+    void execute() {
+    	uint32_t res = 0;
+    	if (inputs[0]) {
+				res = *inputs[0];
+        for (int idx = 1; idx < inCount; idx++)
+        	if (inputs[idx])
+          	res = res && *inputs[idx];
+    	}
+      outputsData[0] = res;
+    }
+};`;
+
+NAND_Component['C++'] = 
+`class NAND_Component: public Component {
+  public:
+    NAND_Component() : Component(2, 1) {}
+    NAND_Component(int inputsCount) : Component((inputsCount > 2 ? inputsCount : 2), 1) {}
+
+    void execute() {
+    	uint32_t res = 0;
+    	if (inputs[0]) {
+				res = *inputs[0];
+        for (int idx = 1; idx < inCount; idx++)
+        	if (inputs[idx])
+          	res = res && *inputs[idx];
+    	}
+      outputsData[0] = !res;
+    }
+};`;
+
+OR_Component['C++'] = 
+`class OR_Component: public Component {
+  public:
+    OR_Component() : Component(2, 1) {}
+    OR_Component(int inputsCount) : Component((inputsCount > 2 ? inputsCount : 2), 1) {}
+
+    void execute() {
+    	uint32_t res = 0;
+    	if (inputs[0]) {
+				res = *inputs[0];
+        for (int idx = 1; idx < inCount; idx++)
+        	if (inputs[idx])
+          	res = res || *inputs[idx];
+    	}
+      outputsData[0] = res;
+    }
+};`;
+
 NOR_Component['C++'] = 
 `class NOR_Component: public Component {
   public:
