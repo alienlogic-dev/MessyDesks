@@ -907,17 +907,4 @@ var toolbox = {
 };
 var toolbox_original = Object.assign({}, toolbox);
 
-var toolbox_grouped = {};
-function groupToolbox() {
-  for (var idx in toolbox) {
-    var toolboxItem = toolbox[idx];
-
-    if (!toolbox_grouped[toolboxItem.group])
-      toolbox_grouped[toolboxItem.group] = { expanded: false, items: [] };
-
-    toolbox_grouped[toolboxItem.group].items.push( idx );
-  }
-}
-
-groupToolbox();
 drawGroupedToolbox();

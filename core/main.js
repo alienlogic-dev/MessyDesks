@@ -800,7 +800,7 @@ function newEmptyComponent() {
 function applyComponentSilicon(componentName, siliconCode) {
 	var ret = eval(`${componentName} = (${siliconCode}); ${componentName}`);
 	toolbox[componentName] = ret;
-	drawToolbox();
+	drawGroupedToolbox();
 	return ret;
 }
 
@@ -867,21 +867,26 @@ function loadToolboxFromProject(project) {
 	}
 }
 
-function drawToolbox() {
-	var toolboxDiv = $('#toolbox');
-	toolboxDiv.html('');
+// Toolbox
+var toolbox_grouped = {};
+function groupToolbox() {
+	toolbox_grouped = {};
+  for (var idx in toolbox) {
+    var toolboxItem = toolbox[idx];
 
-	for (var idx in toolbox) {
-		var toolboxItem = toolbox[idx];
-		var newToolboxButton = `<li class="list-group-item p-2 text-right" onclick="addComponent('${idx}')">${idx.replace('_Component','')}</li>`;
-		toolboxDiv.append(newToolboxButton);
-	}
+    if (!toolbox_grouped[toolboxItem.group])
+      toolbox_grouped[toolboxItem.group] = { expanded: false, items: [] };
+
+    toolbox_grouped[toolboxItem.group].items.push( idx );
+  }
 }
-
 function drawGroupedToolbox() {
+	groupToolbox();
+	updateGroupedToolbox();
+}
+function updateGroupedToolbox() {
 	var toolboxDiv = $('#toolbox');
 	toolboxDiv.html('');
-
 	for (var idx in toolbox_grouped) {
 		var toolboxGroup = toolbox_grouped[idx];
 		var newToolboxGroupButton = `<li class="list-group-item p-2 text-right list-group-item-dark" onclick="toggleExpandToolboxGroup('${idx}')">${idx} <span class="badge badge-pill badge-secondary">${toolboxGroup.items.length}</span></li>`;
@@ -894,16 +899,17 @@ function drawGroupedToolbox() {
 				toolboxDiv.append(newToolboxButton);
 			}
 		}
-	}	
+	}
 }
 function toggleExpandToolboxGroup(group) {
 	var toolboxGroup = toolbox_grouped[group];
 	if (toolboxGroup) {
 		toolboxGroup.expanded = !toolboxGroup.expanded;
-		drawGroupedToolbox();
+		updateGroupedToolbox();
 	}
 }
 
+// GUI
 function drawEditbox() {
 	if (componentEditStack.length > 0) {
 		$('#editbox').removeClass('hidden');
