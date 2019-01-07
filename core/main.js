@@ -135,7 +135,8 @@ class Component {
 				.fill('#ffcc00')
 				.stroke({ color: '#000', width: 1 })
 				.data('pin_id', item.ID)
-				.on('click', this.pinClickedEvent, item);
+				.on('click', this.pinClickedEvent, item)
+				.on('contextmenu', this.pinRemoveWires, item);
 			this.svg
 				.text(item.name)
 				.font({
@@ -160,7 +161,8 @@ class Component {
 				.addClass('pin')
 				.stroke({ color: '#000', width: 1 })
 				.data('pin_id', item.ID)
-				.on('click', this.pinClickedEvent, item);
+				.on('click', this.pinClickedEvent, item)
+				.on('contextmenu', this.pinRemoveWires, item);
 			this.svg
 				.text(item.name)
 				.font({
@@ -192,6 +194,13 @@ class Component {
 	createConfigModal() { }
 
 	/* Mouse */
+	pinRemoveWires(e) {
+		e.preventDefault();
+		var wire = wires.filter(t => (t.I === this) || (t.O === this));
+ 		for (var idx in wire)
+			removeWire(wire[idx]);
+		return false;
+	}
 	pinClickedEvent(e) {
 		if (e.shiftKey) {
 			var value = prompt('Enter value', this.value);
@@ -201,7 +210,7 @@ class Component {
 		else
 			if (e.altKey) {
 				var wire = wires.filter(t => (t.I === this) || (t.O === this));
- 				for (var idx in wire)
+		 		for (var idx in wire)
 					removeWire(wire[idx]);
 			}
 			else
@@ -305,6 +314,10 @@ var wireboardWidth = 256;
 var wireboardHeight = 256;
 var draw = SVG('drawing').size(wireboardWidth*8, wireboardHeight*8);
 
+setTimeout(function() {
+	window.scrollTo( ($(document).width()-$(window).width())/2, ($(document).height()-$(window).height())/2);
+}, 100);
+
 var componentsSVG = new SVG.G();
 var wiresSVG = new SVG.G();
 
@@ -401,7 +414,7 @@ function addComponent(componentName) {
 	inst.id = 'c' + componentsIdx++;
 	inst.pinClicked = pinClicked;
 	inst.createSVG();
-	inst.svg.move(200,200);
+	inst.svg.move(document.documentElement.scrollLeft + 200, document.documentElement.scrollTop + 200);
 	componentsSVG.add(inst.svg);
 	components.push(inst);
 
@@ -781,21 +794,18 @@ function newComponentFromWireboard(componentName) {
 	return ret;
 }
 function newEmptyComponent() {
-	prompt({
-			title: 'Enter new component name',
-			value: 'empty'
-	})
-	.then((name) => {
-		if ((name != null) && (name != ""))
-			if (name in toolbox)
-				alert('Component alredy exists!');
-			else
-				newComponentFromSource(name, {
-					components: [],
-					wires: []
-				});
-	})
-	.catch(console.error);
+	var name = $('#newComponentName').val();
+
+	if ((name != null) && (name != ""))
+		if (name in toolbox)
+			alert('Component alredy exists!');
+		else {
+			$('#modalNewComponent').modal('hide');
+			newComponentFromSource(name, {
+				components: [],
+				wires: []
+			});
+		}
 }
 function applyComponentSilicon(componentName, siliconCode) {
 	var ret = eval(`${componentName} = (${siliconCode}); ${componentName}`);
@@ -1130,7 +1140,7 @@ function getAloneComponentsFromSource(source) {
 }
 
 
-var simInterval = 1000;
+var simInterval = 50;
 var simEvent = function() {
 	simStep();
 	setTimeout(simEvent, simInterval);
@@ -1206,3 +1216,8 @@ function download(data, filename, type) {
 $('#modalComponentOptions').on('shown.bs.modal', function () {
 	$('#modalComponentOptions input').first().trigger('focus')
 })
+
+// Ask before leaving the page
+$(window).bind('beforeunload', function(){
+  return 'Are you sure you want to leave?';
+});

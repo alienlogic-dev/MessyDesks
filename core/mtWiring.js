@@ -4,7 +4,7 @@ class WireConnection {
 		this.to = to;
 
 		this.container = container;
-		this.svg = this.container.path('').fill('none').stroke({ width: 1 });
+		this.svg = this.container.path('').fill('none').stroke({ width: 1 }).addClass('wire');
 
 		this.from.parent().on('dragmove', this.update, this);
 		this.to.parent().on('dragmove', this.update, this);

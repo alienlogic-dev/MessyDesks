@@ -217,7 +217,6 @@ class LED extends Component {
       this.ledSVG.fill('#3f0000').stroke({ color: '#330000', width: 2 });
   }
 }
-LED.group = 'Opto';
 
 class Disp_7Seg extends Component {
   constructor(config = null) {
@@ -266,7 +265,6 @@ class Disp_7Seg extends Component {
     this.segDOT.fill(+this.inputs[7].value ? '#ff0000' : '#3f0000');
   }
 }
-Disp_7Seg.group = 'Opto';
 
 class BCD_7Seg extends Component {
   constructor(config = null) {
@@ -326,7 +324,6 @@ class BCD_7Seg extends Component {
     this.segG.fill(this.segData & 0x40 ? '#ff0000' : '#3f0000');
   }
 }
-BCD_7Seg.group = 'Opto';
 
 class CLOCK extends Component {
   constructor(config = null) {
@@ -403,7 +400,6 @@ class TRI_Component extends Component {
     }
   }
 }
-TRI_Component.group = 'Logic';
 
 
 class NOT_Component extends Component {
@@ -418,7 +414,6 @@ class NOT_Component extends Component {
     this.outputs[0].value = !(+this.inputs[0].value); 
   }
 }
-NOT_Component.group = 'Logic';
 
 class AND_Component extends Component {
   constructor(config = null) {
@@ -449,7 +444,6 @@ class AND_Component extends Component {
   openConfig(e) {
   }
 }
-AND_Component.group = 'Logic';
 
 class NAND_Component extends Component {
   constructor(config = null) {
@@ -480,7 +474,6 @@ class NAND_Component extends Component {
   openConfig(e) {
   }
 }
-NAND_Component.group = 'Logic';
 
 class OR_Component extends Component {
   constructor(config = null) {
@@ -515,7 +508,6 @@ class OR_Component extends Component {
   openConfig(e) {
   }
 }
-OR_Component.group = 'Logic';
 
 class NOR_Component extends Component {
   constructor(config = null) {
@@ -550,7 +542,6 @@ class NOR_Component extends Component {
   openConfig(e) {
   }
 }
-NOR_Component.group = 'Logic';
 
 
 class SR_Component extends Component {
@@ -834,7 +825,6 @@ class PIN_IN extends Component {
     };
   }
 }
-PIN_IN.group = 'Focus Board';
 
 class PIN_OUT extends Component {
   constructor(config = null) {
@@ -875,35 +865,54 @@ class PIN_OUT extends Component {
     };
   }
 }
+
+/* Groups */
+LED.group = 'Opto';
+Disp_7Seg.group = 'Opto';
+BCD_7Seg.group = 'Opto';
+
+TRI_Component.group = 'Logic';
+NOT_Component.group = 'Logic';
+AND_Component.group = 'Logic';
+NAND_Component.group = 'Logic';
+OR_Component.group = 'Logic';
+NOR_Component.group = 'Logic';
+
+PIN_IN.group = 'Focus Board';
 PIN_OUT.group = 'Focus Board';
+
+
 
 var toolbox = {
   'CONST': CONST,
-  'PIN_IN': PIN_IN,
   'INPUT': INPUT,
-  'PIN_OUT': PIN_OUT,
   'OUTPUT': OUTPUT,
   'BUTTON': BUTTON,
+  'CLOCK': CLOCK,
+  'R_TRIG': R_TRIG,
+  
   'LED': LED,
   'Disp_7Seg': Disp_7Seg,
   'BCD_7Seg': BCD_7Seg,
-  'CLOCK': CLOCK,
-  'R_TRIG': R_TRIG,
-  'TRI_Component': TRI_Component,
-  
+
   'NOT_Component': NOT_Component,
   'AND_Component': AND_Component,
   'NAND_Component': NAND_Component,
   'OR_Component': OR_Component,
   'NOR_Component': NOR_Component,
+  'TRI_Component': TRI_Component,
 
   'SR_Component': SR_Component,
   'RAM_Component': RAM_Component,
   'CPU6502_Component': CPU6502_Component,
+
   'ToBus_Component': ToBus_Component,
   'FromBus_Component': FromBus_Component,
   'BIN2DEC_Component': BIN2DEC_Component,
-  'DEC2BIN_Component': DEC2BIN_Component
+  'DEC2BIN_Component': DEC2BIN_Component,
+
+  'PIN_IN': PIN_IN,
+  'PIN_OUT': PIN_OUT
 };
 var toolbox_original = Object.assign({}, toolbox);
 

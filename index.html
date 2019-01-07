@@ -19,6 +19,9 @@
         display: none!important;
       }
 
+      .wire {
+        pointer-events: none;
+      }
       .pin:hover {
         stroke: red;
       }
@@ -31,6 +34,7 @@
         width: 150px;
         font-size: 0.8em;
         overflow-y: scroll;
+        background-color: white;
       }
 
       .toolbox {
@@ -173,7 +177,7 @@
             <label id="btnOpenProject" class="btn btn-dark m-0" for="file"><i class="far fa-folder-open"></i></label>
             <label id="btnOpenProject" class="btn btn-dark m-0" for="lib"><i class="fas fa-book-open"></i></label>
           </div>
-          <button id="btnNewComponent" class="btn btn-dark" onclick="newEmptyComponent()"><i class="fas fa-microchip"></i></button>
+          <button id="btnNewComponent" class="btn btn-dark" data-toggle="modal" data-target="#modalNewComponent"><i class="fas fa-microchip"></i></button>
           
           <div class="btn-group" role="group">
             <div id="btnSwitchCompiler" class="btn-group" role="group">
@@ -213,6 +217,28 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             <button type="button" class="btn btn-primary btnComponentOptionsApply">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalNewComponent" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">New component</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group m-0">
+              <input type="text" class="form-control" id="newComponentName" placeholder="Name">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="newEmptyComponent()">New</button>
           </div>
         </div>
       </div>
