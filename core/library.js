@@ -217,6 +217,7 @@ class LED extends Component {
       this.ledSVG.fill('#3f0000').stroke({ color: '#330000', width: 2 });
   }
 }
+LED.group = 'Opto';
 
 class Disp_7Seg extends Component {
   constructor(config = null) {
@@ -265,6 +266,7 @@ class Disp_7Seg extends Component {
     this.segDOT.fill(+this.inputs[7].value ? '#ff0000' : '#3f0000');
   }
 }
+Disp_7Seg.group = 'Opto';
 
 class BCD_7Seg extends Component {
   constructor(config = null) {
@@ -324,6 +326,7 @@ class BCD_7Seg extends Component {
     this.segG.fill(this.segData & 0x40 ? '#ff0000' : '#3f0000');
   }
 }
+BCD_7Seg.group = 'Opto';
 
 class CLOCK extends Component {
   constructor(config = null) {
@@ -400,7 +403,7 @@ class TRI_Component extends Component {
     }
   }
 }
-
+TRI_Component.group = 'Logic';
 
 
 class NOT_Component extends Component {
@@ -415,6 +418,7 @@ class NOT_Component extends Component {
     this.outputs[0].value = !(+this.inputs[0].value); 
   }
 }
+NOT_Component.group = 'Logic';
 
 class AND_Component extends Component {
   constructor(config = null) {
@@ -445,6 +449,7 @@ class AND_Component extends Component {
   openConfig(e) {
   }
 }
+AND_Component.group = 'Logic';
 
 class NAND_Component extends Component {
   constructor(config = null) {
@@ -475,6 +480,7 @@ class NAND_Component extends Component {
   openConfig(e) {
   }
 }
+NAND_Component.group = 'Logic';
 
 class OR_Component extends Component {
   constructor(config = null) {
@@ -509,6 +515,7 @@ class OR_Component extends Component {
   openConfig(e) {
   }
 }
+OR_Component.group = 'Logic';
 
 class NOR_Component extends Component {
   constructor(config = null) {
@@ -543,6 +550,7 @@ class NOR_Component extends Component {
   openConfig(e) {
   }
 }
+NOR_Component.group = 'Logic';
 
 
 class SR_Component extends Component {
@@ -826,15 +834,17 @@ class PIN_IN extends Component {
     };
   }
 }
+PIN_IN.group = 'Focus Board';
 
 class PIN_OUT extends Component {
   constructor(config = null) {
     super(1, 0);
 
+    this.group = 'Focus';
+
     this.pinNumber = 0;
     if (config)
       this.pinNumber = config.pinNumber;
-
   }
 
   createSVG() {
@@ -865,6 +875,7 @@ class PIN_OUT extends Component {
     };
   }
 }
+PIN_OUT.group = 'Focus Board';
 
 var toolbox = {
   'CONST': CONST,
@@ -896,4 +907,17 @@ var toolbox = {
 };
 var toolbox_original = Object.assign({}, toolbox);
 
-drawToolbox();
+var toolbox_grouped = {};
+function groupToolbox() {
+  for (var idx in toolbox) {
+    var toolboxItem = toolbox[idx];
+
+    if (!toolbox_grouped[toolboxItem.group])
+      toolbox_grouped[toolboxItem.group] = { expanded: false, items: [] };
+
+    toolbox_grouped[toolboxItem.group].items.push( idx );
+  }
+}
+
+groupToolbox();
+drawGroupedToolbox();

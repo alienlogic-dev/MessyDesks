@@ -298,6 +298,7 @@ class Component {
 		this.draw();
 	}
 }
+Component.group = 'General';
 
 // initialize SVG.js
 var wireboardWidth = 256;
@@ -876,6 +877,33 @@ function drawToolbox() {
 		toolboxDiv.append(newToolboxButton);
 	}
 }
+
+function drawGroupedToolbox() {
+	var toolboxDiv = $('#toolbox');
+	toolboxDiv.html('');
+
+	for (var idx in toolbox_grouped) {
+		var toolboxGroup = toolbox_grouped[idx];
+		var newToolboxGroupButton = `<li class="list-group-item p-2 text-right list-group-item-dark" onclick="toggleExpandToolboxGroup('${idx}')">${idx} <span class="badge badge-pill badge-secondary">${toolboxGroup.items.length}</span></li>`;
+		toolboxDiv.append(newToolboxGroupButton);
+
+		if (toolboxGroup.expanded) {
+			for (var gIdx in toolboxGroup.items) {
+				var toolboxItem = toolboxGroup.items[gIdx];
+				var newToolboxButton = `<li class="list-group-item p-2 text-right" onclick="addComponent('${toolboxItem}')">${toolboxItem.replace('_Component','')}</li>`;
+				toolboxDiv.append(newToolboxButton);
+			}
+		}
+	}	
+}
+function toggleExpandToolboxGroup(group) {
+	var toolboxGroup = toolbox_grouped[group];
+	if (toolboxGroup) {
+		toolboxGroup.expanded = !toolboxGroup.expanded;
+		drawGroupedToolbox();
+	}
+}
+
 function drawEditbox() {
 	if (componentEditStack.length > 0) {
 		$('#editbox').removeClass('hidden');
@@ -923,6 +951,7 @@ function saveProjectToFile() {
 	download(JSON.stringify(saveProject()), 'project.prj', 'text/plain');
 	//});
 }
+
 
 /* Cross compile in other languages */
 var availableCompilers = {};
@@ -979,9 +1008,6 @@ function selectCompiler(lang) {
 	$('#btnSwitchCompiler > button').text(lang);
 	selectedCompiler = lang;
 }
-
-
-
 
 
 // Simulation
