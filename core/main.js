@@ -996,8 +996,14 @@ var undoStack = [saveProject()];
 var undoStackPtr = 0;
 
 function saveUndoState() {
-	undoStackPtr++;
-	undoStack[undoStackPtr] = saveProject();
+	if (undoStackPtr < 20) {
+		undoStackPtr++;
+		undoStack[undoStackPtr] = saveProject();
+	} else {
+		undoStack.shift();
+		undoStack.push(saveProject());
+	}
+
 	$('#btnUndo').removeAttr('disabled');
 	$('#btnRedo').attr('disabled', '');
 }
