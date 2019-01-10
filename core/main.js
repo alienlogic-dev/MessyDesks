@@ -645,6 +645,8 @@ function startComponentEdit(component) {
 			editorCodes[idx] = component.constructor[idx];
 		startEditorCode();
 	}
+
+	clearUndoStack();
 }
 function cancelLastComponentEdit() {
 	if (wireboardSourceStack.length > 0) {
@@ -660,6 +662,8 @@ function cancelLastComponentEdit() {
 	selectEditorCode('silicon');
 	inSiliconMode = false; // Impossible to end a component edit into another silicon code component
 	drawEditbox();
+
+	clearUndoStack();
 }
 function endLastComponentEdit() {
 	if (wireboardSourceStack.length > 0) {
@@ -686,6 +690,8 @@ function endLastComponentEdit() {
 
 	inSiliconMode = false; // Impossible to end a component edit into another silicon code component
 	drawEditbox();
+
+	clearUndoStack();
 }
 
 var inSiliconMode = false;
@@ -992,8 +998,17 @@ function saveProjectToFile() {
 }
 
 // Undo / Redo
-var undoStack = [saveProject()];
+var undoStack = [];
 var undoStackPtr = 0;
+
+clearUndoStack();
+
+function clearUndoStack() {
+	undoStack = [ saveProject() ];
+	undoStackPtr = 0;
+	$('#btnUndo').attr('disabled', '');
+	$('#btnRedo').attr('disabled', '');
+}
 
 function saveUndoState() {
 	if (undoStackPtr < 20) {
