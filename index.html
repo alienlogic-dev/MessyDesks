@@ -172,8 +172,12 @@
         </div>
 
         <div>
+          <div class="btn-group" role="group">
+            <button id="btnUndo" class="btn btn-dark m-0" onclick="undo()" disabled><i class="fas fa-undo"></i></button>
+            <button id="btnRedo" class="btn btn-dark m-0" onclick="redo()" disabled><i class="fas fa-redo"></i></button>
+          </div>
           <button id="btnSaveProject" class="btn btn-dark" onclick="saveProjectToFile()"><i class="far fa-save"></i></button>
-          <div class="btn-group" role="group" aria-label="Basic example">
+          <div class="btn-group" role="group">
             <label id="btnOpenProject" class="btn btn-dark m-0" for="file"><i class="far fa-folder-open"></i></label>
             <label id="btnOpenProject" class="btn btn-dark m-0" for="lib"><i class="fas fa-book-open"></i></label>
           </div>

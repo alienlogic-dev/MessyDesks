@@ -91,7 +91,10 @@ class Component {
 		this.svg.on('mousedown', this.mouseDownEvent, this);
 		this.svg.on('mouseup', this.mouseUpEvent, this);
 		this.svg.on('dblclick', this.dblClickEvent, this);
+
 		this.svg.draggable({snapToGrid: 8});
+		this.svg.on('dragstart', this.dragstart, this);
+		this.svg.on('dragend', this.dragend, this);
 
 		this.drawBody(wpx, hpx);
 		this.drawPins(wpx, hpx);
@@ -234,6 +237,16 @@ class Component {
 		}
 	}
 
+	dragstart(e) {
+		this.old_x = this.svg.x();
+		this.old_y = this.svg.y();
+	}
+
+	dragend(e) {
+		if ((this.svg.x() != this.old_x) || (this.svg.y() != this.old_y))
+			saveUndoState();
+	}
+
 	/* Selection */
 	select() {
 		this.svgBody.stroke({ color: '#0000ff', width: 2 });
@@ -324,7 +337,7 @@ var wiresSVG = new SVG.G();
 // Selection
 $(document).keydown(function(e) {
 	if (!($('#modalComponentOptions').data('bs.modal') || {})._isShown) {
-		//console.log(e.keyCode);
+		//console.log(e.keyCode, e.metaKey, e.shiftKey, e.altKey);
 		if ((e.keyCode == 79) && e.metaKey) { // CMD/CTRL + O -> Open project
 			$('#file').click();
 			return false;
@@ -338,6 +351,16 @@ $(document).keydown(function(e) {
 		if ((e.keyCode == 65) && e.metaKey) { // CMD/CTRL + A -> Select all
 			for (var idx in components)
 				components[idx].select();
+			return false;
+		}
+
+		if ((e.keyCode == 90) && e.metaKey && !e.shiftKey) { // CMD/CTRL + Z -> Undo
+			undo();
+			return false;
+		}
+
+		if ((e.keyCode == 90) && e.metaKey && e.shiftKey) { // CMD/CTRL + SHIFT + Z -> Redo
+			redo();
 			return false;
 		}
 
@@ -414,10 +437,11 @@ function addComponent(componentName) {
 	inst.id = 'c' + componentsIdx++;
 	inst.pinClicked = pinClicked;
 	inst.createSVG();
-	inst.svg.move(document.documentElement.scrollLeft + 200, document.documentElement.scrollTop + 200);
+	inst.svg.move(Math.round(document.documentElement.scrollLeft / 8) * 8 + 200, Math.round(document.documentElement.scrollTop / 8) * 8 + 200);
 	componentsSVG.add(inst.svg);
 	components.push(inst);
 
+	saveUndoState();
 	updateSimOrderFromWireboard();
 
 	drawSiliconbox();
@@ -428,6 +452,7 @@ function removeComponent(component) {
 	var idx = components.indexOf(component);
 	components.splice(idx, 1);
 
+	saveUndoState();
 	updateSimOrderFromWireboard();
 	
 	drawSiliconbox();
@@ -468,6 +493,7 @@ function pinClicked(pin) {
 			var con = new WireConnection(pinSelected.svg, pin.svg, wiresSVG);
 			newWire.con = con;
 			
+			saveUndoState();
 			updateSimOrderFromWireboard();
 		}
 
@@ -846,16 +872,13 @@ function saveProject() {
 
 	return project;
 }
-function loadProject(projectJSON) {
-	var project = JSON.parse(projectJSON);
 
+function loadProject(project) {
 	loadToolboxFromProject(project);
 
 	wireboardFromSource(project.source);
 }
-function loadProjectAsComponent(componentName, projectJSON) {
-	var project = JSON.parse(projectJSON);
-
+function loadProjectAsComponent(componentName, project) {
 	loadToolboxFromProject(project);
 
 	newComponentFromSource(componentName, project.source);
@@ -968,6 +991,38 @@ function saveProjectToFile() {
 	//});
 }
 
+// Undo / Redo
+var undoStack = [saveProject()];
+var undoStackPtr = 0;
+
+function saveUndoState() {
+	undoStackPtr++;
+	undoStack[undoStackPtr] = saveProject();
+	$('#btnUndo').removeAttr('disabled');
+	$('#btnRedo').attr('disabled', '');
+}
+
+function undo() {
+	if (undoStackPtr > 0) {
+		undoStackPtr--;
+		loadProject(undoStack[undoStackPtr]);
+
+		$('#btnRedo').removeAttr('disabled');
+		if (undoStackPtr <= 0)
+			$('#btnUndo').attr('disabled', '');
+	}
+}
+
+function redo() {
+	if (undoStackPtr < undoStack.length - 1) {
+		undoStackPtr++;
+		loadProject(undoStack[undoStackPtr]);
+
+		$('#btnUndo').removeAttr('disabled');
+		if (undoStackPtr >= undoStack.length - 1)
+			$('#btnRedo').attr('disabled', '');
+	}
+}
 
 /* Cross compile in other languages */
 var availableCompilers = {};
@@ -1166,7 +1221,7 @@ var openFile = function(event) {
 	var reader = new FileReader();
 	reader.onload = function(){
 		var text = reader.result;
-		loadProject(text);
+		loadProject(JSON.parse(text));
 	};
 	reader.readAsText(input.files[0]);
 };
@@ -1187,7 +1242,7 @@ var openAsLib = function(event) {
 				if (name in toolbox)
 					alert('Component alredy exists!');
 				else
-					loadProjectAsComponent(name, text);
+					loadProjectAsComponent(name, JSON.parse(text));
 		})
 		.catch(console.error);
 	};
