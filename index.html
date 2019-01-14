@@ -248,6 +248,46 @@
       </div>
     </div>
 
+    <div id="modalImportProject" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Import from Project</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="chkImportProject" id="chkEntireProject" value="option1" checked>
+              <label class="form-check-label" for="chkEntireProject">
+                Entire project as new component
+              </label>
+              <input type="text" class="form-control form-control-sm mt-2 mb-4" id="txtImportProject" placeholder="Component name">
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="chkImportProject" id="chkSingleToolbox" value="option2">
+              <label class="form-check-label" for="chkSingleToolbox">
+                Single toolbox components
+              </label>
+              <fieldset id="setSingleToolbox" disabled>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
+                  <label class="form-check-label" for="defaultCheck1">
+                    Toolbox
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="confirmOpenAsLib()">Import</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
@@ -266,6 +306,9 @@
     <script type="text/javascript" src="core/mtWiring.js"></script>
     <script type="text/javascript" src="core/main.js"></script>
     <script type="text/javascript" src="core/library.js"></script>
+<!--
+    <script type="text/javascript" src="core/main.min.js"></script>
+-->
     <script type="text/javascript" src="core/cpp_compiler.js"></script>
 
     <script>

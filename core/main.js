@@ -928,7 +928,7 @@ function updateGroupedToolbox() {
 	toolboxDiv.html('');
 	for (var idx in toolbox_grouped) {
 		var toolboxGroup = toolbox_grouped[idx];
-		var newToolboxGroupButton = `<li class="list-group-item p-2 text-right list-group-item-dark" onclick="toggleExpandToolboxGroup('${idx}')">${idx} <span class="badge badge-pill badge-secondary">${toolboxGroup.items.length}</span></li>`;
+		var newToolboxGroupButton = `<li class="list-group-item p-2 text-right list-group-item-dark" onclick="toggleExpandToolboxGroup('${idx}')"><i class="fas fa-caret-right float-left"></i> ${idx} <span class="badge badge-pill badge-secondary">${toolboxGroup.items.length}</span></li>`;
 		toolboxDiv.append(newToolboxGroupButton);
 
 		if (toolboxGroup.expanded) {
@@ -1246,26 +1246,71 @@ var openFile = function(event) {
 	};
 	reader.readAsText(input.files[0]);
 };
+
 // Function to read data from a file
+function manageImportProjectCheckboxes() {
+	if ($('#chkSingleToolbox').prop('checked')) {
+		$('#txtImportProject').attr('disabled', '');
+		$('#setSingleToolbox').removeAttr('disabled');
+	} else {
+		$('#txtImportProject').removeAttr('disabled');
+		$('#setSingleToolbox').attr('disabled', '');
+	}
+}
+$('#chkEntireProject').on('click', function(e) {
+	manageImportProjectCheckboxes();
+});
+$('#chkSingleToolbox').on('click', function(e) {
+	manageImportProjectCheckboxes();
+});
+
+var pendingImportProject = null;
+
+function confirmOpenAsLib(project) {
+	var importEntireProject = !$('#chkSingleToolbox').prop('checked');
+
+	if (importEntireProject) {
+		var componentName = $('#txtImportProject').val();
+		if (componentName.length == 0)
+			alert('Component name cannot be empty!');
+		else
+			if (componentName in toolbox)
+				alert('Component alredy exists!');
+			else {
+				loadProjectAsComponent(componentName, pendingImportProject);
+				$('#modalImportProject').modal('hide');
+			}
+	} else {
+		for (var idx in pendingImportProject.toolbox)
+			if ($(`#chkLbl${idx}`).prop('checked'))
+				newComponentFromSource(idx, pendingImportProject.toolbox[idx]);
+
+		$('#modalImportProject').modal('hide');
+	}
+}
+
 var openAsLib = function(event) {
 	var input = event.target;
 
 	var reader = new FileReader();
 	reader.onload = function(){
 		var text = reader.result;
+		pendingImportProject = JSON.parse(text);
 
-		prompt({
-				title: 'Enter new component name',
-				value: 'empty'
-		})
-		.then((name) => {
-			if ((name != null) && (name != ""))
-				if (name in toolbox)
-					alert('Component alredy exists!');
-				else
-					loadProjectAsComponent(name, JSON.parse(text));
-		})
-		.catch(console.error);
+    $('#setSingleToolbox').html('');
+		for (var idx in pendingImportProject.toolbox) {
+			var newItem = `
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="chkLbl${idx}"" checked>
+                  <label class="form-check-label" for="chkLbl${idx}">
+                    ${idx}
+                  </label>
+                </div>
+                `;
+      $('#setSingleToolbox').append(newItem);
+		}
+
+		$('#modalImportProject').modal('show');
 	};
 	reader.readAsText(input.files[0]);
 };
