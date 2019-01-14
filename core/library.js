@@ -154,6 +154,8 @@ class OUTPUT extends Component {
   }
 }
 
+
+
 class BUTTON extends Component {
   constructor(config = null) {
     super(0, 1);
@@ -184,6 +186,113 @@ class BUTTON extends Component {
     this.outputs[0].value = 0;
   }
   mouseDblClickEvent(e) { return true; }
+}
+
+class TOGGLE extends Component {
+  constructor(config = null) {
+    super(0, 1);
+
+    this.minWidth = 5;
+    this.minHeight = 5;
+
+    this.btnSVG = null;
+
+    this.outputs[0].value = 0;
+  }
+
+  drawSymbol(svg) {
+    this.btnSVG = svg.rect(24, 24)
+      .radius(6)
+      .fill('#ccc')
+      .stroke({ color: '#666', width: 2 });
+      
+    svg.size(24, 24);
+  }
+
+  mouseDownEvent(e) {
+    this.btnSVG.fill('#888');
+  }
+  mouseUpEvent(e) {
+    this.btnSVG.fill('#ccc');
+    this.outputs[0].value = !this.outputs[0].value;
+  }
+  mouseDblClickEvent(e) { return true; }
+}
+
+class CLOCK extends Component {
+  constructor(config = null) {
+    super(0, 1);
+
+    this.interval = 10;
+    if (config)
+      this.interval = +config.interval;
+
+    this.lastTimestamp = Math.floor(Date.now());
+  }
+
+  execute() {
+    var timestamp = Math.floor(Date.now());
+    if ((timestamp - this.lastTimestamp) > this.interval) {
+      this.outputs[0].value = !this.outputs[0].value;
+      this.lastTimestamp = timestamp;
+    }
+  }
+
+  createConfigModal() {
+    return `
+            <div class="form-group">
+              <input id="constValue" ng-model="yourName" type="number" class="form-control" placeholder="Value" value="${this.interval}">
+            </div>
+            `;
+  }
+
+  applyConfig(e) {
+    var value = $('#constValue').val();
+    if ((value != null) && (value != "")) {
+      this.interval = +value;
+      this.svgName.text(this.interval.toString());
+    }
+    return true;
+  }
+
+  getConfig() {
+    return {
+      interval: this.interval
+    };
+  }
+}
+
+class R_TRIG extends Component {
+  constructor(config = null) {
+    super(1, 1);
+
+    this.lastValue = 0;
+  }
+
+  execute() {
+    this.outputs[0].value = (this.inputs[0].value != this.lastValue) && (+this.inputs[0].value);
+    this.lastValue = this.inputs[0].value;
+  }
+}
+
+class TRI_Component extends Component {
+  constructor() {
+    super(
+      ['I', 'En'],
+      [],
+      ['Q']
+    );
+  }
+
+  execute() {
+    var enPin = +this.inputs[2].value;
+
+    if (enPin) {
+      this.outputs[0].value = this.inputs[1].value;
+    } else {
+      this.outputs[0].value = null;
+    }
+  }
 }
 
 class LED extends Component {
@@ -325,81 +434,6 @@ class BCD_7Seg extends Component {
   }
 }
 
-class CLOCK extends Component {
-  constructor(config = null) {
-    super(0, 1);
-
-    this.interval = 10;
-    if (config)
-      this.interval = +config.interval;
-
-    this.lastTimestamp = Math.floor(Date.now());
-  }
-
-  execute() {
-  	var timestamp = Math.floor(Date.now());
-  	if ((timestamp - this.lastTimestamp) > this.interval) {
-  		this.outputs[0].value = !this.outputs[0].value;
-  		this.lastTimestamp = timestamp;
-  	}
-  }
-
-  createConfigModal() {
-    return `
-            <div class="form-group">
-              <input id="constValue" ng-model="yourName" type="number" class="form-control" placeholder="Value" value="${this.interval}">
-            </div>
-            `;
-  }
-
-  applyConfig(e) {
-    var value = $('#constValue').val();
-    if ((value != null) && (value != "")) {
-      this.interval = +value;
-      this.svgName.text(this.interval.toString());
-    }
-    return true;
-  }
-
-  getConfig() {
-    return {
-      interval: this.interval
-    };
-  }
-}
-
-class R_TRIG extends Component {
-  constructor(config = null) {
-    super(1, 1);
-
-    this.lastValue = 0;
-  }
-
-  execute() {
-    this.outputs[0].value = (this.inputs[0].value != this.lastValue) && (+this.inputs[0].value);
-    this.lastValue = this.inputs[0].value;
-  }
-}
-
-class TRI_Component extends Component {
-  constructor() {
-    super(
-      ['I', 'En'],
-      [],
-      ['Q']
-    );
-  }
-
-  execute() {
-    var enPin = +this.inputs[2].value;
-
-    if (enPin) {
-      this.outputs[0].value = this.inputs[1].value;
-    } else {
-      this.outputs[0].value = null;
-    }
-  }
-}
 
 
 class NOT_Component extends Component {
@@ -426,6 +460,10 @@ class AND_Component extends Component {
   }
 
   drawSymbol(svg) {
+    svg.svg('<path d="M 0 0 Q 16 0 16 8 Q 16 16 0 16 L 0 0 Z"></path>')
+      .size(16,16)
+      .fill('#cccccc')
+      .stroke({ color: '#000', width: 1 });
   }
 
   execute() {
@@ -456,6 +494,10 @@ class NAND_Component extends Component {
   }
 
   drawSymbol(svg) {
+    svg.svg('<path d="M 0 0 Q 14 0 14 8 Q 14 16 0 16 L 0 0 Z"></path><circle cx="15" cy="8" r="2"></circle>')
+      .size(17,16)
+      .fill('#cccccc')
+      .stroke({ color: '#000', width: 1 });
   }
 
   execute() {
@@ -486,8 +528,8 @@ class OR_Component extends Component {
   }
 
   drawSymbol(svg) {
-    svg.svg('<path d="M 0 0 Q 11.2 0 14 8 Q 11.2 16 0 16 Q 2.8 16 2.8 8 Q 2.8 0 0 0 Z"></path>')
-      .size(17,16)
+    svg.svg('<path d="M 0 0 Q 12.8 0 16 8 Q 12.8 16 0 16 Q 3.2 16 3.2 8 Q 3.2 0 0 0 Z"></path>')
+      .size(16,16)
       .fill('#cccccc')
       .stroke({ color: '#000', width: 1 });
   }
@@ -543,6 +585,73 @@ class NOR_Component extends Component {
   }
 }
 
+class XOR_Component extends Component {
+  constructor(config = null) {
+    var inputsCount = 2;
+    if (config)
+      inputsCount = config.inputsCount;
+
+    if (inputsCount < 2) inputsCount = 2;
+    super(inputsCount, 1);
+  }
+
+  drawSymbol(svg) {
+    svg.svg('<path d="M 3 0 Q 13.4 0 16 8 Q 13.4 16 3 16 Q 5.6 16 5.6 8 Q 5.6 0 3 0 Z"></path><path d="M 0 16 Q 2.6 16 2.6 8 Q 2.6 0 0 0"></path>')
+      .size(16,16)
+      .fill('#cccccc')
+      .stroke({ color: '#000', width: 1 });
+  }
+
+  execute() {
+    var res = (Boolean(+this.inputs[0].value) ? true : false);
+    for (var idx = 1; idx < this.inputs.length; idx++)
+      res = res ^ (Boolean(+this.inputs[idx].value) ? true : false);
+    this.outputs[0].value = res ? 1 : 0; 
+  }
+
+  getConfig() {
+    return {
+      inputsCount: this.inputs.length
+    };
+  }
+
+  openConfig(e) {
+  }
+}
+
+class XNOR_Component extends Component {
+  constructor(config = null) {
+    var inputsCount = 2;
+    if (config)
+      inputsCount = config.inputsCount;
+
+    if (inputsCount < 2) inputsCount = 2;
+    super(inputsCount, 1);
+  }
+
+  drawSymbol(svg) {
+    svg.svg('<path d="M 3 0 Q 11.8 0 14 8 Q 11.8 16 3 16 Q 5.2 16 5.2 8 Q 5.2 0 3 0 Z"></path><path d="M 0 16 Q 2.2 16 2.2 8 Q 2.2 0 0 0"></path><circle cx="16" cy="8" r="2"></circle>')
+      .size(16,16)
+      .fill('#cccccc')
+      .stroke({ color: '#000', width: 1 });
+  }
+
+  execute() {
+    var res = (Boolean(+this.inputs[0].value) ? true : false);
+    for (var idx = 1; idx < this.inputs.length; idx++)
+      res = res ^ (Boolean(+this.inputs[idx].value) ? true : false);
+    this.outputs[0].value = !res ? 1 : 0; 
+  }
+
+  getConfig() {
+    return {
+      inputsCount: this.inputs.length
+    };
+  }
+
+  openConfig(e) {
+  }
+}
 
 class SR_Component extends Component {
 	constructor() {
@@ -867,16 +976,22 @@ class PIN_OUT extends Component {
 }
 
 /* Groups */
-LED.group = 'Opto';
-Disp_7Seg.group = 'Opto';
-BCD_7Seg.group = 'Opto';
+CONST.group = 'MessyDesk';
+INPUT.group = 'MessyDesk';
+OUTPUT.group = 'MessyDesk';
 
-TRI_Component.group = 'Logic';
-NOT_Component.group = 'Logic';
-AND_Component.group = 'Logic';
-NAND_Component.group = 'Logic';
-OR_Component.group = 'Logic';
-NOR_Component.group = 'Logic';
+LED.group = 'Leds';
+Disp_7Seg.group = 'Leds';
+BCD_7Seg.group = 'Leds';
+
+TRI_Component.group = 'Gates';
+NOT_Component.group = 'Gates';
+AND_Component.group = 'Gates';
+NAND_Component.group = 'Gates';
+OR_Component.group = 'Gates';
+NOR_Component.group = 'Gates';
+XOR_Component.group = 'Gates';
+XNOR_Component.group = 'Gates';
 
 PIN_IN.group = 'Focus Board';
 PIN_OUT.group = 'Focus Board';
@@ -887,6 +1002,8 @@ var toolbox = {
   'CONST': CONST,
   'INPUT': INPUT,
   'OUTPUT': OUTPUT,
+
+  'TOGGLE': TOGGLE,
   'BUTTON': BUTTON,
   'CLOCK': CLOCK,
   'R_TRIG': R_TRIG,
@@ -900,6 +1017,8 @@ var toolbox = {
   'NAND_Component': NAND_Component,
   'OR_Component': OR_Component,
   'NOR_Component': NOR_Component,
+  'XOR_Component': XOR_Component,
+  'XNOR_Component': XNOR_Component,
   'TRI_Component': TRI_Component,
 
   'SR_Component': SR_Component,
