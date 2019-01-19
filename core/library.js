@@ -334,6 +334,8 @@ class Disp_7Seg extends Component {
     this.minWidth = 12;
     
     this.ledSVG = null;
+
+    this.values = [];
   }
 
   drawSymbol(svg) {
@@ -363,15 +365,21 @@ class Disp_7Seg extends Component {
     svg.size(63.6, 100);
   }
 
+  execute() {
+    this.values = [];
+    for (var idx in this.inputs)
+      this.values.push(this.inputs[idx].value);
+  }
+
   draw() {
-    this.segA.fill(+this.inputs[0].value ? '#ff0000' : '#3f0000');
-    this.segB.fill(+this.inputs[1].value ? '#ff0000' : '#3f0000');
-    this.segC.fill(+this.inputs[2].value ? '#ff0000' : '#3f0000');
-    this.segD.fill(+this.inputs[3].value ? '#ff0000' : '#3f0000');
-    this.segE.fill(+this.inputs[4].value ? '#ff0000' : '#3f0000');
-    this.segF.fill(+this.inputs[5].value ? '#ff0000' : '#3f0000');
-    this.segG.fill(+this.inputs[6].value ? '#ff0000' : '#3f0000');
-    this.segDOT.fill(+this.inputs[7].value ? '#ff0000' : '#3f0000');
+    this.segA.fill(+this.values[0] ? '#ff0000' : '#3f0000');
+    this.segB.fill(+this.values[1] ? '#ff0000' : '#3f0000');
+    this.segC.fill(+this.values[2] ? '#ff0000' : '#3f0000');
+    this.segD.fill(+this.values[3] ? '#ff0000' : '#3f0000');
+    this.segE.fill(+this.values[4] ? '#ff0000' : '#3f0000');
+    this.segF.fill(+this.values[5] ? '#ff0000' : '#3f0000');
+    this.segG.fill(+this.values[6] ? '#ff0000' : '#3f0000');
+    this.segDOT.fill(+this.values[7] ? '#ff0000' : '#3f0000');
   }
 }
 
@@ -434,7 +442,91 @@ class BCD_7Seg extends Component {
   }
 }
 
+class Disp extends Component {
+  constructor(config = null) {
+    super([''], 0);
+    
+    this.ledSVGs = [];
 
+    this.segA = [];
+    this.segB = [];
+    this.segC = [];
+    this.segD = [];
+    this.segE = [];
+    this.segF = [];
+    this.segG = [];
+    this.segDOT = [];
+
+    this.segMap = [0x3F, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x67, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71];
+    this.value = null;
+
+    this.count = 12;
+
+    this.minHeight = 8;
+    this.minWidth = Math.round((31.8 * this.count) / 8) + 2;
+  }
+
+  drawSymbol(svg) {
+    for (var idx = 0; idx < this.count; idx++) {
+      var ret = this.draw7Seg(idx);
+      svg.add(ret);
+    }
+
+    svg.size(31.8 * this.count, 50);
+  }
+
+  draw7Seg(idx) {
+    var ledSVG = new SVG.G();
+    ledSVG.rect(636, 1000).fill('#000');
+    this.segA[idx] = ledSVG.path('M 575 138 L 494 211 L 249 211 L 194 137 L 213 120 L 559 120 Z');
+    this.segB[idx] = ledSVG.path('M 595 160 L 544 452 L 493 500 L 459 456 L 500 220 L 582 146 Z');
+    this.segC[idx] = ledSVG.path('M 525 560 L 476 842 L 465 852 L 401 792 L 441 562 L 491 516 Z');
+    this.segD[idx] = ledSVG.path('M 457 860 L 421 892 L 94 892 L 69 864 L 144 801 L 394 801 Z');
+    this.segE[idx] = ledSVG.path('M 181 560 L 141 789 L 61 856 L 48 841 L 96 566 L 148 516 Z');
+    this.segF[idx] = ledSVG.path('M 241 218 L 200 453 L 150 500 L 115 454 L 166 162 L 185 145 Z');
+    this.segG[idx] = ledSVG.path('M 485 507 L 433 555 L 190 555 L 156 509 L 204 464 L 451 464 Z');
+    this.segDOT[idx] = ledSVG.circle(92).move(496, 794);
+
+    this.segA[idx].fill('#3f0000');
+    this.segB[idx].fill('#3f0000');
+    this.segC[idx].fill('#3f0000');
+    this.segD[idx].fill('#3f0000');
+    this.segE[idx].fill('#3f0000');
+    this.segF[idx].fill('#3f0000');
+    this.segG[idx].fill('#3f0000');
+    this.segDOT[idx].fill('#3f0000');
+
+    ledSVG.scale(0.05,0.05);
+
+    ledSVG.move(idx * 635, 0);
+
+    this.ledSVGs.push(ledSVG);
+    return ledSVG;
+  }
+
+  fill7Seg(idx, value) {
+    var segData = this.segMap[value];
+
+    this.segA[idx].fill(segData & 0x01 ? '#ff0000' : '#3f0000');
+    this.segB[idx].fill(segData & 0x02 ? '#ff0000' : '#3f0000');
+    this.segC[idx].fill(segData & 0x04 ? '#ff0000' : '#3f0000');
+    this.segD[idx].fill(segData & 0x08 ? '#ff0000' : '#3f0000');
+    this.segE[idx].fill(segData & 0x10 ? '#ff0000' : '#3f0000');
+    this.segF[idx].fill(segData & 0x20 ? '#ff0000' : '#3f0000');
+    this.segG[idx].fill(segData & 0x40 ? '#ff0000' : '#3f0000');
+  }
+
+  execute() {
+    this.value = +this.inputs[0].value;
+  }
+
+  draw() {
+    for (var idx = 0; idx < this.count; idx++) {
+      var digit = Math.floor((this.value / Math.pow(10, idx)) % 10);
+      this.fill7Seg(this.count - idx - 1, digit);
+    }
+  }
+}
 
 class NOT_Component extends Component {
   constructor(config = null) {
@@ -981,6 +1073,7 @@ INPUT.group = 'MessyDesk';
 OUTPUT.group = 'MessyDesk';
 
 LED.group = 'Leds';
+Disp.group = 'Leds';
 Disp_7Seg.group = 'Leds';
 BCD_7Seg.group = 'Leds';
 
@@ -1009,6 +1102,7 @@ var toolbox = {
   'R_TRIG': R_TRIG,
   
   'LED': LED,
+  'Disp': Disp,
   'Disp_7Seg': Disp_7Seg,
   'BCD_7Seg': BCD_7Seg,
 

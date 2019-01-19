@@ -990,11 +990,9 @@ function drawSiliconbox() {
 }
 
 function saveProjectToFile() {
-	//prompt('Enter project filename', 'project')
-	//.then((filename) => {
-	//	if ((filename != null) && (filename != ""))
-	download(JSON.stringify(saveProject()), 'project.prj', 'text/plain');
-	//});
+	var filename = prompt('Enter project filename', 'project');
+	if ((filename != null) && (filename != ""))
+		download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
 }
 
 // Undo / Redo
