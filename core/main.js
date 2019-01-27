@@ -81,7 +81,9 @@ class Component {
 	init() {}
 
 	createSVG() {
-		var w = this.minWidth;
+		var minW = this.calculateMinWidth();
+
+		var w = Math.max(this.minWidth, minW);
 		var wpx = w * 8;
 
 		var h = Math.max(this.minHeight, Math.max(this.inputs.length * 2, this.outputs.length * 2));
@@ -121,6 +123,28 @@ class Component {
 						, anchor:	 'middle'
 						})
 			.move(wpx / 2, -15);
+	}
+
+	calculateMinWidth() {
+		var inMaxWidth = 0;
+		for (var i = this.inputs.length - 1; i >= 0; i--) {
+			var item = this.inputs[i];
+
+			var textWidth = item.name.length * 5.25;
+
+			if (textWidth > inMaxWidth) inMaxWidth = textWidth;
+		}
+
+		var outMaxWidth = 0;
+		for (var i = this.outputs.length - 1; i >= 0; i--) {
+			var item = this.outputs[i];
+
+			var textWidth = item.name.length * 5.25;
+
+			if (textWidth > outMaxWidth) outMaxWidth = textWidth;
+		}
+
+		return (inMaxWidth + outMaxWidth + 24) / 8;	
 	}
 
 	drawPins(wpx, hpx) {
