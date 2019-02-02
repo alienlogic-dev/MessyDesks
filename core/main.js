@@ -35,9 +35,6 @@ class Component {
 		if (biList instanceof Array)
 			for (var i = 0; i < biList.length; i++) {
 				var pinName = biList[i];
-				if (pinName.length > 0)
-					if (this[pinName] === undefined)
-						this[pinName] = null;
 				this.inputs.push(new Pin(this, inputIdx++, pinName, true, true));
 				this.outputs.push(new Pin(this, outputIdx++, pinName, false, true));
 			}

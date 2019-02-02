@@ -770,9 +770,9 @@ class SR_Component extends Component {
 class RAM_Component extends Component {
 	constructor() {
     super(
-    	['A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15', 'CS', 'OE', 'RW'],
+    	['Addr', 'CS', 'OE', 'RW'],
     	[],
-    	['D0', 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7']
+    	['Data']
     );
 
 		this.minWidth = 10;
@@ -782,7 +782,7 @@ class RAM_Component extends Component {
     this.ram[0xFFFD] = 0x10;
 
     this.ram[0x1000] = 0xE6;
-    this.ram[0x1001] = 0x00;
+    this.ram[0x1001] = 0x20;
 
     this.ram[0x1002] = 0x4C;
     this.ram[0x1003] = 0x00;
@@ -790,40 +790,21 @@ class RAM_Component extends Component {
   }
 
   execute() {
-  	var csPin = +this.inputs[24].value;
-  	var oePin = +this.inputs[25].value;
-  	var rwPin = +this.inputs[26].value;
+  	var csPin = +this.CS;
+  	var oePin = +this.OE;
+  	var rwPin = +this.RW;
 
-  	var addr = 0x00;
-  	for (var i = 0; i < 16; i++)
-  		addr = addr | (+this.inputs[i + 8].value ? (1 << i) : 0);
+  	var addr = +this.Addr;
 
-  	for (var i = 0; i < 8; i++)
-  		this.outputs[i].value = null;
+  	this.outputs[0].value = null;
 
   	if (csPin) {
   		if (rwPin) {
-	  		if (oePin) {
-	  			var ramValue = this.ram[addr];
-			  	for (var i = 0; i < 8; i++)
-			  		this.outputs[i].value = (ramValue >> i) & 0x01;
-	  		}
-	  	} else {
-		  	var dataValue = 0x00;
-		  	for (var i = 0; i < 8; i++)
-		  		dataValue = dataValue | (+this.inputs[i].value ? (1 << i) : 0);
-
-				this.ram[addr] = dataValue;
-	  	}
+	  		if (oePin)
+          this.outputs[0].value = this.ram[addr];
+	  	} else
+				this.ram[addr] = +this.inputs[0].value;
   	}
-  }
-
-  openConfig(e) {
-  	var value = prompt('Enter value @ 3', 0);
-
-		if ((value != null) && (value != "")) {
-		  this.ram[3] = +value;
-		}
   }
 }
 
@@ -831,8 +812,8 @@ class CPU6502_Component extends Component {
 	constructor() {
     super(
     	['RST', 'CLK'],
-    	['A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15', 'RW'],
-    	['D0', 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7']
+    	['Addr', 'RW'],
+    	['Data']
     );
 
 		this.minWidth = 10;
@@ -844,52 +825,39 @@ class CPU6502_Component extends Component {
     this.cpu.md_component = this;
 
     this.cpu.read = function(addr) {
-    	//console.log('read @ ' + addr.toString(16));
+    	this.md_component.RW = 1; // Rw
+      this.md_component.Addr = addr; // Addr
 
-    	this.md_component.outputs[24].value = 1; // Rw
+      simStep();
 
-	  	for (var i = 0; i < 16; i++)
-    		this.md_component.outputs[i + 8].value = (addr >> i) & 0x01;
-
-	  	simStep();
-
-	  	var data = 0x00;
-	  	for (var i = 0; i < 8; i++)
-	  		data = data | (+this.md_component.inputs[i].value ? (1 << i) : 0);
-
+      var data = +this.md_component.inputs[0].value;
 	    return data;
     }
 
     this.cpu.write = function(addr, value) {
-    	//console.log('write ' + value.toString(16) + ' @ ' + addr.toString(16));
-
-	  	for (var i = 0; i < 16; i++)
-    		this.md_component.outputs[i + 8].value = (addr >> i) & 0x01;
-
-	  	for (var i = 0; i < 8; i++)
-    		this.md_component.outputs[i].value = (value >> i) & 0x01;
+      this.md_component.Addr = addr; // Addr
+      this.md_component.outputs[0].value = value;
 
 	  	simStep();
 
-    	this.md_component.outputs[24].value = 0; // rW
-
+      this.md_component.RW = 0; // wR
     }
   }
 
   execute() {
-  	if ((+this.inputs[8].value == 1) && (this.lastRST_state == 0)){
-  		this.lastRST_state = +this.inputs[8].value;
+  	if ((+this.RST == 1) && (this.lastRST_state == 0)){
+  		this.lastRST_state = +this.RST;
     	this.cpu.reset();
   	}
   	else
-  		this.lastRST_state = +this.inputs[8].value;
+  		this.lastRST_state = +this.RST;
 
-  	if ((+this.inputs[9].value == 1) && (this.lastCLK_state == 0)){
-  		this.lastCLK_state = +this.inputs[9].value;
+  	if ((+this.CLK == 1) && (this.lastCLK_state == 0)){
+  		this.lastCLK_state = +this.CLK;
     	this.cpu.step();
   	}
   	else
-  		this.lastCLK_state = +this.inputs[9].value;
+  		this.lastCLK_state = +this.CLK;
   }
 }
 
