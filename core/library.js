@@ -1044,10 +1044,10 @@ class ToObject extends Component {
     this.minWidth = 5;
 
     this.fields = '';
-    if (config)
+    if (config) {
       this.fields = config.fields;
-
-    this.construct(this.fields.split(','), 1);
+      this.construct(this.fields.split(','), 1);
+    }
   }
 
   execute(inputs, outputs) {
@@ -1081,6 +1081,48 @@ class ToObject extends Component {
   }
 }
 
+
+class FromObject extends Component {
+  constructor(config = null) {
+    super(1, 0);
+
+    this.minWidth = 5;
+
+    this.fields = '';
+    if (config) {
+      this.fields = config.fields;
+      this.construct(1, this.fields.split(','));
+    }
+  }
+
+  execute(inputs, outputs) {
+    for (var key in outputs)
+      outputs[key] = inputs[0][key];
+  }
+
+  getConfig() {
+    return {
+      fields: this.fields
+    };
+  }
+
+  createConfigModal() {
+    return `
+            <div class="form-group">
+              <input id="ToObjFields" type="text" class="form-control" placeholder="Fields" value="${this.fields}">
+            </div>
+            `;
+  }
+
+  applyConfig(e) {
+    var fields = $('#ToObjFields').val();
+    if ((fields != null) && (fields != "")) {
+      this.fields = fields;
+      this.construct(1, fields.split(','));
+    }
+    return true;
+  }
+}
 
 class Repeat extends Component {
   constructor(config = null) {
@@ -1204,6 +1246,7 @@ INPUT.group = 'MessyDesk';
 OUTPUT.group = 'MessyDesk';
 CONSOLE.group = 'MessyDesk';
 ToObject.group = 'MessyDesk';
+FromObject.group = 'MessyDesk';
 Repeat.group = 'MessyDesk';
 
 Add.group = 'Math';
@@ -1233,6 +1276,7 @@ var toolbox = {
   'OUTPUT': OUTPUT,
   'CONSOLE': CONSOLE,
   'ToObject': ToObject,
+  'FromObject': FromObject,
   'Repeat': Repeat,
 
   'Add': Add,

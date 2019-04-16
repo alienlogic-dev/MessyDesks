@@ -390,6 +390,15 @@ class Component {
 		if (cycIdx > this.exeIdx) {
 			var needRepeat = this.canRepeat && this.repeatRequired();
 
+			var outputs = { };
+			for (var idx = 0; idx < this.outputs.length; idx++) {
+				var pinName = this.outputs[idx].name;
+				if (pinName != null) {
+					if (pinName.length == 0) pinName = idx;
+					outputs[pinName] = null;
+				}
+			}
+
 			if (needRepeat) {
 				var times = this.countRepeats();
 
@@ -397,13 +406,11 @@ class Component {
 					this.outputs[idx].value = [];
 
 				for (var i = 0; i < times; i++) {
-					var outputs = { };
 					var inputs = this.marshallingInputs(i);
 					this.execute(inputs, outputs);
 					this.marshallingOutputs(outputs, i);
 				}
 			} else {
-				var outputs = { };
 				var inputs = this.marshallingInputs();
 				this.execute(inputs, outputs);
 				this.marshallingOutputs(outputs);				
