@@ -39,6 +39,8 @@ class Component {
 
 		this.withGUI = withGUI;
 
+		this.canRepeat = true;
+
 		this.init();
 		this.construct(inputsList, outputsList, biList);
 	}
@@ -183,10 +185,7 @@ class Component {
 			var item = this.inputs[i];
 
 			if (!item.svg) {
-				if (item.isBidirectional)
-					item.svg = this.svg.rect(8, 8);
-				else
-					item.svg = this.svg.circle(8);
+				item.svg = this.svg.rect(8, 8).radius(8);
 				
 				item.svg
 					.on('click', this.pinClickedEvent, item)
@@ -215,10 +214,7 @@ class Component {
 			var item = this.outputs[i];
 
 			if (!item.svg) {
-				if (item.isBidirectional)
-					item.svg = this.svg.rect(8, 8);
-				else
-					item.svg = this.svg.circle(8);
+				item.svg = this.svg.rect(8, 8).radius(8);
 				
 				item.svg
 					.on('click', this.pinClickedEvent, item)
@@ -231,7 +227,7 @@ class Component {
 				.addClass('pin')
 				.stroke({ color: '#000', width: 1 })
 				.data('pin_id', item.ID);
-				
+
 			this.svg
 				.text(item.name)
 				.font({
@@ -327,33 +323,91 @@ class Component {
 	getConfig() { return null; }
 
 	/* Runtime */	
-	marshallingInputs() {
+	marshallingInputs(index) {
+		var ret = { };			
+
 		for (var idx = 0; idx < this.inputs.length; idx++) {
 			var pinName = this.inputs[idx].name;
-			if (pinName)
-				if (pinName.length > 0)
-					if (this[pinName] !== undefined)
-						this[pinName] = this.inputs[idx].value;
+			if (pinName != null) {
+				if (pinName.length == 0) pinName = idx;
+
+				if (index != null)
+					ret[pinName] = this.inputs[idx].value[index];
+				else
+					ret[pinName] = this.inputs[idx].value;
+			}
 		}
+
+		return ret;
 	}
 
-	marshallingOutputs() {
+	marshallingOutputs(outputs, index) {
 		for (var idx = 0; idx < this.outputs.length; idx++) {
 			var pinName = this.outputs[idx].name;
-			if (pinName)
-				if (pinName.length > 0)
-					if (this[pinName] !== undefined)
-						if (this[pinName] !== null)
-							this.outputs[idx].value = this[pinName];
+			if (pinName != null) {
+				if (pinName.length == 0) pinName = idx;
+				if (outputs[pinName] !== undefined)
+					if (outputs[pinName] !== null) {
+						if (index != null) {
+							if (this.outputs[idx].value == null)
+								this.outputs[idx].value = [];
+
+							this.outputs[idx].value[index] = outputs[pinName];
+						} else
+							this.outputs[idx].value = outputs[pinName];
+					}
+			}
 		}
 	}
 
-	execute() {}
+	repeatRequired() {
+		if (this.inputs.length == 0) return false;
+
+		for (var idx = 0; idx < this.inputs.length; idx++) {
+			var pinValue = this.inputs[idx].value;
+			if (!(pinValue instanceof Array))
+				return false;
+		}
+
+		return true;
+	}
+
+	countRepeats() {
+		var ret = Number.MAX_SAFE_INTEGER;
+
+		for (var idx = 0; idx < this.inputs.length; idx++) {
+			var pinValue = this.inputs[idx].value;
+			if (pinValue instanceof Array)
+				if (pinValue.length < ret)
+					ret = pinValue.length;
+		}
+		
+		return ret;
+	}
+
+	execute(inputs, outputs) {}
 	run() {
 		if (cycIdx > this.exeIdx) {
-			this.marshallingInputs();
-			this.execute();
-			this.marshallingOutputs();
+			var needRepeat = this.canRepeat && this.repeatRequired();
+
+			if (needRepeat) {
+				var times = this.countRepeats();
+
+				for (var idx = 0; idx < this.outputs.length; idx++)
+					this.outputs[idx].value = [];
+
+				for (var i = 0; i < times; i++) {
+					var outputs = { };
+					var inputs = this.marshallingInputs(i);
+					this.execute(inputs, outputs);
+					this.marshallingOutputs(outputs, i);
+				}
+			} else {
+				var outputs = { };
+				var inputs = this.marshallingInputs();
+				this.execute(inputs, outputs);
+				this.marshallingOutputs(outputs);				
+			}
 
 			this.guiInputs = this.inputs.map(t => t.value).splice(0);
 			for (var i = 0; i < this.inputs.length; i++)
@@ -379,11 +433,16 @@ class Component {
 	draw() {}
 
 	refresh() {
-		for (var idx in this.guiInputs)
+		for (var idx in this.guiInputs) {
 			this.inputs[idx].svg.fill((this.guiInputs[idx] == null) ? '#fc0' : (+this.guiInputs[idx] ? '#0c0' : '#c00'));
+			this.inputs[idx].svg.radius(this.guiInputs[idx] instanceof Array ? 0 : 8);
+		}
 
-		for (var idx = 0; idx < this.outputs.length; idx++)
+
+		for (var idx = 0; idx < this.outputs.length; idx++) {
 			this.outputs[idx].svg.fill((this.outputs[idx].value == null) ? '#fff' : (+this.outputs[idx].value ? '#0c0' : '#c00'));
+			this.outputs[idx].svg.radius(this.outputs[idx].value instanceof Array ? 0 : 8);
+		}
 	
 		this.draw();
 	}

@@ -34,7 +34,7 @@ class CONST extends Component {
       .stroke({ color: '#666666', width: 2 });
 
     this.valueSVG = this.svg
-      .text(this.value.toString())
+      .text(this.value ? this.value.toString() : '')
       .font({
               family:   'Menlo'
             , size:     12
@@ -43,8 +43,8 @@ class CONST extends Component {
       .move(wpx / 2, 0);
   }
 
-  execute() {
-    this.outputs[0].value = this.value;
+  execute(inputs, outputs) {
+    outputs[0] = this.value;
   }
 
   getConfig() {
@@ -85,10 +85,10 @@ class INPUT extends Component {
 			.radius(2)
 			.move(0, 0)
 			.fill('#cccccc')
-			.stroke({ color: '#666666', width: 2 });
-
+      .stroke({ color: '#666666', width: 2 });
+      
 		this.aliasSVG = this.svg
-			.text(this.alias)
+			.text(this.alias ? this.alias.toString() : '')
 			.font({
 						  family:   'Menlo'
 						, size:     12
@@ -138,7 +138,7 @@ class OUTPUT extends Component {
 			.stroke({ color: '#666666', width: 2 });
 
 		this.aliasSVG = this.svg
-			.text(this.alias)
+			.text(this.alias ? this.alias.toString() : '')
 			.font({
 						  family:   'Menlo'
 						, size:     12
@@ -230,7 +230,7 @@ class CLOCK extends Component {
     this.lastTimestamp = Math.floor(Date.now());
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var timestamp = Math.floor(Date.now());
     if ((timestamp - this.lastTimestamp) > this.interval) {
       this.outputs[0].value = !this.outputs[0].value;
@@ -269,7 +269,7 @@ class R_TRIG extends Component {
     this.lastValue = 0;
   }
 
-  execute() {
+  execute(inputs, outputs) {
     this.outputs[0].value = (this.inputs[0].value != this.lastValue) && (+this.inputs[0].value);
     this.lastValue = this.inputs[0].value;
   }
@@ -284,7 +284,7 @@ class TRI_Component extends Component {
     );
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var enPin = +this.inputs[2].value;
 
     if (enPin) {
@@ -315,7 +315,7 @@ class LED extends Component {
     svg.size(24, 24);
   }
 
-  execute() {
+  execute(inputs, outputs) {
     this.value = +this.inputs[0].value;
   }
 
@@ -365,7 +365,7 @@ class Disp_7Seg extends Component {
     svg.size(63.6, 100);
   }
 
-  execute() {
+  execute(inputs, outputs) {
     this.values = [];
     for (var idx in this.inputs)
       this.values.push(this.inputs[idx].value);
@@ -421,7 +421,7 @@ class BCD_7Seg extends Component {
     svg.size(31.8, 50);
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var data = 0;
     for (var idx = 0; idx < this.inputs.length; idx++) {
       var dPin = +this.inputs[idx].value;
@@ -516,7 +516,7 @@ class Disp extends Component {
     this.segG[idx].fill(segData & 0x40 ? '#ff0000' : '#3f0000');
   }
 
-  execute() {
+  execute(inputs, outputs) {
     this.value = +this.inputs[0].value;
   }
 
@@ -536,7 +536,7 @@ class NOT_Component extends Component {
   drawSymbol(svg) {
   }
 
-  execute() {
+  execute(inputs, outputs) {
     this.outputs[0].value = !(+this.inputs[0].value); 
   }
 }
@@ -558,7 +558,7 @@ class AND_Component extends Component {
       .stroke({ color: '#000', width: 1 });
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var res = (Boolean(+this.inputs[0].value) ? true : false);
     for (var idx = 1; idx < this.inputs.length; idx++)
       res = res && (Boolean(+this.inputs[idx].value) ? true : false);
@@ -592,7 +592,7 @@ class NAND_Component extends Component {
       .stroke({ color: '#000', width: 1 });
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var res = (Boolean(+this.inputs[0].value) ? true : false);
     for (var idx = 1; idx < this.inputs.length; idx++)
       res = res && (Boolean(+this.inputs[idx].value) ? true : false);
@@ -626,7 +626,7 @@ class OR_Component extends Component {
       .stroke({ color: '#000', width: 1 });
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var res = (Boolean(+this.inputs[0].value) ? true : false);
     for (var idx = 1; idx < this.inputs.length; idx++)
       res = res || (Boolean(+this.inputs[idx].value) ? true : false);
@@ -660,7 +660,7 @@ class NOR_Component extends Component {
 			.stroke({ color: '#000', width: 1 });
   }
 
-  execute() {
+  execute(inputs, outputs) {
   	var res = (Boolean(+this.inputs[0].value) ? true : false);
   	for (var idx = 1; idx < this.inputs.length; idx++)
   		res = res || (Boolean(+this.inputs[idx].value) ? true : false);
@@ -694,7 +694,7 @@ class XOR_Component extends Component {
       .stroke({ color: '#000', width: 1 });
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var res = (Boolean(+this.inputs[0].value) ? true : false);
     for (var idx = 1; idx < this.inputs.length; idx++)
       res = res ^ (Boolean(+this.inputs[idx].value) ? true : false);
@@ -728,7 +728,7 @@ class XNOR_Component extends Component {
       .stroke({ color: '#000', width: 1 });
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var res = (Boolean(+this.inputs[0].value) ? true : false);
     for (var idx = 1; idx < this.inputs.length; idx++)
       res = res ^ (Boolean(+this.inputs[idx].value) ? true : false);
@@ -755,7 +755,7 @@ class SR_Component extends Component {
   	this._c1 = new NOR_Component();
   }
 
-  execute() {
+  execute(inputs, outputs) {
 		this._c0.setIn(0, this.inputs[1].value);
 		this._c0.setIn(1, this._c1.getOut(0));
 		
@@ -789,7 +789,7 @@ class RAM_Component extends Component {
     this.ram[0x1004] = 0x10;
   }
 
-  execute() {
+  execute(inputs, outputs) {
   	var csPin = +this.CS;
   	var oePin = +this.OE;
   	var rwPin = +this.RW;
@@ -844,7 +844,7 @@ class CPU6502_Component extends Component {
     }
   }
 
-  execute() {
+  execute(inputs, outputs) {
   	if ((+this.RST == 1) && (this.lastRST_state == 0)){
   		this.lastRST_state = +this.RST;
     	this.cpu.reset();
@@ -877,7 +877,7 @@ class ToBus_Component extends Component {
     this.outputs[0].name = 'Bus';
   }
 
-  execute() {
+  execute(inputs, outputs) {
   	var data = [];
   	for (var idx = 0; idx < this.inputs.length; idx++)
   		data.push(this.inputs[idx].value);
@@ -900,7 +900,7 @@ class FromBus_Component extends Component {
     	this.outputs[idx].name = 'D' + idx;
   }
 
-  execute() {
+  execute(inputs, outputs) {
   	var data = this.inputs[0].value;
     if (data)
     	for (var idx = 0; idx < data.length; idx++)
@@ -924,7 +924,7 @@ class BIN2DEC_Component extends Component {
     this.outputs[0].name = 'Bus';
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var data = 0;
     for (var idx = 0; idx < this.inputs.length; idx++) {
       var dPin = +this.inputs[idx].value;
@@ -950,7 +950,7 @@ class DEC2BIN_Component extends Component {
       this.outputs[idx].name = 'D' + idx;
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var data = this.inputs[0].value;
     for (var idx = 0; idx < this.outputs.length; idx++)
       this.outputs[idx].value = (data >> idx) & 0x01;
@@ -1046,12 +1046,15 @@ class ToObject extends Component {
     this.fields = '';
     if (config)
       this.fields = config.fields;
+
+    this.construct(this.fields.split(','), 1);
   }
 
-  execute() {
-    this.outputs[0].value = {};
-    for (var i = 0; i < this.inputs.length; i++)
-      this.outputs[0].value[this.inputs[i].name] = this.inputs[i].value;
+  execute(inputs, outputs) {
+    var ret = {};
+    for (var key in inputs)
+      ret[key] = inputs[key];
+    outputs[0] = ret;
   }
 
   getConfig() {
@@ -1079,18 +1082,54 @@ class ToObject extends Component {
 }
 
 
+class Repeat extends Component {
+  constructor(config = null) {
+    super([ 'item', 'times' ], 1);
+
+    this.minWidth = 5;
+  }
+
+  execute(inputs, outputs) {
+    if (inputs.item) {
+      if (inputs.item instanceof Object)
+        outputs[0] = new Array(+inputs.times).fill(null).map(()=> (Object.assign({}, inputs.item)));
+      else
+        outputs[0] = new Array(+inputs.times).fill(null).map(()=> (inputs.item));
+    } else
+      outputs[0] = Array.apply(null, {length: +inputs.times}).map(Number.call, Number);
+  }
+}
+
 class CONSOLE extends Component {
   constructor(config = null) {
     super(1, 0);
 
     this.minWidth = 5;
+    this.canRepeat = false;
   }
 
-  execute() {
-    if (this.inputs[0].value)
-      console.log(this.inputs[0].value);
+  execute(inputs, outputs) {
+    if (inputs[0])
+      console.log(inputs[0]);
   }
 }
+
+/* Math */
+class Add extends Component {
+  constructor(config = null) {
+    super(2, 1);
+
+    this.minWidth = 5;
+  }
+
+  execute(inputs, outputs) {
+    var ret = 0;
+    for (var idx in inputs)
+      ret += +inputs[idx];
+    outputs[0] = ret;
+  }
+}
+
 
 /* REST */
 class GET_Component extends Component {
@@ -1105,7 +1144,7 @@ class GET_Component extends Component {
       this.value = config.value;
   }
 
-  execute() {
+  execute(inputs, outputs) {
     var exeInput = this.inputs[0].value;
 
     if (exeInput && !this.oldInput)
@@ -1165,6 +1204,9 @@ INPUT.group = 'MessyDesk';
 OUTPUT.group = 'MessyDesk';
 CONSOLE.group = 'MessyDesk';
 ToObject.group = 'MessyDesk';
+Repeat.group = 'MessyDesk';
+
+Add.group = 'Math';
 
 LED.group = 'Leds';
 Disp.group = 'Leds';
@@ -1191,7 +1233,9 @@ var toolbox = {
   'OUTPUT': OUTPUT,
   'CONSOLE': CONSOLE,
   'ToObject': ToObject,
+  'Repeat': Repeat,
 
+  'Add': Add,
 
   'TOGGLE': TOGGLE,
   'BUTTON': BUTTON,
