@@ -1035,10 +1035,136 @@ class PIN_OUT extends Component {
   }
 }
 
+
+
+class ToObject extends Component {
+  constructor(config = null) {
+    super(0, 1);
+
+    this.minWidth = 5;
+
+    this.fields = '';
+    if (config)
+      this.fields = config.fields;
+  }
+
+  execute() {
+    this.outputs[0].value = {};
+    for (var i = 0; i < this.inputs.length; i++)
+      this.outputs[0].value[this.inputs[i].name] = this.inputs[i].value;
+  }
+
+  getConfig() {
+    return {
+      fields: this.fields
+    };
+  }
+
+  createConfigModal() {
+    return `
+            <div class="form-group">
+              <input id="ToObjFields" type="text" class="form-control" placeholder="Fields" value="${this.fields}">
+            </div>
+            `;
+  }
+
+  applyConfig(e) {
+    var fields = $('#ToObjFields').val();
+    if ((fields != null) && (fields != "")) {
+      this.fields = fields;
+      this.construct(fields.split(','), 1);
+    }
+    return true;
+  }
+}
+
+
+class CONSOLE extends Component {
+  constructor(config = null) {
+    super(1, 0);
+
+    this.minWidth = 5;
+  }
+
+  execute() {
+    if (this.inputs[0].value)
+      console.log(this.inputs[0].value);
+  }
+}
+
+/* REST */
+class GET_Component extends Component {
+  constructor(config = null) {
+    super(1, [ 'data', 'status' ]);
+
+    this.minHeight = 3;
+    this.oldInput = 0;
+
+    this.value = '';
+    if (config)
+      this.value = config.value;
+  }
+
+  execute() {
+    var exeInput = this.inputs[0].value;
+
+    if (exeInput && !this.oldInput)
+      $.get(this.value).then(t => this.data = t);
+    else
+      if (!exeInput)
+        this.data = null;
+    
+    this.oldInput = exeInput;
+  }
+
+  createConfigModal() {
+    return `
+            <div class="form-group">
+              <input id="constValue" type="text" class="form-control" placeholder="Value" value="${this.value}">
+            </div>
+            `;
+  }
+
+  applyConfig(e) {
+    var value = $('#constValue').val();
+    if ((value != null) && (value != "")) {
+      this.value = value;
+      this.valueSVG.text(this.value.toString());
+    }
+    return true;
+  }
+
+  drawBody(wpx, hpx) {
+    this.svgBody = this.svg.rect(wpx, hpx)
+      .radius(2)
+      .move(0, 0)
+      .fill('#cccccc')
+      .stroke({ color: '#666666', width: 2 });
+
+    this.valueSVG = this.svg
+      .text(this.value.toString())
+      .font({
+              family:   'Menlo'
+            , size:     12
+            , anchor:   'middle'
+            })
+      .move(wpx / 2, 0);
+  }
+
+  getConfig() {
+    return {
+      value: this.value
+    };
+  }
+}
+
+
 /* Groups */
 CONST.group = 'MessyDesk';
 INPUT.group = 'MessyDesk';
 OUTPUT.group = 'MessyDesk';
+CONSOLE.group = 'MessyDesk';
+ToObject.group = 'MessyDesk';
 
 LED.group = 'Leds';
 Disp.group = 'Leds';
@@ -1057,12 +1183,15 @@ XNOR_Component.group = 'Gates';
 PIN_IN.group = 'Focus Board';
 PIN_OUT.group = 'Focus Board';
 
-
+GET_Component.group = 'HTTP';
 
 var toolbox = {
   'CONST': CONST,
   'INPUT': INPUT,
   'OUTPUT': OUTPUT,
+  'CONSOLE': CONSOLE,
+  'ToObject': ToObject,
+
 
   'TOGGLE': TOGGLE,
   'BUTTON': BUTTON,
@@ -1093,7 +1222,9 @@ var toolbox = {
   'DEC2BIN_Component': DEC2BIN_Component,
 
   'PIN_IN': PIN_IN,
-  'PIN_OUT': PIN_OUT
+  'PIN_OUT': PIN_OUT,
+
+  'GET': GET_Component
 };
 var toolbox_original = Object.assign({}, toolbox);
 

@@ -20,17 +20,35 @@ class Component {
 		this.id = '';
 		this.isSelected = false;
 
+		this.html = '';
+
 		this.exeIdx = 0;
 		this.instName = '';
 
 		this.minWidth = 5;
 		this.minHeight = 2;
 
+		this.w = 0;
+		this.wpx = 0;
+
+		this.h = 0;
+		this.hpx = 0;
+
 		this.inputs = [];
 		this.outputs = [];
 
-		var inputIdx = 0;
-		var outputIdx = 0;
+		this.withGUI = withGUI;
+
+		this.init();
+		this.construct(inputsList, outputsList, biList);
+	}
+
+	init() {}
+
+	construct(inputsList, outputsList, biList = 0) {
+		var inputIdx = this.inputs.length;
+		var outputIdx = this.outputs.length;
+
 		// Insert bidirectional pins
 		if (biList instanceof Array)
 			for (var i = 0; i < biList.length; i++) {
@@ -46,62 +64,77 @@ class Component {
 
 		// Create list of inputs
 		if (inputsList instanceof Array)
-			for (var i = 0; i < inputsList.length; i++) {
-				var pinName = inputsList[i];
+			this.inputs.length = inputsList.length;
+		else
+			this.inputs.length = +inputsList;
+
+		for (var i = 0; i < this.inputs.length; i++) {
+			if (!this.inputs[i]) {
+				var pinName = '';
+				if (inputsList instanceof Array)
+					pinName = inputsList[i];
+	
 				if (pinName.length > 0)
 					if (this[pinName] === undefined)
 						this[pinName] = null;
-				this.inputs.push(new Pin(this, inputIdx++, pinName, true));
+	
+				this.inputs[i] = new Pin(this, i, pinName, true);
 			}
-		else
-			for (var i = 0; i < inputsList; i++)
-				this.inputs.push(new Pin(this, inputIdx++, '', true));
+		}
 
 		// Create list of outputs
 		if (outputsList instanceof Array)
-			for (var i = 0; i < outputsList.length; i++) {
-				var pinName = outputsList[i];
+			this.outputs.length = outputsList.length;
+		else
+			this.outputs.length = +outputsList;
+
+		for (var i = 0; i < this.outputs.length; i++) {
+			if (!this.outputs[i]) {
+				var pinName = '';
+				if (outputsList instanceof Array)
+					pinName = outputsList[i];
+	
 				if (pinName.length > 0)
 					if (this[pinName] === undefined)
 						this[pinName] = null;
-				this.outputs.push(new Pin(this, outputIdx++, pinName, false));
+	
+				this.outputs[i] = new Pin(this, i, pinName, false);
 			}
-		else
-			for (var i = 0; i < outputsList; i++)
-				this.outputs.push(new Pin(this, outputIdx++, '', false));
+		}
 
-		this.init();
-
-		if (withGUI) this.createSVG();
+		// Create main svg
+		this.createSVG();
 	}
-
-	init() {}
 
 	createSVG() {
 		var minW = this.calculateMinWidth();
 
-		var w = Math.max(this.minWidth, minW);
-		var wpx = w * 8;
+		this.w = Math.max(this.minWidth, minW);
+		this.wpx = this.w * 8;
 
-		var h = Math.max(this.minHeight, Math.max(this.inputs.length * 2, this.outputs.length * 2));
-		var hpx = h * 8;
+		this.h = Math.max(this.minHeight, Math.max(this.inputs.length * 2, this.outputs.length * 2));
+		this.hpx = this.h * 8;
 
-		this.svg = new SVG.G();
-		this.svg.on('mousedown', this.mouseDownEvent, this);
-		this.svg.on('mouseup', this.mouseUpEvent, this);
-		this.svg.on('dblclick', this.dblClickEvent, this);
+		if (!this.svg) {
+			this.svg = new SVG.G();
 
-		this.svg.draggable({snapToGrid: 8});
-		this.svg.on('dragstart', this.dragstart, this);
-		this.svg.on('dragend', this.dragend, this);
+			this.svg.on('mousedown', this.mouseDownEvent, this);
+			this.svg.on('mouseup', this.mouseUpEvent, this);
+			this.svg.on('dblclick', this.dblClickEvent, this);
+	
+			this.svg.draggable({snapToGrid: 8});
+			this.svg.on('dragstart', this.dragstart, this);
+			this.svg.on('dragend', this.dragend, this);
+		} else
+			this.svg.clear();
 
-		this.drawBody(wpx, hpx);
-		this.drawPins(wpx, hpx);
+		this.drawBody(this.wpx, this.hpx);
+		this.drawPins(this.wpx, this.hpx);
 
 		var symbolSVG = new SVG.G();
 		this.drawSymbol(symbolSVG);
 
-		symbolSVG.move((wpx / 2) - (symbolSVG.width() / 2), (hpx / 2) - (symbolSVG.height() / 2));
+		symbolSVG.move((this.wpx / 2) - (symbolSVG.width() / 2), (this.hpx / 2) - (symbolSVG.height() / 2));
 		this.svg.add(symbolSVG);
 	}
 
@@ -149,18 +182,24 @@ class Component {
 		for (var i = this.inputs.length - 1; i >= 0; i--) {
 			var item = this.inputs[i];
 
-			if (item.isBidirectional)
-				item.svg = this.svg.rect(8, 8);
-			else
-				item.svg = this.svg.circle(8);
+			if (!item.svg) {
+				if (item.isBidirectional)
+					item.svg = this.svg.rect(8, 8);
+				else
+					item.svg = this.svg.circle(8);
+				
+				item.svg
+					.on('click', this.pinClickedEvent, item)
+					.on('contextmenu', this.pinRemoveWires, item);
+			} else
+				this.svg.add(item.svg);
 
 			item.svg.move(-4, (inStepSize * i) + (inStepSize / 2) - 4)
 				.addClass('pin')
 				.fill('#ffcc00')
 				.stroke({ color: '#000', width: 1 })
-				.data('pin_id', item.ID)
-				.on('click', this.pinClickedEvent, item)
-				.on('contextmenu', this.pinRemoveWires, item);
+				.data('pin_id', item.ID);
+
 			this.svg
 				.text(item.name)
 				.font({
@@ -175,18 +214,24 @@ class Component {
 		for (var i = this.outputs.length - 1; i >= 0; i--) {
 			var item = this.outputs[i];
 
-			if (item.isBidirectional)
-				item.svg = this.svg.rect(8, 8);
-			else
-				item.svg = this.svg.circle(8);
+			if (!item.svg) {
+				if (item.isBidirectional)
+					item.svg = this.svg.rect(8, 8);
+				else
+					item.svg = this.svg.circle(8);
+				
+				item.svg
+					.on('click', this.pinClickedEvent, item)
+					.on('contextmenu', this.pinRemoveWires, item);
+			} else
+				this.svg.add(item.svg);
 
 			item.svg.move(wpx - 4, (outStepSize * i) + (outStepSize / 2) - 4)
 				.fill('#fff')
 				.addClass('pin')
 				.stroke({ color: '#000', width: 1 })
-				.data('pin_id', item.ID)
-				.on('click', this.pinClickedEvent, item)
-				.on('contextmenu', this.pinRemoveWires, item);
+				.data('pin_id', item.ID);
+				
 			this.svg
 				.text(item.name)
 				.font({
@@ -285,19 +330,21 @@ class Component {
 	marshallingInputs() {
 		for (var idx = 0; idx < this.inputs.length; idx++) {
 			var pinName = this.inputs[idx].name;
-			if (pinName.length > 0)
-				if (this[pinName] !== undefined)
-					this[pinName] = this.inputs[idx].value;
+			if (pinName)
+				if (pinName.length > 0)
+					if (this[pinName] !== undefined)
+						this[pinName] = this.inputs[idx].value;
 		}
 	}
 
 	marshallingOutputs() {
 		for (var idx = 0; idx < this.outputs.length; idx++) {
 			var pinName = this.outputs[idx].name;
-			if (pinName.length > 0)
-				if (this[pinName] !== undefined)
-					if (this[pinName] !== null)
-						this.outputs[idx].value = this[pinName];
+			if (pinName)
+				if (pinName.length > 0)
+					if (this[pinName] !== undefined)
+						if (this[pinName] !== null)
+							this.outputs[idx].value = this[pinName];
 		}
 	}
 
@@ -1234,7 +1281,29 @@ function getAloneComponentsFromSource(source) {
 	return aloneComponents;
 }
 
+function htmlSimStep() {
+	simStep();
+	for (var idx = 0; idx < components.length; idx++) {
+		var componentItem = components[idx];
 
+		if (componentItem instanceof INPUT) {
+		} else if (componentItem instanceof OUTPUT) {
+		} else {
+			componentItem.refresh();
+		}
+	}
+}
+
+function htmlSimStepDelayed() {
+	setTimeout(htmlSimStep, 10);
+}
+
+$(document).on('keydown', htmlSimStepDelayed);
+$(document).on('keyup', htmlSimStepDelayed);
+$(document).on('mousedown', htmlSimStepDelayed);
+$(document).on('mouseup', htmlSimStepDelayed);
+
+/*
 var simInterval = 50;
 var simEvent = function() {
 	simStep();
@@ -1253,6 +1322,7 @@ setInterval(function() {
 		}
 	}
 }, 250);
+*/
 
 // Function to read data from a file
 var openFile = function(event) {
@@ -1356,8 +1426,9 @@ function download(data, filename, type) {
 $('#modalComponentOptions').on('shown.bs.modal', function () {
 	$('#modalComponentOptions input').first().trigger('focus')
 })
-
+/*
 // Ask before leaving the page
 $(window).bind('beforeunload', function(){
   return 'Are you sure you want to leave?';
 });
+*/

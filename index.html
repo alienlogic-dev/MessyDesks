@@ -58,6 +58,8 @@
 
       .workbox {
         margin-left: 150px;
+        height: 50vh;
+        overflow: scroll;
       }
       .workbox .CodeMirror {
         margin-top: 50px;
@@ -70,6 +72,11 @@
         right: 0;
         bottom: 0;
         z-index: 100;
+      }
+
+      .htmlbox {
+        margin-left: 150px;
+        height: 50vh;
       }
 
       .dropdown {
@@ -201,10 +208,16 @@
       </div>
       
       <div id="drawing" class="wireboard"></div>
+
       <textarea id="siliconCodeArea" class="hide">function test() { var a = 'abc'; }</textarea>
       
       <img src="assets/icons/png/icon_512.png" class="icon mr-2 mb-2" height="32px" />
     </div>
+
+    <div class="htmlbox">
+      <div id="testHTML" class="form-control"></div>
+    </div>
+
 
     <div id="modalComponentOptions" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog">
       <div class="modal-dialog modal-lg" role="document">
