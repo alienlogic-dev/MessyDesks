@@ -16,7 +16,7 @@ class Pin {
 var cycIdx = 0;
 
 class Component {
-	constructor(inputsList, outputsList, biList = 0, withGUI = false) {
+	constructor(config, inputsList, outputsList, biList = 0, withGUI = false) {
 		this.id = '';
 		this.isSelected = false;
 
@@ -43,11 +43,8 @@ class Component {
 
 		this.canRepeat = true;
 
-		this.init();
-		this.construct(inputsList, outputsList, biList);
+		this.construct(config, inputsList, outputsList, biList);
 	}
-
-	init() {}
 
 	construct(config = null, inputsList, outputsList, biList = 0) {
 		// Apply config
@@ -110,9 +107,15 @@ class Component {
 			}
 		}
 
+		// Init the component
+		this.init();
+
 		// Create main svg
 		this.createSVG();
 	}
+
+	/* Initialize component essentials */
+	init() {}
 
 	createSVG() {
 		var minW = this.calculateMinWidth();
@@ -139,11 +142,11 @@ class Component {
 		this.drawBody(this.wpx, this.hpx);
 		this.drawPins(this.wpx, this.hpx);
 
-		var symbolSVG = new SVG.G();
-		this.drawSymbol(symbolSVG);
+		this.symbolSVG = new SVG.G();
+		this.drawSymbol(this.symbolSVG);
 
-		symbolSVG.move((this.wpx / 2) - (symbolSVG.width() / 2), (this.hpx / 2) - (symbolSVG.height() / 2));
-		this.svg.add(symbolSVG);
+		this.symbolSVG.move((this.wpx / 2) - (this.symbolSVG.width() / 2), (this.hpx / 2) - (this.symbolSVG.height() / 2));
+		this.svg.add(this.symbolSVG);
 	}
 
 	drawBody(wpx, hpx) {
@@ -247,6 +250,12 @@ class Component {
 
 	drawSymbol(svg) { }
 
+	updateSymbol() {
+		this.symbolSVG.clear();
+		this.drawSymbol(this.symbolSVG);
+		this.symbolSVG.move((this.wpx / 2) - (this.symbolSVG.width() / 2), (this.hpx / 2) - (this.symbolSVG.height() / 2));
+	}
+
 	/* Configuration modal */
 	openConfig(configModalContent) {
 		if (configModalContent) {
@@ -274,7 +283,8 @@ class Component {
 			$('#modalComponentOptions').modal('show');
 		}
 	}
-	applyConfig() { }
+
+	onConfigChanged(config) { return false; }
 
 	createConfigModal() {
 		if (this.config == null) return null;
@@ -366,9 +376,6 @@ class Component {
 		this.svgBody.stroke({ color: '#666666', width: 2 });
 		this.isSelected = false;
 	}
-
-	/* Config */
-	getConfig() { return null; }
 
 	/* Runtime */	
 	marshallingInputs(index) {
@@ -709,7 +716,7 @@ function sourceFromWireboard() {
 		var newComponent = {
 			id: componentItem.id,
 			name: componentItem.constructor.name,
-			config: componentItem.getConfig(),
+			config: componentItem.config,
 			x: componentItem.svg.x(),
 			y: componentItem.svg.y()
 		};

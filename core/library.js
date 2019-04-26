@@ -49,11 +49,7 @@ class INPUT extends Component {
   }
 
   onConfigChanged(config) {
-    var value = $('#aliasValue').val();
-    if ((value != null) && (value != "")) {
-      this.alias = value;
-      this.aliasSVG.text(this.alias);
-    }
+    this.aliasSVG.text(this.config.alias);
     return true;
   }
 
@@ -77,27 +73,16 @@ class INPUT extends Component {
 
 class OUTPUT extends Component {
   constructor(config = null) {
+    if (!config)
+      config = {
+        alias: ''
+      };
+    
     super(config, 1, 0);
-
-    this.alias = '';
-  	if (config)
-  		this.alias = config.alias;
-  }
-
-  createConfigModal() {
-    return `
-            <div class="form-group">
-              <input id="aliasValue" type="text" class="form-control" placeholder="Alias" value="${this.alias}">
-            </div>
-            `;
   }
 
   onConfigChanged(config) {
-    var value = $('#aliasValue').val();
-    if ((value != null) && (value != "")) {
-      this.alias = value;
-      this.aliasSVG.text(this.alias);
-    }
+    this.aliasSVG.text(this.config.alias);
     return true;
   }
 
@@ -116,12 +101,6 @@ class OUTPUT extends Component {
 						, anchor:   'middle'
 						})
 			.move(wpx / 2, -15);
-  }
-
-  getConfig() {
-  	return {
-  		alias: this.alias
-  	};
   }
 }
 
@@ -192,44 +171,27 @@ class TOGGLE extends Component {
 
 class CLOCK extends Component {
   constructor(config = null) {
+    if (!config)
+      config = {
+        interval: 10
+      };
+    
     super(config, 0, 1);
-
-    this.interval = 10;
-    if (config)
-      this.interval = +config.interval;
 
     this.lastTimestamp = Math.floor(Date.now());
   }
 
   execute(inputs, outputs) {
     var timestamp = Math.floor(Date.now());
-    if ((timestamp - this.lastTimestamp) > this.interval) {
+    if ((timestamp - this.lastTimestamp) > +this.config.interval) {
       this.outputs[0].value = !this.outputs[0].value;
       this.lastTimestamp = timestamp;
     }
   }
 
-  createConfigModal() {
-    return `
-            <div class="form-group">
-              <input id="constValue" ng-model="yourName" type="number" class="form-control" placeholder="Value" value="${this.interval}">
-            </div>
-            `;
-  }
-
   onConfigChanged(config) {
-    var value = $('#constValue').val();
-    if ((value != null) && (value != "")) {
-      this.interval = +value;
-      this.svgName.text(this.interval.toString());
-    }
+    this.svgName.text(this.config.interval.toString());
     return true;
-  }
-
-  getConfig() {
-    return {
-      interval: this.interval
-    };
   }
 }
 
@@ -415,8 +377,15 @@ class BCD_7Seg extends Component {
 
 class Disp extends Component {
   constructor(config = null) {
-    super(config, [''], 0);
+    if (!config)
+      config = {
+        digits: 12
+      };
     
+    super(config, [''], 0);
+  }
+
+  init() {
     this.ledSVGs = [];
 
     this.segA = [];
@@ -431,19 +400,22 @@ class Disp extends Component {
     this.segMap = [0x3F, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x67, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71];
     this.value = null;
 
-    this.count = 12;
-
     this.minHeight = 8;
-    this.minWidth = Math.round((31.8 * this.count) / 8) + 2;
+    this.minWidth = Math.round((31.8 * this.config.digits) / 8) + 2;
+  }
+
+  onConfigChanged(config) {
+    this.construct(config, 1, 0);
+    return true;
   }
 
   drawSymbol(svg) {
-    for (var idx = 0; idx < this.count; idx++) {
+    for (var idx = 0; idx < this.config.digits; idx++) {
       var ret = this.draw7Seg(idx);
       svg.add(ret);
     }
 
-    svg.size(31.8 * this.count, 50);
+    svg.size(31.8 * this.config.digits, 50);
   }
 
   draw7Seg(idx) {
@@ -492,9 +464,9 @@ class Disp extends Component {
   }
 
   draw() {
-    for (var idx = 0; idx < this.count; idx++) {
+    for (var idx = 0; idx < this.config.digits; idx++) {
       var digit = Math.floor((this.value / Math.pow(10, idx)) % 10);
-      this.fill7Seg(this.count - idx - 1, digit);
+      this.fill7Seg(this.config.digits - idx - 1, digit);
     }
   }
 }
