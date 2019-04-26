@@ -975,11 +975,17 @@ function compileSource(componentName, source) {
 
 				var outCode = `this.${aliases[pinO.component]}.getOut(${pinO.pin})`;
 				if (componentO.name == 'INPUT')
-					outCode = `inputs[${aliases[componentO.id]}]`;
+					if (componentO.config.alias.length > 0)
+						outCode = `inputs.${componentO.config.alias}`;
+					else
+						outCode = `inputs[${aliases[componentO.id]}]`;
 
 				var inCode = `this.${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
 				if (componentI.name == 'OUTPUT')
-					inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
+					if (componentI.config.alias.length > 0)
+						inCode = `outputs.${componentI.config.alias} = ${outCode}`;
+					else
+						inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
 
 				compiledCode.push( '\t\t' + inCode + ';' );		
 			}

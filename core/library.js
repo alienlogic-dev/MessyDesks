@@ -363,13 +363,10 @@ class BCD_7Seg extends Component {
 }
 
 class Disp extends Component {
-  constructor(config = null) {
-    if (!config)
-      config = {
-        digits: 12
-      };
-    
-    super(config, [''], 0);
+  defaultConfig() {
+    return {
+      digits: 12
+    };
   }
 
   init() {
@@ -389,11 +386,8 @@ class Disp extends Component {
 
     this.minHeight = 8;
     this.minWidth = Math.round((31.8 * this.config.digits) / 8) + 2;
-  }
 
-  onConfigChanged(config) {
-    this.construct(config, 1, 0);
-    return true;
+    super.create(1, 0);
   }
 
   drawSymbol(svg) {
