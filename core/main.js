@@ -16,11 +16,9 @@ class Pin {
 var cycIdx = 0;
 
 class Component {
-	constructor(config, inputsList, outputsList, biList = 0, withGUI = false) {
+	constructor(config = null) {
 		this.id = '';
 		this.isSelected = false;
-
-		this.config = null;
 
 		this.html = '';
 
@@ -39,17 +37,25 @@ class Component {
 		this.inputs = [];
 		this.outputs = [];
 
-		this.withGUI = withGUI;
-
 		this.canRepeat = true;
 
-		this.construct(config, inputsList, outputsList, biList);
+		// Configurations
+		this.config = config;
+		if (!this.config)
+			this.config = this.defaultConfig();
+		
+		// Init the component
+		this.init();
 	}
 
-	construct(config = null, inputsList, outputsList, biList = 0) {
-		// Apply config
-		this.config = config;
+	/* Initialize component essentials */
+	init() {}
 
+	/* Create default config */
+	defaultConfig() { return null; }
+
+	/* Create component */
+	create(inputsList, outputsList, biList = 0) {
 		// Create pins
 		var inputIdx = this.inputs.length;
 		var outputIdx = this.outputs.length;
@@ -107,15 +113,9 @@ class Component {
 			}
 		}
 
-		// Init the component
-		this.init();
-
 		// Create main svg
 		this.createSVG();
 	}
-
-	/* Initialize component essentials */
-	init() {}
 
 	createSVG() {
 		var minW = this.calculateMinWidth();
@@ -257,35 +257,6 @@ class Component {
 	}
 
 	/* Configuration modal */
-	openConfig(configModalContent) {
-		if (configModalContent) {
-			$('#modalComponentOptions .modal-body').html(configModalContent);
-			$('#modalComponentOptions').off('click', '.btnComponentOptionsApply');
-			$('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
-					var data = event.data;
-
-					var uConfig = {};
-					var configInputs = $('[id^=ci_]').toArray();
-					for (var idx in configInputs) {
-						var configInputElement = configInputs[idx];
-						var configItemName = $(configInputElement).attr('id').replace('ci_','');
-						var configItemValue = $(configInputElement).val();
-
-						uConfig[configItemName] = configItemValue;
-					}
-
-					var ret = data.onConfigChanged(uConfig);
-					if (ret) {
-						data.config = uConfig;
-						$('#modalComponentOptions').modal('hide');
-					}
-			});
-			$('#modalComponentOptions').modal('show');
-		}
-	}
-
-	onConfigChanged(config) { return false; }
-
 	createConfigModal() {
 		if (this.config == null) return null;
 
@@ -315,6 +286,38 @@ class Component {
 
 		return formDiv;
 	}
+
+	openConfig(configModalContent) {
+		if (configModalContent) {
+			$('#modalComponentOptions .modal-body').html(configModalContent);
+			$('#modalComponentOptions').off('click', '.btnComponentOptionsApply');
+			$('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
+					var data = event.data;
+
+					var userConfig = {};
+					var configInputs = $('[id^=ci_]').toArray();
+					for (var idx in configInputs) {
+						var configInputElement = configInputs[idx];
+						var configItemName = $(configInputElement).attr('id').replace('ci_','');
+						var configItemValue = $(configInputElement).val();
+
+						userConfig[configItemName] = configItemValue;
+					}
+
+					var ret = data.onVerifyConfig(userConfig);
+					if (ret) {
+						data.config = userConfig;
+						data.init();
+						data.onConfigChanged();
+						$('#modalComponentOptions').modal('hide');
+					}
+			});
+			$('#modalComponentOptions').modal('show');
+		}
+	}
+
+	onVerifyConfig(config) { return true; }
+	onConfigChanged() { return false; }
 
 	/* Mouse */
 	pinRemoveWires(e) {
@@ -905,8 +908,7 @@ function compileSource(componentName, source) {
 
 	compiledCode.push(`class ${componentName} extends Component {`);
 
-	// Create constructor
-	compiledCode.push('\tconstructor() {');
+	compiledCode.push('\tinit() {');
 
 	// Count inputs and outputs
 	var inputPinCount = 0;
@@ -924,13 +926,10 @@ function compileSource(componentName, source) {
 			outputPinCount++;
 		}
 	}
-	compiledCode.push(`\t\tsuper(${JSON.stringify(inputAliases)}, ${JSON.stringify(outputAliases)});`);
 
-	compiledCode.push('\t}');
+	compiledCode.push(`\t\tsuper.create(${JSON.stringify(inputAliases)}, ${JSON.stringify(outputAliases)});`);
 
 	// Create instances
-	compiledCode.push('\tinit() {');
-
 	var aliases = {};
 
 	var inputPinIndex = 0;
@@ -953,7 +952,7 @@ function compileSource(componentName, source) {
 	compiledCode.push('\t}');
 
 	// Connect wires
-	compiledCode.push('\texecute() {');
+	compiledCode.push('\texecute(inputs, outputs) {');
 
 	var order = generateExecutionOrderFromSource(source);
 
@@ -976,11 +975,11 @@ function compileSource(componentName, source) {
 
 				var outCode = `this.${aliases[pinO.component]}.getOut(${pinO.pin})`;
 				if (componentO.name == 'INPUT')
-					outCode = `this.inputs[${aliases[componentO.id]}].value`;
+					outCode = `inputs[${aliases[componentO.id]}]`;
 
 				var inCode = `this.${aliases[pinI.component]}.setIn(${pinI.pin}, ${outCode})`;
 				if (componentI.name == 'OUTPUT')
-					inCode = `this.outputs[${aliases[componentI.id]}].value = ${outCode}`;
+					inCode = `outputs[${aliases[componentI.id]}] = ${outCode}`;
 
 				compiledCode.push( '\t\t' + inCode + ';' );		
 			}

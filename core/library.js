@@ -1,19 +1,14 @@
 class CONST extends Component {
-  constructor(config = null) {
-    if (!config)
-      config = {
-        value: '',
-        name: 0
-      };
-
-    super(config, 0, 1);
-
-    this.minHeight = 3;
+  defaultConfig() {
+    return {
+      value : ''
+    };
   }
 
-  onConfigChanged(config) {
-    this.valueSVG.text(config.value.toString());
-    return true;
+  init() {
+    this.minHeight = 3;
+    this.minWidth = this.config.value.length;
+    super.create(0, 1);
   }
 
   drawBody(wpx, hpx) {
@@ -39,18 +34,14 @@ class CONST extends Component {
 }
 
 class INPUT extends Component {
-  constructor(config = null) {
-    if (!config)
-      config = {
-        alias: ''
-      };
-    
-    super(config, 0, 1);
+  defaultConfig() {
+    return {
+      alias: ''
+    };
   }
 
-  onConfigChanged(config) {
-    this.aliasSVG.text(this.config.alias);
-    return true;
+  init() {
+    super.create(0, 1);
   }
 
   drawBody(wpx, hpx) {
@@ -72,18 +63,14 @@ class INPUT extends Component {
 }
 
 class OUTPUT extends Component {
-  constructor(config = null) {
-    if (!config)
-      config = {
-        alias: ''
-      };
-    
-    super(config, 1, 0);
+  defaultConfig() {
+    return {
+      alias: ''
+    };
   }
 
-  onConfigChanged(config) {
-    this.aliasSVG.text(this.config.alias);
-    return true;
+  init() {
+    super.create(1, 0);
   }
 
   drawBody(wpx, hpx) {
@@ -107,13 +94,13 @@ class OUTPUT extends Component {
 
 
 class BUTTON extends Component {
-  constructor(config = null) {
-    super(config, 0, 1);
-
+  init() {
     this.minWidth = 5;
     this.minHeight = 5;
 
     this.btnSVG = null;
+
+    super.create(0, 1);
 
     this.outputs[0].value = 0;
   }
@@ -139,13 +126,13 @@ class BUTTON extends Component {
 }
 
 class TOGGLE extends Component {
-  constructor(config = null) {
-    super(config, 0, 1);
-
+  init() {
     this.minWidth = 5;
     this.minHeight = 5;
 
     this.btnSVG = null;
+
+    super.create(0, 1);
 
     this.outputs[0].value = 0;
   }
@@ -229,15 +216,15 @@ class TRI_Component extends Component {
 }
 
 class LED extends Component {
-  constructor(config = null) {
-    super(config, 1, 0);
-
+  init() {
     this.minWidth = 5;
     this.minHeight = 5;
 
     this.ledSVG = null;
 
     this.value = null;
+
+    super.create(1, 0);
   }
 
   drawSymbol(svg) {
@@ -485,13 +472,15 @@ class NOT_Component extends Component {
 }
 
 class AND_Component extends Component {
-  constructor(config = null) {
-    var inputsCount = 2;
-    if (config)
-      inputsCount = config.inputsCount;
+  init() {
+    if (this.config.inputsCount < 2) this.config.inputsCount = 2;
+    super.create(+this.config.inputsCount, 1);
+  }
 
-    if (inputsCount < 2) inputsCount = 2;
-    super(config, inputsCount, 1);
+  defaultConfig() {
+    return {
+      inputsCount: 2
+    };
   }
 
   drawSymbol(svg) {
@@ -506,15 +495,6 @@ class AND_Component extends Component {
     for (var idx = 1; idx < this.inputs.length; idx++)
       res = res && (Boolean(+this.inputs[idx].value) ? true : false);
     this.outputs[0].value = res ? 1 : 0; 
-  }
-
-  getConfig() {
-    return {
-      inputsCount: this.inputs.length
-    };
-  }
-
-  openConfig(e) {
   }
 }
 
@@ -540,15 +520,6 @@ class NAND_Component extends Component {
     for (var idx = 1; idx < this.inputs.length; idx++)
       res = res && (Boolean(+this.inputs[idx].value) ? true : false);
     this.outputs[0].value = !res ? 1 : 0; 
-  }
-
-  getConfig() {
-    return {
-      inputsCount: this.inputs.length
-    };
-  }
-
-  openConfig(e) {
   }
 }
 
@@ -982,15 +953,14 @@ class PIN_OUT extends Component {
 
 class ToObject extends Component {
   constructor(config = null) {
+    if (!config)
+      config = {
+        fields: ''
+      };
+    
     super(config, 0, 1);
 
     this.minWidth = 5;
-
-    this.fields = '';
-    if (config) {
-      this.fields = config.fields;
-      this.construct(this.fields.split(','), 1);
-    }
   }
 
   execute(inputs, outputs) {
@@ -1000,26 +970,8 @@ class ToObject extends Component {
     outputs[0] = ret;
   }
 
-  getConfig() {
-    return {
-      fields: this.fields
-    };
-  }
-
-  createConfigModal() {
-    return `
-            <div class="form-group">
-              <input id="ToObjFields" type="text" class="form-control" placeholder="Fields" value="${this.fields}">
-            </div>
-            `;
-  }
-
   onConfigChanged(config) {
-    var fields = $('#ToObjFields').val();
-    if ((fields != null) && (fields != "")) {
-      this.fields = fields;
-      this.construct(fields.split(','), 1);
-    }
+    this.construct(config, config.fields.split(','), 1);
     return true;
   }
 }
