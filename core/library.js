@@ -1,28 +1,18 @@
 class CONST extends Component {
   constructor(config = null) {
-    super(0, 1);
+    if (!config)
+      config = {
+        value: '',
+        name: 0
+      };
+
+    super(config, 0, 1);
 
     this.minHeight = 3;
-
-    this.value = '';
-    if (config)
-      this.value = config.value;
   }
 
-  createConfigModal() {
-    return `
-            <div class="form-group">
-              <input id="constValue" type="text" class="form-control" placeholder="Value" value="${this.value}">
-            </div>
-            `;
-  }
-
-  applyConfig(e) {
-    var value = $('#constValue').val();
-    if ((value != null) && (value != "")) {
-      this.value = value;
-      this.valueSVG.text(this.value.toString());
-    }
+  onConfigChanged(config) {
+    this.valueSVG.text(config.value.toString());
     return true;
   }
 
@@ -34,7 +24,7 @@ class CONST extends Component {
       .stroke({ color: '#666666', width: 2 });
 
     this.valueSVG = this.svg
-      .text(this.value ? this.value.toString() : '')
+      .text(this.config.value.toString())
       .font({
               family:   'Menlo'
             , size:     12
@@ -44,34 +34,21 @@ class CONST extends Component {
   }
 
   execute(inputs, outputs) {
-    outputs[0] = this.value;
-  }
-
-  getConfig() {
-    return {
-      value: this.value
-    };
+    outputs[0] = this.config.value;
   }
 }
 
 class INPUT extends Component {
   constructor(config = null) {
-    super(0, 1);
-
-    this.alias = '';
-  	if (config)
-  		this.alias = config.alias;
+    if (!config)
+      config = {
+        alias: ''
+      };
+    
+    super(config, 0, 1);
   }
 
-  createConfigModal() {
-    return `
-            <div class="form-group">
-              <input id="aliasValue" type="text" class="form-control" placeholder="Alias" value="${this.alias}">
-            </div>
-            `;
-  }
-
-  applyConfig(e) {
+  onConfigChanged(config) {
     var value = $('#aliasValue').val();
     if ((value != null) && (value != "")) {
       this.alias = value;
@@ -88,7 +65,7 @@ class INPUT extends Component {
       .stroke({ color: '#666666', width: 2 });
       
 		this.aliasSVG = this.svg
-			.text(this.alias ? this.alias.toString() : '')
+			.text(this.config.alias.toString())
 			.font({
 						  family:   'Menlo'
 						, size:     12
@@ -96,17 +73,11 @@ class INPUT extends Component {
 						})
 			.move(wpx / 2, -15);
   }
-
-  getConfig() {
-  	return {
-  		alias: this.alias
-  	};
-  }
 }
 
 class OUTPUT extends Component {
   constructor(config = null) {
-    super(1, 0);
+    super(config, 1, 0);
 
     this.alias = '';
   	if (config)
@@ -121,7 +92,7 @@ class OUTPUT extends Component {
             `;
   }
 
-  applyConfig(e) {
+  onConfigChanged(config) {
     var value = $('#aliasValue').val();
     if ((value != null) && (value != "")) {
       this.alias = value;
@@ -158,7 +129,7 @@ class OUTPUT extends Component {
 
 class BUTTON extends Component {
   constructor(config = null) {
-    super(0, 1);
+    super(config, 0, 1);
 
     this.minWidth = 5;
     this.minHeight = 5;
@@ -190,7 +161,7 @@ class BUTTON extends Component {
 
 class TOGGLE extends Component {
   constructor(config = null) {
-    super(0, 1);
+    super(config, 0, 1);
 
     this.minWidth = 5;
     this.minHeight = 5;
@@ -221,7 +192,7 @@ class TOGGLE extends Component {
 
 class CLOCK extends Component {
   constructor(config = null) {
-    super(0, 1);
+    super(config, 0, 1);
 
     this.interval = 10;
     if (config)
@@ -246,7 +217,7 @@ class CLOCK extends Component {
             `;
   }
 
-  applyConfig(e) {
+  onConfigChanged(config) {
     var value = $('#constValue').val();
     if ((value != null) && (value != "")) {
       this.interval = +value;
@@ -264,7 +235,7 @@ class CLOCK extends Component {
 
 class R_TRIG extends Component {
   constructor(config = null) {
-    super(1, 1);
+    super(config, 1, 1);
 
     this.lastValue = 0;
   }
@@ -277,7 +248,7 @@ class R_TRIG extends Component {
 
 class TRI_Component extends Component {
   constructor() {
-    super(
+    super(config, 
       ['I', 'En'],
       [],
       ['Q']
@@ -297,7 +268,7 @@ class TRI_Component extends Component {
 
 class LED extends Component {
   constructor(config = null) {
-    super(1, 0);
+    super(config, 1, 0);
 
     this.minWidth = 5;
     this.minHeight = 5;
@@ -329,7 +300,7 @@ class LED extends Component {
 
 class Disp_7Seg extends Component {
   constructor(config = null) {
-    super(['A', 'B', 'C', 'D', 'E', 'F', 'G', '.'], 0);
+    super(config, ['A', 'B', 'C', 'D', 'E', 'F', 'G', '.'], 0);
 
     this.minWidth = 12;
     
@@ -385,7 +356,7 @@ class Disp_7Seg extends Component {
 
 class BCD_7Seg extends Component {
   constructor(config = null) {
-    super(['', '', '', ''], 0);
+    super(config, ['', '', '', ''], 0);
 
     this.minWidth = 6;
     
@@ -444,7 +415,7 @@ class BCD_7Seg extends Component {
 
 class Disp extends Component {
   constructor(config = null) {
-    super([''], 0);
+    super(config, [''], 0);
     
     this.ledSVGs = [];
 
@@ -530,7 +501,7 @@ class Disp extends Component {
 
 class NOT_Component extends Component {
   constructor(config = null) {
-    super(1, 1);
+    super(config, 1, 1);
   }
 
   drawSymbol(svg) {
@@ -548,7 +519,7 @@ class AND_Component extends Component {
       inputsCount = config.inputsCount;
 
     if (inputsCount < 2) inputsCount = 2;
-    super(inputsCount, 1);
+    super(config, inputsCount, 1);
   }
 
   drawSymbol(svg) {
@@ -582,7 +553,7 @@ class NAND_Component extends Component {
       inputsCount = config.inputsCount;
 
     if (inputsCount < 2) inputsCount = 2;
-    super(inputsCount, 1);
+    super(config, inputsCount, 1);
   }
 
   drawSymbol(svg) {
@@ -616,7 +587,7 @@ class OR_Component extends Component {
       inputsCount = config.inputsCount;
 
     if (inputsCount < 2) inputsCount = 2;
-    super(inputsCount, 1);
+    super(config, inputsCount, 1);
   }
 
   drawSymbol(svg) {
@@ -650,7 +621,7 @@ class NOR_Component extends Component {
   		inputsCount = config.inputsCount;
 
   	if (inputsCount < 2) inputsCount = 2;
-    super(inputsCount, 1);
+    super(config, inputsCount, 1);
   }
 
   drawSymbol(svg) {
@@ -684,7 +655,7 @@ class XOR_Component extends Component {
       inputsCount = config.inputsCount;
 
     if (inputsCount < 2) inputsCount = 2;
-    super(inputsCount, 1);
+    super(config, inputsCount, 1);
   }
 
   drawSymbol(svg) {
@@ -718,7 +689,7 @@ class XNOR_Component extends Component {
       inputsCount = config.inputsCount;
 
     if (inputsCount < 2) inputsCount = 2;
-    super(inputsCount, 1);
+    super(config, inputsCount, 1);
   }
 
   drawSymbol(svg) {
@@ -747,7 +718,7 @@ class XNOR_Component extends Component {
 
 class SR_Component extends Component {
 	constructor() {
-    super(['S', 'R'], ['Q']);
+    super(config, ['S', 'R'], ['Q']);
   }
 
   init() {
@@ -769,7 +740,7 @@ class SR_Component extends Component {
 
 class RAM_Component extends Component {
 	constructor() {
-    super(
+    super(config, 
     	['Addr', 'CS', 'OE', 'RW'],
     	[],
     	['Data']
@@ -810,7 +781,7 @@ class RAM_Component extends Component {
 
 class CPU6502_Component extends Component {
 	constructor() {
-    super(
+    super(config, 
     	['RST', 'CLK'],
     	['Addr', 'RW'],
     	['Data']
@@ -869,7 +840,7 @@ class ToBus_Component extends Component {
   		size = config.size;
 
   	if (size < 2) size = 2;
-    super(size, 1);
+    super(config, size, 1);
 
     for (var idx = 0; idx < size; idx++)
     	this.inputs[idx].name = 'D' + idx;
@@ -892,7 +863,7 @@ class FromBus_Component extends Component {
   		size = config.size;
 
   	if (size < 2) size = 2;
-    super(1, size);
+    super(config, 1, size);
 
     this.inputs[0].name = 'Bus';
 
@@ -916,7 +887,7 @@ class BIN2DEC_Component extends Component {
       size = config.size;
 
     if (size < 2) size = 2;
-    super(size, 1);
+    super(config, size, 1);
 
     for (var idx = 0; idx < size; idx++)
       this.inputs[idx].name = 'D' + idx;
@@ -942,7 +913,7 @@ class DEC2BIN_Component extends Component {
       size = config.size;
 
     if (size < 2) size = 2;
-    super(1, size);
+    super(config, 1, size);
 
     this.inputs[0].name = 'Bus';
 
@@ -959,7 +930,7 @@ class DEC2BIN_Component extends Component {
 
 class PIN_IN extends Component {
   constructor(config = null) {
-    super(0, 1);
+    super(config, 0, 1);
 
     this.pinNumber = 0;
     if (config)
@@ -979,7 +950,7 @@ class PIN_IN extends Component {
             `;
   }
 
-  applyConfig(e) {
+  onConfigChanged(config) {
     var value = $('#constValue').val();
     if ((value != null) && (value != "")) {
       this.pinNumber = +value;
@@ -997,7 +968,7 @@ class PIN_IN extends Component {
 
 class PIN_OUT extends Component {
   constructor(config = null) {
-    super(1, 0);
+    super(config, 1, 0);
 
     this.group = 'Focus';
 
@@ -1019,7 +990,7 @@ class PIN_OUT extends Component {
             `;
   }
 
-  applyConfig(e) {
+  onConfigChanged(config) {
     var value = $('#constValue').val();
     if ((value != null) && (value != "")) {
       this.pinNumber = +value;
@@ -1039,7 +1010,7 @@ class PIN_OUT extends Component {
 
 class ToObject extends Component {
   constructor(config = null) {
-    super(0, 1);
+    super(config, 0, 1);
 
     this.minWidth = 5;
 
@@ -1071,7 +1042,7 @@ class ToObject extends Component {
             `;
   }
 
-  applyConfig(e) {
+  onConfigChanged(config) {
     var fields = $('#ToObjFields').val();
     if ((fields != null) && (fields != "")) {
       this.fields = fields;
@@ -1084,7 +1055,7 @@ class ToObject extends Component {
 
 class FromObject extends Component {
   constructor(config = null) {
-    super(1, 0);
+    super(config, 1, 0);
 
     this.minWidth = 5;
 
@@ -1114,7 +1085,7 @@ class FromObject extends Component {
             `;
   }
 
-  applyConfig(e) {
+  onConfigChanged(config) {
     var fields = $('#ToObjFields').val();
     if ((fields != null) && (fields != "")) {
       this.fields = fields;
@@ -1126,7 +1097,7 @@ class FromObject extends Component {
 
 class Repeat extends Component {
   constructor(config = null) {
-    super([ 'item', 'times' ], 1);
+    super(config, [ 'item', 'times' ], 1);
 
     this.minWidth = 5;
   }
@@ -1144,7 +1115,7 @@ class Repeat extends Component {
 
 class CONSOLE extends Component {
   constructor(config = null) {
-    super(1, 0);
+    super(config, 1, 0);
 
     this.minWidth = 5;
     this.canRepeat = false;
@@ -1159,7 +1130,7 @@ class CONSOLE extends Component {
 /* Math */
 class Add extends Component {
   constructor(config = null) {
-    super(2, 1);
+    super(config, 2, 1);
 
     this.minWidth = 5;
   }
@@ -1176,7 +1147,7 @@ class Add extends Component {
 /* REST */
 class GET_Component extends Component {
   constructor(config = null) {
-    super(1, [ 'data', 'status' ]);
+    super(config, 1, [ 'data', 'status' ]);
 
     this.minHeight = 3;
     this.oldInput = 0;
@@ -1206,7 +1177,7 @@ class GET_Component extends Component {
             `;
   }
 
-  applyConfig(e) {
+  onConfigChanged(config) {
     var value = $('#constValue').val();
     if ((value != null) && (value != "")) {
       this.value = value;

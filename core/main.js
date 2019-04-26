@@ -20,6 +20,8 @@ class Component {
 		this.id = '';
 		this.isSelected = false;
 
+		this.config = null;
+
 		this.html = '';
 
 		this.exeIdx = 0;
@@ -47,7 +49,11 @@ class Component {
 
 	init() {}
 
-	construct(inputsList, outputsList, biList = 0) {
+	construct(config = null, inputsList, outputsList, biList = 0) {
+		// Apply config
+		this.config = config;
+
+		// Create pins
 		var inputIdx = this.inputs.length;
 		var outputIdx = this.outputs.length;
 
@@ -248,15 +254,57 @@ class Component {
 			$('#modalComponentOptions').off('click', '.btnComponentOptionsApply');
 			$('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
 					var data = event.data;
-					var ret = data.applyConfig();
-					if (ret) $('#modalComponentOptions').modal('hide');
+
+					var uConfig = {};
+					var configInputs = $('[id^=ci_]').toArray();
+					for (var idx in configInputs) {
+						var configInputElement = configInputs[idx];
+						var configItemName = $(configInputElement).attr('id').replace('ci_','');
+						var configItemValue = $(configInputElement).val();
+
+						uConfig[configItemName] = configItemValue;
+					}
+
+					var ret = data.onConfigChanged(uConfig);
+					if (ret) {
+						data.config = uConfig;
+						$('#modalComponentOptions').modal('hide');
+					}
 			});
 			$('#modalComponentOptions').modal('show');
 		}
 	}
 	applyConfig() { }
 
-	createConfigModal() { }
+	createConfigModal() {
+		if (this.config == null) return null;
+
+		var formDiv = $('<div class="form-group m-0"></div>');
+
+		var configItems = Object.keys(this.config);
+		for (var idx in configItems) {
+			var configItemName = configItems[idx];
+			var configItemValue = this.config[configItemName];
+
+			var rowDiv = $('<div class="row mb-2"></div>');
+
+			var colNameDiv = $('<div class="col-2 text-right pt-1"><b></b></div>');
+			colNameDiv.find('b').text(configItemName);
+
+			var colValueDiv = $('<div class="col-10"></div>');
+			var valueInput = $('<input type="text" class="form-control"/>');
+			valueInput.attr('id', `ci_${configItemName}`);
+			valueInput.val(configItemValue);
+			colValueDiv.html(valueInput);
+
+			rowDiv.append(colNameDiv);
+			rowDiv.append(colValueDiv);
+
+			formDiv.append(rowDiv);
+		}
+
+		return formDiv;
+	}
 
 	/* Mouse */
 	pinRemoveWires(e) {
