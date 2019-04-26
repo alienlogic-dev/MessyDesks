@@ -45,11 +45,8 @@ class Component {
 			this.config = this.defaultConfig();
 		
 		// Init the component
-		this.init();
+		this.create();
 	}
-
-	/* Initialize component essentials */
-	init() {}
 
 	/* Create default config */
 	defaultConfig() { return null; }
@@ -307,7 +304,7 @@ class Component {
 					var ret = data.onVerifyConfig(userConfig);
 					if (ret) {
 						data.config = userConfig;
-						data.init();
+						data.create();
 						data.onConfigChanged();
 						$('#modalComponentOptions').modal('hide');
 					}
@@ -443,6 +440,7 @@ class Component {
 		return ret;
 	}
 
+	init(inputs, outputs) {}
 	execute(inputs, outputs) {}
 	run() {
 		if (cycIdx > this.exeIdx) {
@@ -453,8 +451,14 @@ class Component {
 				var pinName = this.outputs[idx].name;
 				if (pinName != null) {
 					if (pinName.length == 0) pinName = idx;
-					outputs[pinName] = null;
+					outputs[pinName] = this.outputs[idx].value;
 				}
+			}
+
+			if (this.exeIdx == 0) {
+				var inputs = this.marshallingInputs();
+				this.init(inputs, outputs);
+				this.marshallingOutputs(outputs);
 			}
 
 			if (needRepeat) {
@@ -527,6 +531,12 @@ var componentsSVG = new SVG.G();
 var wiresSVG = new SVG.G();
 
 // Selection
+var mousePosition = {x:0, y:0};
+$(document).bind('mousemove',function(mouseMoveEvent){
+	mousePosition.x = mouseMoveEvent.pageX;
+	mousePosition.y = mouseMoveEvent.pageY;
+});
+
 $(document).keydown(function(e) {
 	if (!($('#modalComponentOptions').data('bs.modal') || {})._isShown) {
 		//console.log(e.keyCode, e.metaKey, e.shiftKey, e.altKey);
@@ -543,6 +553,25 @@ $(document).keydown(function(e) {
 		if ((e.keyCode == 65) && e.metaKey) { // CMD/CTRL + A -> Select all
 			for (var idx in components)
 				components[idx].select();
+			return false;
+		}
+
+		if ((e.keyCode == 68) && e.metaKey) { // CMD/CTRL + D -> Duplicate component
+			var selectedComponent = null;
+			for (var idx = components.length - 1; idx >= 0; idx--) {
+				var componentItem = components[idx];
+
+				if (componentItem.isSelected) {
+					selectedComponent = componentItem;
+					break;
+				}
+			}
+
+			if (selectedComponent) {
+				var ret = addComponent(selectedComponent.constructor.name, selectedComponent.config);
+				ret.svg.move(Math.round((document.querySelector('.workbox').scrollLeft + mousePosition.x - 150) / 8) * 8, Math.round((document.querySelector('.workbox').scrollTop + mousePosition.y) / 8) * 8);
+			}
+
 			return false;
 		}
 
@@ -624,8 +653,8 @@ function initWireboard() {
 
 var components = [];
 var componentsIdx = 0;
-function addComponent(componentName) {
-	var inst = new toolbox[componentName]();
+function addComponent(componentName, config = null) {
+	var inst = new toolbox[componentName](config);
 	inst.id = 'c' + componentsIdx++;
 	inst.pinClicked = pinClicked;
 	inst.createSVG();
@@ -637,6 +666,8 @@ function addComponent(componentName) {
 	updateSimOrderFromWireboard();
 
 	drawSiliconbox();
+
+	return inst;
 }
 function removeComponent(component) {
 	removeWiresFromComponent(component);
@@ -719,10 +750,12 @@ function sourceFromWireboard() {
 		var newComponent = {
 			id: componentItem.id,
 			name: componentItem.constructor.name,
-			config: componentItem.config,
 			x: componentItem.svg.x(),
 			y: componentItem.svg.y()
 		};
+		if (componentItem.config)
+			newComponent.config = componentItem.config;
+		
 		source.components.push(newComponent);
 	}
 
@@ -908,7 +941,15 @@ function compileSource(componentName, source) {
 
 	compiledCode.push(`class ${componentName} extends Component {`);
 
-	compiledCode.push('\tinit() {');
+	// Settings
+	compiledCode.push('\tsettings() {');
+	compiledCode.push('\t\treturn [');
+	compiledCode.push('\t\t\t// [ Description, Variable name, Default value ],');
+	compiledCode.push('\t\t];');
+	compiledCode.push('\t}');
+
+	// Creator
+	compiledCode.push('\tcreate() {');
 
 	// Count inputs and outputs
 	var inputPinCount = 0;
@@ -949,6 +990,10 @@ function compileSource(componentName, source) {
 		aliases[componentItem.id] = instanceName;
 	}
 
+	compiledCode.push('\t}');
+
+	// Initiliazer
+	compiledCode.push('\tinit(inputs, outputs) {');
 	compiledCode.push('\t}');
 
 	// Connect wires
@@ -1031,6 +1076,9 @@ function newEmptyComponent() {
 				components: [],
 				wires: []
 			});
+
+			var inst = new toolbox[name]();
+			startComponentEdit(inst);
 		}
 }
 function applyComponentSilicon(componentName, siliconCode) {

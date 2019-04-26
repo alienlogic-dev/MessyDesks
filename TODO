@@ -1,0 +1,28 @@
+
+#  __  __                     _____            _    
+# |  \/  |                   |  __ \          | |   
+# | \  / | ___  ___ ___ _   _| |  | | ___  ___| | __
+# | |\/| |/ _ \/ __/ __| | | | |  | |/ _ \/ __| |/ /
+# | |  | |  __/\__ \__ \ |_| | |__| |  __/\__ \   < 
+# |_|  |_|\___||___/___/\__, |_____/ \___||___/_|\_\
+#                        __/ |                      
+#                       |___/                       
+#
+#	Developed by Michele Trombetta
+#   
+#   ! : IMPORTANT
+#   - : TODO
+#   / : IN PROGRESS
+#   + : DONE
+
+v1.0:
+    + Fix outputs in execute not updating with last value (ex. output.a++ not working)
+    - Settings with custom description and values in component object (and not in this.config)
+    + Init(inputs, outputs) for initializing values
+    / Duplicate selected component (Cmd + D) and place under cursor
+    + Directly open source edit for new empty component
+    + Remove config field in exported JSON if null (to save space)
+    - Remove creation of SVGs if GUI is not needed
+    - Save JSON optimization reducing field names (ex. pin 'component' to 'ref')
+    - New component from selection
+

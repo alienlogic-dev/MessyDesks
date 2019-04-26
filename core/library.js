@@ -5,7 +5,7 @@ class CONST extends Component {
     };
   }
 
-  init() {
+  create() {
     this.minHeight = 3;
     this.minWidth = this.config.value.length;
     super.create(0, 1);
@@ -40,7 +40,7 @@ class INPUT extends Component {
     };
   }
 
-  init() {
+  create() {
     super.create(0, 1);
   }
 
@@ -69,7 +69,7 @@ class OUTPUT extends Component {
     };
   }
 
-  init() {
+  create() {
     super.create(1, 0);
   }
 
@@ -94,7 +94,7 @@ class OUTPUT extends Component {
 
 
 class BUTTON extends Component {
-  init() {
+  create() {
     this.minWidth = 5;
     this.minHeight = 5;
 
@@ -126,7 +126,7 @@ class BUTTON extends Component {
 }
 
 class TOGGLE extends Component {
-  init() {
+  create() {
     this.minWidth = 5;
     this.minHeight = 5;
 
@@ -182,16 +182,15 @@ class CLOCK extends Component {
   }
 }
 
-class R_TRIG extends Component {
-  constructor(config = null) {
-    super(config, 1, 1);
-
+class Pulse extends Component {
+  create() {
     this.lastValue = 0;
+    super.create(1, 1);
   }
 
   execute(inputs, outputs) {
-    this.outputs[0].value = (this.inputs[0].value != this.lastValue) && (+this.inputs[0].value);
-    this.lastValue = this.inputs[0].value;
+    outputs[0] = (inputs[0] != this.lastValue) && (+inputs[0]);
+    this.lastValue = inputs[0];
   }
 }
 
@@ -216,7 +215,7 @@ class TRI_Component extends Component {
 }
 
 class LED extends Component {
-  init() {
+  create() {
     this.minWidth = 5;
     this.minHeight = 5;
 
@@ -369,7 +368,14 @@ class Disp extends Component {
     };
   }
 
-  init() {
+  settings() {
+    return [
+      // [ Description, Variable name, Default value ],
+      ['Number of digits', 'digits', 12]
+    ];
+  }
+
+  create() {
     this.ledSVGs = [];
 
     this.segA = [];
@@ -466,7 +472,7 @@ class NOT_Component extends Component {
 }
 
 class AND_Component extends Component {
-  init() {
+  create() {
     if (this.config.inputsCount < 2) this.config.inputsCount = 2;
     super.create(+this.config.inputsCount, 1);
   }
@@ -658,7 +664,7 @@ class SR_Component extends Component {
     super(config, ['S', 'R'], ['Q']);
   }
 
-  init() {
+  create() {
   	this._c0 = new NOR_Component();
   	this._c1 = new NOR_Component();
   }
@@ -1047,10 +1053,9 @@ class CONSOLE extends Component {
 
 /* Math */
 class Add extends Component {
-  constructor(config = null) {
-    super(config, 2, 1);
-
+  create() {
     this.minWidth = 5;
+    super.create(2, 1);
   }
 
   execute(inputs, outputs) {
@@ -1173,7 +1178,7 @@ var toolbox = {
   'TOGGLE': TOGGLE,
   'BUTTON': BUTTON,
   'CLOCK': CLOCK,
-  'R_TRIG': R_TRIG,
+  'Pulse': Pulse,
   
   'LED': LED,
   'Disp': Disp,
