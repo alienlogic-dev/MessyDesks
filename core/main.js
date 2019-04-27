@@ -630,9 +630,25 @@ function pointInRect(p, rect) {
 
 // Wireboard
 initWireboard();
+
+var siliconEditor = null;
+$(window).on('load', function() {
+	siliconEditor = monaco.editor.create(document.getElementById('siliconCodeArea'), {
+		value: [
+			'function x() {',
+			'\tconsole.log("Hello world!");',
+			'}'
+		].join('\n'),
+		language: 'javascript',
+		automaticLayout: true
+	});
+});
+
+
+/*
 var myCodeMirror = CodeMirror.fromTextArea($('#siliconCodeArea')[0]);
 $(myCodeMirror.getWrapperElement()).addClass('hide');
-
+*/
 function initWireboard() {
 	draw.clear();
 
@@ -830,16 +846,16 @@ var editorCodes = {};
 var selectedEditorCode = 'silicon';
 function startEditorCode() {
 	selectedEditorCode = 'silicon';
-	myCodeMirror.doc.setValue(editorCodes[selectedEditorCode]);
+	siliconEditor.setValue(editorCodes[selectedEditorCode]);
 	selectEditorCode(selectedEditorCode);
 }
 function selectEditorCode(lang) {
-	editorCodes[selectedEditorCode] = myCodeMirror.doc.getValue(); // Save changes to selected old editor
+	editorCodes[selectedEditorCode] = siliconEditor.getValue(); // Save changes to selected old editor
 	
 	selectedEditorCode = lang;
 	if (!editorCodes[selectedEditorCode])
 		editorCodes[selectedEditorCode] = '';
-	myCodeMirror.doc.setValue(editorCodes[selectedEditorCode]); // Select the new editor
+	siliconEditor.setValue(editorCodes[selectedEditorCode]); // Select the new editor
 
 	// Change button text
 	$('#btnSwitchCode > button').text(lang);
@@ -1213,18 +1229,18 @@ function drawSiliconbox() {
 
 	if (wireboardSourceStack.length > 0) {
 		if (inSiliconMode){
-			$(myCodeMirror.getWrapperElement()).removeClass('hide');
+			$('#siliconCodeArea').removeClass('hide');
 			$('#drawing').addClass('hide');
 			$('#btnSwitchToSilicon, #btnNewComponent').addClass('hide');
 			$('#btnSwitchCode').removeClass('hide');
 		} else{
-			$(myCodeMirror.getWrapperElement()).addClass('hide');
+			$('#siliconCodeArea').addClass('hide');
 			$('#drawing').removeClass('hide');
 			$('#btnSwitchToSilicon, #btnNewComponent').removeClass('hide');
 			$('#btnSwitchCode').addClass('hide');
 		}
 	} else {
-		$(myCodeMirror.getWrapperElement()).addClass('hide');
+		$('#siliconCodeArea').addClass('hide');
 		$('#drawing, #btnNewComponent').removeClass('hide');
 		$('#btnSwitchToSilicon').addClass('hide');
 		$('#btnSwitchCode').addClass('hide');
@@ -1472,12 +1488,13 @@ function htmlSimStepDelayed() {
 	setTimeout(htmlSimStep, 10);
 }
 
+/*
 $(document).on('keydown', htmlSimStepDelayed);
 $(document).on('keyup', htmlSimStepDelayed);
 $(document).on('mousedown', htmlSimStepDelayed);
 $(document).on('mouseup', htmlSimStepDelayed);
+*/
 
-/*
 var simInterval = 50;
 var simEvent = function() {
 	simStep();
@@ -1496,7 +1513,7 @@ setInterval(function() {
 		}
 	}
 }, 250);
-*/
+
 
 // Function to read data from a file
 var openFile = function(event) {

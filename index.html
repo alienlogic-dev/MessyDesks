@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
     <!-- Codemirror CSS -->
     <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css">
+    <!-- Monaco Editor CSS -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="node_modules/monaco-editor/min/vs/editor/editor.main.css">
 
     <title>MessyDesk</title>
 
@@ -59,9 +61,13 @@
       .workbox {
         margin-left: 150px;
         /*height: 50vh;*/
-        overflow: scroll;
       }
       .workbox .CodeMirror {
+        margin-top: 50px;
+        height: calc(100vh - 50px);
+      }
+
+      #siliconCodeArea {
         margin-top: 50px;
         height: calc(100vh - 50px);
       }
@@ -209,7 +215,7 @@
       
       <div id="drawing" class="wireboard"></div>
 
-      <textarea id="siliconCodeArea" class="hide">function test() { var a = 'abc'; }</textarea>
+      <div id="siliconCodeArea" class="hide"></div>
       
       <img src="assets/icons/png/icon_512.png" class="icon mr-2 mb-2" height="32px" />
     </div>
@@ -301,6 +307,7 @@
       </div>
     </div>
 
+
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
@@ -317,6 +324,11 @@
     <script type="text/javascript" src="node_modules/svg.js/dist/svg.min.js"></script>
     <script type="text/javascript" src="core/svg.draggable.min.js"></script>
 
+    <script>var require = { paths: { 'vs': 'node_modules/monaco-editor/min/vs' } };</script>
+    <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
+    <script src="node_modules/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+    <script src="node_modules/monaco-editor/min/vs/editor/editor.main.js"></script>
+  
     <script type="text/javascript" src="core/6502.min.js"></script>
     <script type="text/javascript" src="core/mtWiring.js"></script>
     <script type="text/javascript" src="core/main.js"></script>
@@ -325,11 +337,6 @@
     <script type="text/javascript" src="core/main.min.js"></script>
 -->
     <script type="text/javascript" src="core/cpp_compiler.js"></script>
-
-    <script>
-      // You can also require other files to run in this process
-      require('./renderer.js')
-    </script>
 
   </body>
 </html>
