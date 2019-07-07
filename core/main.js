@@ -206,12 +206,13 @@ class Component {
 				.data('pin_id', item.ID);
 
 			this.svg
-				.text(item.name)
+				.text(item.name.replace('!', ''))
 				.font({
 								family:	 'Menlo'
 							, size:		 9
 							, anchor:	 'start'
 							})
+				.attr('text-decoration', item.name.startsWith('!') ? 'overline' : null)
 				.move(6, (inStepSize * i) + (inStepSize / 2) - 6);
 		}
 
@@ -235,12 +236,13 @@ class Component {
 				.data('pin_id', item.ID);
 
 			this.svg
-				.text(item.name)
+				.text(item.name.replace('!', ''))
 				.font({
 								family:	 'Menlo'
 							, size:		 9
 							, anchor:	 'end'
 							})
+				.attr('text-decoration', item.name.startsWith('!') ? 'overline' : null)
 				.move(wpx - 6, (outStepSize * i) + (outStepSize / 2) - 6);
 		}
 	}
