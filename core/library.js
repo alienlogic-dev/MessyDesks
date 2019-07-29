@@ -6,6 +6,7 @@ OUTPUT.group = 'MessyDesk';
 CONSOLE.group = 'MessyDesk';
 ToObject.group = 'MessyDesk';
 FromObject.group = 'MessyDesk';
+ApplyObject.group = 'MessyDesk';
 Repeat.group = 'MessyDesk';
 
 Add.group = 'Math';
@@ -43,6 +44,7 @@ var toolbox = {
   'CONSOLE': CONSOLE,
   'ToObject': ToObject,
   'FromObject': FromObject,
+  'ApplyObject': ApplyObject,
   'Repeat': Repeat,
 
   'Add': Add,

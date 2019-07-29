@@ -195,8 +195,8 @@ class Pulse extends Component {
 }
 
 class TRI_Component extends Component {
-  constructor() {
-    super(config, 
+  create() {
+    super.create(
       ['I', 'En'],
       [],
       ['Q']
@@ -460,7 +460,7 @@ class Disp extends Component {
 
 class NOT_Component extends Component {
   constructor(config = null) {
-    super(config, 1, 1);
+    super.create(1, 1);
   }
 
   drawSymbol(svg) {
@@ -499,13 +499,15 @@ class AND_Component extends Component {
 }
 
 class NAND_Component extends Component {
-  constructor(config = null) {
-    var inputsCount = 2;
-    if (config)
-      inputsCount = config.inputsCount;
+  create() {
+    if (this.config.inputsCount < 2) this.config.inputsCount = 2;
+    super.create(+this.config.inputsCount, 1);
+  }
 
-    if (inputsCount < 2) inputsCount = 2;
-    super(config, inputsCount, 1);
+  defaultConfig() {
+    return {
+      inputsCount: 2
+    };
   }
 
   drawSymbol(svg) {
@@ -551,13 +553,15 @@ class OR_Component extends Component {
 }
 
 class NOR_Component extends Component {
-  constructor(config = null) {
-  	var inputsCount = 2;
-  	if (config)
-  		inputsCount = config.inputsCount;
+  create() {
+    if (this.config.inputsCount < 2) this.config.inputsCount = 2;
+    super.create(+this.config.inputsCount, 1);
+  }
 
-  	if (inputsCount < 2) inputsCount = 2;
-    super(config, inputsCount, 1);
+  defaultConfig() {
+    return {
+      inputsCount: 2
+    };
   }
 
   drawSymbol(svg) {
@@ -573,25 +577,18 @@ class NOR_Component extends Component {
   		res = res || (Boolean(+this.inputs[idx].value) ? true : false);
   	this.outputs[0].value = !res ? 1 : 0; 
   }
-
-  getConfig() {
-  	return {
-  		inputsCount: this.inputs.length
-  	};
-  }
-
-  openConfig(e) {
-  }
 }
 
 class XOR_Component extends Component {
-  constructor(config = null) {
-    var inputsCount = 2;
-    if (config)
-      inputsCount = config.inputsCount;
+  create() {
+    if (this.config.inputsCount < 2) this.config.inputsCount = 2;
+    super.create(+this.config.inputsCount, 1);
+  }
 
-    if (inputsCount < 2) inputsCount = 2;
-    super(config, inputsCount, 1);
+  defaultConfig() {
+    return {
+      inputsCount: 2
+    };
   }
 
   drawSymbol(svg) {
@@ -607,25 +604,18 @@ class XOR_Component extends Component {
       res = res ^ (Boolean(+this.inputs[idx].value) ? true : false);
     this.outputs[0].value = res ? 1 : 0; 
   }
-
-  getConfig() {
-    return {
-      inputsCount: this.inputs.length
-    };
-  }
-
-  openConfig(e) {
-  }
 }
 
 class XNOR_Component extends Component {
-  constructor(config = null) {
-    var inputsCount = 2;
-    if (config)
-      inputsCount = config.inputsCount;
+  create() {
+    if (this.config.inputsCount < 2) this.config.inputsCount = 2;
+    super.create(+this.config.inputsCount, 1);
+  }
 
-    if (inputsCount < 2) inputsCount = 2;
-    super(config, inputsCount, 1);
+  defaultConfig() {
+    return {
+      inputsCount: 2
+    };
   }
 
   drawSymbol(svg) {
@@ -640,15 +630,6 @@ class XNOR_Component extends Component {
     for (var idx = 1; idx < this.inputs.length; idx++)
       res = res ^ (Boolean(+this.inputs[idx].value) ? true : false);
     this.outputs[0].value = !res ? 1 : 0; 
-  }
-
-  getConfig() {
-    return {
-      inputsCount: this.inputs.length
-    };
-  }
-
-  openConfig(e) {
   }
 }
 
@@ -770,18 +751,20 @@ class CPU6502_Component extends Component {
 
 
 class ToBus_Component extends Component {
-	constructor(config = null) {
-  	var size = 8;
-  	if (config)
-  		size = config.size;
+  create() {
+    if (this.config.size < 2) this.config.size = 2;
 
-  	if (size < 2) size = 2;
-    super(config, size, 1);
+    var inputs = [];
+    for (var idx = 0; idx < this.config.size; idx++)
+      inputs.push('D' + idx);
 
-    for (var idx = 0; idx < size; idx++)
-    	this.inputs[idx].name = 'D' + idx;
+    super.create(inputs, ['Bus']);
+  }
 
-    this.outputs[0].name = 'Bus';
+  defaultConfig() {
+    return {
+      size: 8
+    };
   }
 
   execute(inputs, outputs) {
@@ -793,18 +776,20 @@ class ToBus_Component extends Component {
 }
 
 class FromBus_Component extends Component {
-	constructor(config = null) {
-  	var size = 8;
-  	if (config)
-  		size = config.size;
+  create() {
+    if (this.config.size < 2) this.config.size = 2;
 
-  	if (size < 2) size = 2;
-    super(config, 1, size);
+    var outputs = [];
+    for (var idx = 0; idx < this.config.size; idx++)
+      outputs.push('D' + idx);
 
-    this.inputs[0].name = 'Bus';
+    super.create(['Bus'], outputs);
+  }
 
-    for (var idx = 0; idx < size; idx++)
-    	this.outputs[idx].name = 'D' + idx;
+  defaultConfig() {
+    return {
+      size: 8
+    };
   }
 
   execute(inputs, outputs) {
@@ -817,18 +802,20 @@ class FromBus_Component extends Component {
 
 
 class BIN2DEC_Component extends Component {
-  constructor(config = null) {
-    var size = 8;
-    if (config)
-      size = config.size;
+  create() {
+    if (this.config.size < 2) this.config.size = 2;
 
-    if (size < 2) size = 2;
-    super(config, size, 1);
+    var inputs = [];
+    for (var idx = 0; idx < this.config.size; idx++)
+      inputs.push('D' + idx);
 
-    for (var idx = 0; idx < size; idx++)
-      this.inputs[idx].name = 'D' + idx;
+    super.create(inputs, ['Bus']);
+  }
 
-    this.outputs[0].name = 'Bus';
+  defaultConfig() {
+    return {
+      size: 8
+    };
   }
 
   execute(inputs, outputs) {
@@ -838,27 +825,29 @@ class BIN2DEC_Component extends Component {
       data = data | (dPin ? (1 << idx) : 0);
     }
 
-    this.outputs[0].value = data;
+    outputs.Bus = data;
   }
 }
 
 class DEC2BIN_Component extends Component {
-  constructor(config = null) {
-    var size = 8;
-    if (config)
-      size = config.size;
+  create() {
+    if (this.config.size < 2) this.config.size = 2;
 
-    if (size < 2) size = 2;
-    super(config, 1, size);
+    var outputs = [];
+    for (var idx = 0; idx < this.config.size; idx++)
+      outputs.push('D' + idx);
 
-    this.inputs[0].name = 'Bus';
+    super.create(['Bus'], outputs);
+  }
 
-    for (var idx = 0; idx < size; idx++)
-      this.outputs[idx].name = 'D' + idx;
+  defaultConfig() {
+    return {
+      size: 8
+    };
   }
 
   execute(inputs, outputs) {
-    var data = this.inputs[0].value;
+    var data = inputs.Bus;
     for (var idx = 0; idx < this.outputs.length; idx++)
       this.outputs[idx].value = (data >> idx) & 0x01;
   }
@@ -945,15 +934,15 @@ class PIN_OUT extends Component {
 
 
 class ToObject extends Component {
-  constructor(config = null) {
-    if (!config)
-      config = {
-        fields: ''
-      };
-    
-    super(config, 0, 1);
-
+  create() {
     this.minWidth = 5;
+    super.create(this.config.fields.split(','), 1);
+  }
+
+  defaultConfig() {
+    return {
+      fields: 'a,b,c'
+    };
   }
 
   execute(inputs, outputs) {
@@ -962,53 +951,51 @@ class ToObject extends Component {
       ret[key] = inputs[key];
     outputs[0] = ret;
   }
-
-  onConfigChanged(config) {
-    this.construct(config, config.fields.split(','), 1);
-    return true;
-  }
 }
 
 
 class FromObject extends Component {
-  constructor(config = null) {
-    super(config, 1, 0);
-
+  create() {
     this.minWidth = 5;
-
-    this.fields = '';
-    if (config) {
-      this.fields = config.fields;
-      this.construct(1, this.fields.split(','));
-    }
+    super.create(1, this.config.fields.split(','));
   }
 
-  execute(inputs, outputs) {
-    for (var key in outputs)
-      outputs[key] = inputs[0][key];
-  }
-
-  getConfig() {
+  defaultConfig() {
     return {
-      fields: this.fields
+      fields: 'a,b,c'
     };
   }
 
-  createConfigModal() {
-    return `
-            <div class="form-group">
-              <input id="ToObjFields" type="text" class="form-control" placeholder="Fields" value="${this.fields}">
-            </div>
-            `;
+  execute(inputs, outputs) {
+    if (inputs[0])
+      for (var key in outputs)
+        outputs[key] = inputs[0][key];
+  }
+}
+
+class ApplyObject extends Component {
+  create() {
+    this.minWidth = 5;
+    var inputs = ['obj'];
+    inputs = inputs.concat(this.config.fields.split(','));
+    super.create(inputs, 1);
   }
 
-  onConfigChanged(config) {
-    var fields = $('#ToObjFields').val();
-    if ((fields != null) && (fields != "")) {
-      this.fields = fields;
-      this.construct(1, fields.split(','));
-    }
-    return true;
+  defaultConfig() {
+    return {
+      fields: 'a,b,c'
+    };
+  }
+
+  execute(inputs, outputs) {
+    var ret = Object.assign({}, inputs.obj) || {};
+
+    for (var key in inputs)
+      if (key != 'obj')
+        if (inputs[key] != null)
+          ret[key] = inputs[key];
+
+    outputs[0] = ret;
   }
 }
 

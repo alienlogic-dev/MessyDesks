@@ -77,17 +77,18 @@ class Component {
 			this.inputs.length = +inputsList;
 
 		for (var i = 0; i < this.inputs.length; i++) {
-			if (!this.inputs[i]) {
-				var pinName = '';
-				if (inputsList instanceof Array)
-					pinName = inputsList[i];
-	
+			var pinName = '';
+			if (inputsList instanceof Array)
+				pinName = inputsList[i];
+
+			if (!this.inputs[i]) {	
 				if (pinName.length > 0)
 					if (this[pinName] === undefined)
 						this[pinName] = null;
 	
 				this.inputs[i] = new Pin(this, i, pinName, true);
-			}
+			} else
+				this.inputs[i].name = pinName;
 		}
 
 		// Create list of outputs
@@ -97,17 +98,18 @@ class Component {
 			this.outputs.length = +outputsList;
 
 		for (var i = 0; i < this.outputs.length; i++) {
-			if (!this.outputs[i]) {
-				var pinName = '';
-				if (outputsList instanceof Array)
-					pinName = outputsList[i];
-	
+			var pinName = '';
+			if (outputsList instanceof Array)
+				pinName = outputsList[i];
+
+			if (!this.outputs[i]) {	
 				if (pinName.length > 0)
 					if (this[pinName] === undefined)
 						this[pinName] = null;
 	
 				this.outputs[i] = new Pin(this, i, pinName, false);
-			}
+			} else
+				this.outputs[i].name = pinName;
 		}
 
 		// Create main svg
@@ -453,7 +455,7 @@ class Component {
 				var pinName = this.outputs[idx].name;
 				if (pinName != null) {
 					if (pinName.length == 0) pinName = idx;
-					outputs[pinName] = this.outputs[idx].value;
+					outputs[pinName] = null; //this.outputs[idx].value;
 				}
 			}
 
