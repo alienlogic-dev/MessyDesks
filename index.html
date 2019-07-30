@@ -196,20 +196,10 @@
           </div>
           <button id="btnNewComponent" class="btn btn-dark" data-toggle="modal" data-target="#modalNewComponent"><i class="fas fa-microchip"></i></button>
           
-          <div class="btn-group" role="group">
-            <div id="btnSwitchCompiler" class="btn-group" role="group">
-              <button type="button" class="btn btn-dark dropdown-toggle" data-toggle="dropdown">
-                C++
-              </button>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="#"></a>
-              </div>
-            </div>
-            <button id="btnCompileBoard" type="button" class="btn btn-dark">
-              <i class="fas fa-circle-notch fa-spin hide"></i>
-              <i class="fas fa-cubes"></i>
-            </button>
-          </div>
+          <button id="btnCompileBoard" type="button" class="btn btn-dark">
+            <i class="fas fa-circle-notch fa-spin hide"></i>
+            <i class="fas fa-cubes"></i>
+          </button>
         </div>
       </div>
       
@@ -318,8 +308,6 @@
 
     <script type="text/javascript" src="node_modules/popper.js/dist/umd/popper.min.js"></script>
     <script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="node_modules/codemirror/lib/codemirror.js"></script>
-    <script src="node_modules/codemirror/mode/javascript/javascript.js"></script>
 
     <script type="text/javascript" src="node_modules/svg.js/dist/svg.min.js"></script>
     <script type="text/javascript" src="core/svg.draggable.min.js"></script>
@@ -328,7 +316,7 @@
     <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
     <script src="node_modules/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
     <script src="node_modules/monaco-editor/min/vs/editor/editor.main.js"></script>
-  
+<!-- v1.0
     <script type="text/javascript" src="core/6502.min.js"></script>
     <script type="text/javascript" src="core/mtWiring.js"></script>
     <script type="text/javascript" src="core/main.js"></script>
@@ -336,10 +324,12 @@
     <script type="text/javascript" src="core/misc.library.js"></script>
     <script type="text/javascript" src="core/ttl.library.js"></script>
     <script type="text/javascript" src="core/library.js"></script>
-<!--
     <script type="text/javascript" src="core/main.min.js"></script>
--->
     <script type="text/javascript" src="core/cpp_compiler.js"></script>
+-->
+
+    <script type="text/javascript" src="newcore/core.js"></script>
+    <script type="text/javascript" src="newcore/main.js"></script>
 
   </body>
 </html>

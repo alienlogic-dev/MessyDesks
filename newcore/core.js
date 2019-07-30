@@ -160,7 +160,7 @@ class NAND extends Component {
 
     this.create({
       left: [{ prefix: '', count: n }],
-      right: 'Q'
+      right: ['Q']
     })
   }
 
@@ -170,15 +170,20 @@ class NAND extends Component {
 
   execute(actual) {
     this.debug(actual);
-    return { '0': true }
+
+    var ret = true;
+    for (var i in actual.left)
+      ret = ret && (actual.left[i] || false);
+
+    return { 'Q': !ret }
   } 
 }
 
 var constA = new CONST({ value: true });
 var constB = new CONST({ value: true });
 
-var c1 = new AND();
-var c2 = new AND();
+var c1 = new NAND();
+var c2 = new NAND();
 
 c1.connectPin('0', constA.getPin('Q'))
 c1.connectPin('1', c2.getPin('Q'))
@@ -186,19 +191,18 @@ c1.connectPin('1', c2.getPin('Q'))
 c2.connectPin('0', c1.getPin('Q'))
 c2.connectPin('1', constB.getPin('Q'))
 
+var readlineSync = require('readline-sync');
+ 
+while (1) {
+  var valA = readlineSync.question('A: ');
+  var valB = readlineSync.question('B: ');
 
-constA.run();
-constB.run();
-c1.run()
-c2.run()
+  constA.forceValue(+valA);
+  constB.forceValue(+valB);
 
-const readline = require('readline').createInterface({
-  input: process.stdin,
-  output: process.stdout
-})
+  constA.run();
+  constB.run();
+  c1.run()
+  c2.run()
+}
 
-readline.question(`What's your name?`, (name) => {
-  
-  console.log(`Hi ${name}!`)
-  readline.close()
-})

@@ -26,6 +26,7 @@
     "jquery": "^3.3.1",
     "monaco-editor": "^0.16.2",
     "popper.js": "^1.14.6",
+    "readline-sync": "^1.4.10",
     "svg.js": "^2.7.1"
   }
 }
