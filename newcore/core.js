@@ -6,15 +6,32 @@ class Wire {
 
 class Pin {
   constructor(name, side) {
-    this.name = name || '';
+    this.name = name.replace('!', '').replace('_', '') || '';
     this.component = null;
     this.side = side || 'left';
     this.wire = null;
-  } 
+
+    this.isInverted = name.startsWith('!'); // Name starts with !
+    this.isHidden = name.startsWith('_'); // Name starts with _
+  }
+
+  connect(toPin) {
+    var reuseWire = null;
+    if (this.wire != null) reuseWire = this.wire;
+    if (toPin.wire != null) reuseWire = toPin.wire;
+    if (reuseWire == null) reuseWire = new Wire();
+
+    this.wire = reuseWire;
+    toPin.wire = reuseWire;
+
+    return reuseWire;
+  }
 }
 
-class Component {
+class Component extends Symbol {
   constructor(config) {
+    super();
+
     this.pins = [];
     this.config = config || this.defaultConfig();
 
@@ -37,7 +54,7 @@ class Component {
           for (var i of item) {
             if (i !== Object(i)) { // Primitive
               var newPin = new Pin(i, s);
-              //newPin.component = this;
+              newPin.component = this;
               newPins.push(newPin);
             } else {
               var pinInfo_prefix = (i.prefix != null) ? i.prefix : s.charAt(0).toUpperCase();
@@ -47,7 +64,7 @@ class Component {
 
               for (var c = pinInfo_offset; c < pinInfo_count; c += pinInfo_step) {
                 var newPin = new Pin(pinInfo_prefix + c.toString(), s);
-                //newPin.component = this;
+                newPin.component = this;
                 newPins.push(newPin);
               }
             }
@@ -87,122 +104,32 @@ class Component {
     if (toPin) {
       var fromPin = this.getPin(pinName);
       if (fromPin) {
-        var reuseWire = null;
-        if (fromPin.wire != null) reuseWire = fromPin.wire;
-        if (toPin.wire != null) reuseWire = toPin.wire;
-        if (reuseWire == null) reuseWire = new Wire();
-
-        fromPin.wire = reuseWire;
-        toPin.wire = reuseWire;
+        return fromPin.connect(toPin);
       } else console.error('fromPin cannot be null');
     } else console.error('toPin cannot be null');
+    return null;
   }
 
   getPin(pinName) {
     return this.pins.filter(i => i.name == pinName)[0];
   }
 
+  writePin(pinName, value) {
+    var pin = this.getPin(pinName);
+    if (pin)
+      if (pin.wire)
+        pin.wire.value = value;
+  }
+
+  readPin(pinName) {
+    var pin = this.getPin(pinName);
+    if (pin)
+      if (pin.wire)
+        return pin.wire.value;
+    return null;
+  }
+
   debug(actual) {
     console.log(actual);
   }
 }
-
-class CONST extends Component {
-  init() {
-    this.create({
-      right: ['Q']
-    })
-  }
-
-  defaultConfig() {
-    return { value: null };
-  }
-
-  execute(actual) {
-    return { 'Q': this.config.value };
-  }
-
-  forceValue(value) {
-    this.config.value = value;
-  }
-}
-
-class AND extends Component {
-  init() {
-    var n = this.config.pinCount;
-    if (n < 2) n = 2;
-
-    this.create({
-      left: [{ prefix: '', count: n }],
-      right: ['Q']
-    })
-  }
-
-  defaultConfig() {
-    return { pinCount: 2 };
-  }
-
-  execute(actual) {
-    this.debug(actual);
-
-    var ret = true;
-    for (var i in actual.left)
-      ret = ret && (actual.left[i] || false);
-
-    return { 'Q': ret }
-  }
-}
-
-class NAND extends Component {
-  init() {
-    var n = this.config.pinCount;
-    if (n < 2) n = 2;
-
-    this.create({
-      left: [{ prefix: '', count: n }],
-      right: ['Q']
-    })
-  }
-
-  defaultConfig() {
-    return { pinCount: 2 };
-  }
-
-  execute(actual) {
-    this.debug(actual);
-
-    var ret = true;
-    for (var i in actual.left)
-      ret = ret && (actual.left[i] || false);
-
-    return { 'Q': !ret }
-  } 
-}
-
-var constA = new CONST({ value: true });
-var constB = new CONST({ value: true });
-
-var c1 = new NAND();
-var c2 = new NAND();
-
-c1.connectPin('0', constA.getPin('Q'))
-c1.connectPin('1', c2.getPin('Q'))
-
-c2.connectPin('0', c1.getPin('Q'))
-c2.connectPin('1', constB.getPin('Q'))
-
-var readlineSync = require('readline-sync');
- 
-while (1) {
-  var valA = readlineSync.question('A: ');
-  var valB = readlineSync.question('B: ');
-
-  constA.forceValue(+valA);
-  constB.forceValue(+valB);
-
-  constA.run();
-  constB.run();
-  c1.run()
-  c2.run()
-}
-

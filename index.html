@@ -13,10 +13,16 @@
     <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css">
     <!-- Monaco Editor CSS -->
     <link rel="stylesheet" data-name="vs/editor/editor.main" href="node_modules/monaco-editor/min/vs/editor/editor.main.css">
+    <!-- Google fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
 
     <title>MessyDesk</title>
 
     <style type="text/css">
+      body {
+        font-family: 'Nunito', sans-serif;
+      }
+
       .hide {
         display: none!important;
       }
@@ -328,8 +334,14 @@
     <script type="text/javascript" src="core/cpp_compiler.js"></script>
 -->
 
-    <script type="text/javascript" src="newcore/core.js"></script>
     <script type="text/javascript" src="newcore/main.js"></script>
+    <script type="text/javascript" src="core/mtWiring.js"></script>
+
+    <script type="text/javascript" src="newcore/gui.js"></script>
+    <script type="text/javascript" src="newcore/core.js"></script>
+
+    <script type="text/javascript" src="newcore/libraries/misc-library.js"></script>
+    <script type="text/javascript" src="newcore/libraries/gate-library.js"></script>
 
   </body>
 </html>
