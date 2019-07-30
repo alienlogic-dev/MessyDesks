@@ -1,6 +1,7 @@
 class Wire {
   constructor() {
     this.value = null;
+    this.references = [];
   }
 }
 
@@ -15,16 +16,34 @@ class Pin {
     this.isHidden = name.startsWith('_'); // Name starts with _
   }
 
-  connect(toPin) {
+  connectToPin(toPin) {
+    // Same wire check
+    if ((this.wire != null) && (toPin.wire != null))
+      if (this.wire == toPin.wire)
+        return null;
+
     var reuseWire = null;
     if (this.wire != null) reuseWire = this.wire;
     if (toPin.wire != null) reuseWire = toPin.wire;
     if (reuseWire == null) reuseWire = new Wire();
 
+    if (this.wire != reuseWire) reuseWire.references.push(this);
     this.wire = reuseWire;
+
+    if (toPin.wire != reuseWire) reuseWire.references.push(toPin);
     toPin.wire = reuseWire;
 
     return reuseWire;
+  }
+
+  connectToWire(toWire) {
+    // Same wire check
+    if (this.wire != null)
+      if (this.wire == toWire)
+        return null;
+
+    if (this.wire != toWire) toWire.references.push(this);
+    this.wire = toWire;
   }
 }
 
@@ -100,16 +119,6 @@ class Component extends Symbol {
     }
   }
 
-  connectPin(pinName, toPin) {
-    if (toPin) {
-      var fromPin = this.getPin(pinName);
-      if (fromPin) {
-        return fromPin.connect(toPin);
-      } else console.error('fromPin cannot be null');
-    } else console.error('toPin cannot be null');
-    return null;
-  }
-
   getPin(pinName) {
     return this.pins.filter(i => i.name == pinName)[0];
   }
@@ -127,9 +136,5 @@ class Component extends Symbol {
       if (pin.wire)
         return pin.wire.value;
     return null;
-  }
-
-  debug(actual) {
-    console.log(actual);
   }
 }

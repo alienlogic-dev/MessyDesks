@@ -15,8 +15,6 @@ class AND extends Component {
   }
 
   execute(actual) {
-    this.debug(actual);
-
     var ret = true;
     for (var i in actual.left)
       ret = ret && (actual.left[i] || false);
@@ -48,8 +46,6 @@ class NAND extends Component {
   }
 
   execute(actual) {
-    this.debug(actual);
-
     var ret = true;
     for (var i in actual.left)
       ret = ret && (actual.left[i] || false);
