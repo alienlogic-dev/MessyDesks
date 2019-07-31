@@ -160,7 +160,7 @@ class Symbol {
 		return false;
 	}
 	pinClickedEvent(e) {
-    pinClicked(this);
+    this.component.pinClicked(this);
 	}
 
 	mouseDownEvent(e) { }
