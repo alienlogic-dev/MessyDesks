@@ -20,8 +20,14 @@ class Wireboard {
 
   /* GUI */
   clear() {
-    this.componentsSVG.clear();
-    this.wiresSVG.clear();
+    this.components = [];
+    this.wires = [];
+    this.executionOrder = [];
+
+    if (this.hasGUI) {
+      this.componentsSVG.clear();
+      this.wiresSVG.clear();
+    }
   }
 
   addToParentSVG(parentSVG) {
@@ -110,15 +116,13 @@ class Wireboard {
   }
 
   /* Source manager */
-  export() {
+  toSource() {
     var ret = {
       name: this.name,
-      dependecies: [],
       source: {
         components: [],
         wires: []
-      },
-      silicon: ''
+      }
     };
 
     // Components
@@ -156,11 +160,12 @@ class Wireboard {
     return ret;
   }
 
-  import(src) {
+  fromSource(src) {
     // Clear the wireboard
     initWireboard();
     this.components = [];
     this.wires = [];
+    this.executionOrder = [];
 
     this.name = src.name;
 
@@ -255,7 +260,7 @@ class Wireboard {
   }
 
   /* Compiler */
-  compile() {
+  toSilicon() {
     var compiledCode = [];
 
     this.updateExecutionOrder();
@@ -275,23 +280,23 @@ class Wireboard {
     var inputComponents = this.components.filter(t => t.constructor.name == 'INPUT');
     var inputIdx = 0;
     for (var c of inputComponents) {
-      var inputName = c.config.alias || inputIdx.toString();
-      createConfig[(c.config.side || 'left').toLowerCase()].push(inputName);
+      c.config.alias = ((c.config.alias == null) || (c.config.alias == '')) ? inputIdx.toString() : c.config.alias;
+      createConfig[(c.config.side || 'left').toLowerCase()].push(c.config.alias);
       inputIdx++;
     }
 
     var outputComponents = this.components.filter(t => t.constructor.name == 'OUTPUT');
     var outputIdx = 0;
     for (var c of outputComponents) {
-      var inputName = c.config.alias || outputIdx.toString();
-      createConfig.right.push(inputName);
+      c.config.alias = ((c.config.alias == null) || (c.config.alias == '')) ? inputIdx.toString() : c.config.alias;
+      createConfig.right.push(c.config.alias);
       outputIdx++;
     }
 
     compiledCode.push(`\t\tthis.create(${JSON.stringify(createConfig)})`);
 
     // Create instances
-    var realComponents = this.components;//.filter(t => (t.constructor.name != 'INPUT') && (t.constructor.name != 'OUTPUT'));
+    var realComponents = this.components;
     for (var c of realComponents) {
 			compiledCode.push(`\t\tthis.${c.id} = new ${c.constructor.name}(${JSON.stringify(c.config)});`);
     }
@@ -301,28 +306,29 @@ class Wireboard {
       var _firstPin = null;
       for (var p of w.references) {
         if (_firstPin) {
-          compiledCode.push(`\t\tthis.${_firstPin.component.id}.connectToPin("${_firstPin.name}", this.${p.component.id}.getPin("${p.name}"))`);
+          compiledCode.push(`\t\tthis.${_firstPin.component.id}.connectPin("${_firstPin.name}", this.${p.component.id}.getPin("${p.name}"))`);
         } else
           _firstPin = p;
       }
     }
 
-
     compiledCode.push(`\t}`);
 
     // Create execution
     compiledCode.push(`\texecute(actual) {`);
+    compiledCode.push(`\t\tvar ret = {};`);
+
     for (var c of this.executionOrder) {
-      if (c.constructor.name != 'INPUT') {
+      if (c.constructor.name == 'INPUT')
+        compiledCode.push(`\t\tthis.${c.id}.setValue(actual["${c.config.side}"]["${c.config.alias}"]);`);
+        
+      compiledCode.push(`\t\tthis.${c.id}.run();`);
 
-      } else if (c.constructor.name != 'OUTPUT') {
-
-      } else {
-        compiledCode.push(`\t\tthis.${c.id}.run();`);
-      }
+      if (c.constructor.name == 'OUTPUT')
+        compiledCode.push(`\t\tret["${c.config.alias}"] = this.${c.id}.getValue();`);
     }
+    compiledCode.push(`\t\treturn ret;`);
     compiledCode.push(`\t}`);
-
 
     compiledCode.push(`}`);
 

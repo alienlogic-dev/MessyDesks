@@ -4,6 +4,7 @@ var wireboardHeight = 256;
 var draw = SVG('drawing').size(wireboardWidth*8, wireboardHeight*8);
 
 var mainWireboard = new Wireboard('main', true);
+var wireboardStack = [];
 
 var toolbox = { };
 
@@ -21,6 +22,31 @@ function initWireboard() {
 
 	// Add wires to top level
 	mainWireboard.addToParentSVG(draw);
+}
+
+function componentFromSource(src, forceName) {
+	var wireboard = new Wireboard(forceName || '');
+	wireboard.fromSource(src);
+	componentFromWireboard(wireboard, forceName);
+}
+
+function componentFromWireboard(wireboard, forceName) {
+	var componentName = forceName || wireboard.name;
+	var siliconCode = wireboard.toSilicon();
+
+	var ret = eval(`${componentName} = (${siliconCode}); ${componentName}`);
+	toolbox[componentName] = ret;
+	ret.source = wireboard.toSource();
+
+	wireboard.clear();
+	return ret;
+}
+
+function startComponentEdit(component) {
+	console.log(component.constructor.source);
+	wireboardStack.push(mainWireboard);
+	mainWireboard = new Wireboard(component.constructor.name, true);
+	mainWireboard.fromSource(component.constructor.source);
 }
 
 var siliconEditor = null;
