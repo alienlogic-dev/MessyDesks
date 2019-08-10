@@ -51,10 +51,12 @@ var simEvent = function() {
 setTimeout(simEvent, simInterval);
 
 setInterval(function() {
+	mainWireboard.simulate();
+	
 	for (var idx = 0; idx < mainWireboard.components.length; idx++) {
 		var componentItem = mainWireboard.components[idx];
 
-			componentItem.refresh();
+		componentItem.refresh();
 /*
 		if (componentItem instanceof INPUT) {
 		} else if (componentItem instanceof OUTPUT) {

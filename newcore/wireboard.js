@@ -13,6 +13,8 @@ class Wireboard {
     this.componentsIdx = 0;
 
     this.wires = [];
+
+    this.executionOrder = [];
   }
 
   /* GUI */
@@ -170,10 +172,6 @@ class Wireboard {
   }
 
   /* Wireboard core */
-  updateChildrensOfComponent(component) {
-
-  }
-
   getAloneComponents() {
     var aloneComponents = [];
 
@@ -219,6 +217,24 @@ class Wireboard {
     callStack.pop();
 
     return order;
+  }
+
+  updateExecutionOrder() {
+    var exeOrder = [];
+
+    var aloneComponents = this.getAloneComponents();
+    for (var c of aloneComponents) {
+      exeOrder.push(c);
+      exeOrder = this.generateExecutionOrderOfComponent(c, exeOrder);
+    }
+
+    this.executionOrder = exeOrder.reverse();
+  }
+
+  /* Simulation */
+  simulate() {
+    for (var c of this.executionOrder)
+      c.run();
   }
 
   /* Compiler */

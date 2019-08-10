@@ -98,7 +98,7 @@ class Component extends Symbol {
 
   defaultConfig() { return {} }
 
-  execute(actual) { console.log('execute'); return null; }
+  execute(actual) { return null; }
 
   run() {
     var actual = {};
