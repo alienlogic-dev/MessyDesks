@@ -10,7 +10,32 @@ class INPUT extends Component {
   }
 
   defaultConfig() {
-    return { alias: '', side: 'left' };
+    return { value: null, alias: '', side: 'left' };
+  }
+
+  execute(actual) {
+    return { 'Q': this.config.value };
+  }
+
+  setValue(value) {
+    this.config.value = value;
+  }
+
+  drawBody(wpx, hpx) {
+  	this.svgBody = this.svg.rect(wpx, hpx)
+			.radius(2)
+			.move(0, 0)
+			.fill('#cccccc')
+      .stroke({ color: '#666666', width: 2 });
+      
+		this.aliasSVG = this.svg
+			.text(this.config.alias.toString())
+			.font({
+						  family:   'Menlo'
+						, size:     12
+						, anchor:   'middle'
+						})
+			.move(wpx / 2, -15);
   }
 }
 
@@ -26,9 +51,36 @@ class OUTPUT extends Component {
   }
   
   defaultConfig() {
-    return { alias: '' };
+    return { value: null, alias: '' };
+  }
+
+  execute(actual) {
+    this.config.value = actual.left['I'];
+    return null;
+  }
+
+  getValue() {
+    return this.config.value;
+  }
+
+  drawBody(wpx, hpx) {
+  	this.svgBody = this.svg.rect(wpx, hpx)
+			.radius(2)
+			.move(0, 0)
+			.fill('#cccccc')
+      .stroke({ color: '#666666', width: 2 });
+      
+		this.aliasSVG = this.svg
+			.text(this.config.alias.toString())
+			.font({
+						  family:   'Menlo'
+						, size:     12
+						, anchor:   'middle'
+						})
+			.move(wpx / 2, -15);
   }
 }
+
 class CONST extends Component {
   init() {
     this.create({

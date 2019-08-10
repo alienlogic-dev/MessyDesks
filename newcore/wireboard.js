@@ -31,7 +31,7 @@ class Wireboard {
 
   /* Generics */
   newComponent(componentName, id, x, y, config, needUpdate) {
-    needUpdate = needUpdate || true;
+    needUpdate = (needUpdate == null) ? true : needUpdate;
 
     componentName = componentName || '';
     x = x || 0;
@@ -258,6 +258,8 @@ class Wireboard {
   compile() {
     var compiledCode = [];
 
+    this.updateExecutionOrder();
+
     compiledCode.push(`class ${this.name} extends Component {`);
 
     // Create init
@@ -274,7 +276,7 @@ class Wireboard {
     var inputIdx = 0;
     for (var c of inputComponents) {
       var inputName = c.config.alias || inputIdx.toString();
-      createConfig[c.config.side.toLowerCase()].push(inputName);
+      createConfig[(c.config.side || 'left').toLowerCase()].push(inputName);
       inputIdx++;
     }
 
@@ -288,6 +290,37 @@ class Wireboard {
 
     compiledCode.push(`\t\tthis.create(${JSON.stringify(createConfig)})`);
 
+    // Create instances
+    var realComponents = this.components;//.filter(t => (t.constructor.name != 'INPUT') && (t.constructor.name != 'OUTPUT'));
+    for (var c of realComponents) {
+			compiledCode.push(`\t\tthis.${c.id} = new ${c.constructor.name}(${JSON.stringify(c.config)});`);
+    }
+
+    // Create connections
+    for (var w of this.wires) {
+      var _firstPin = null;
+      for (var p of w.references) {
+        if (_firstPin) {
+          compiledCode.push(`\t\tthis.${_firstPin.component.id}.connectToPin("${_firstPin.name}", this.${p.component.id}.getPin("${p.name}"))`);
+        } else
+          _firstPin = p;
+      }
+    }
+
+
+    compiledCode.push(`\t}`);
+
+    // Create execution
+    compiledCode.push(`\texecute(actual) {`);
+    for (var c of this.executionOrder) {
+      if (c.constructor.name != 'INPUT') {
+
+      } else if (c.constructor.name != 'OUTPUT') {
+
+      } else {
+        compiledCode.push(`\t\tthis.${c.id}.run();`);
+      }
+    }
     compiledCode.push(`\t}`);
 
 

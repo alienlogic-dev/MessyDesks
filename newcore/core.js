@@ -108,7 +108,7 @@ class Component extends Symbol {
     }
 
     var output = this.execute(actual);
-
+    
     if (output) {
       for (var p of this.pins) {
         if (output[p.name] != null) {
@@ -121,6 +121,10 @@ class Component extends Symbol {
 
   getPin(pinName) {
     return this.pins.filter(i => i.name == pinName)[0];
+  }
+
+  connectPin(pinName, toPin) {
+    return this.getPin(pinName).connectToPin(toPin);
   }
 
   writePin(pinName, value) {
