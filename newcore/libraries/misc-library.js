@@ -20,12 +20,13 @@ class CONST extends Component {
 
 class LED extends Component {
   init() {
+    this.create({ left: ['_I'] });
+  }
+
+  initGUI() {
     this.minWidth = 5;
     this.minHeight = 5;
-
     this.ledSVG = null;
-
-    this.create({ left: ['_I'] });
   }
 
   drawSymbol(svg) {
@@ -47,15 +48,16 @@ class LED extends Component {
 
 class TOGGLE extends Component {
   init() {
-    this.minWidth = 5;
-    this.minHeight = 5;
-
     this.value = false;
-
-    this.btnSVG = null;
 
     this.create({ right: ['_Q'] });
     this.writePin('Q', this.value);
+  }
+
+  initGUI() {
+    this.minWidth = 5;
+    this.minHeight = 5;
+    this.btnSVG = null;
   }
 
   drawSymbol(svg) {

@@ -9,6 +9,7 @@ class Symbol {
 		this.hpx = 0;
   }
 
+  initGUI() {}
 
 	calculateTextWidth() {
 		return (0 + 0 + 24) / 8;	

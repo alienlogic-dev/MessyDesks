@@ -40,6 +40,7 @@ class Wireboard {
 
     if (this.hasGUI) {
       var wireboardRef = this;
+      inst.initGUI();
       inst.pinClicked = function(p) { wireboardRef.pinClicked(p) };
       inst.createSVG();
       inst.svg.move(inst.x, inst.y);
@@ -166,6 +167,11 @@ class Wireboard {
           _firstPin = componentPin;
       }
     }
+  }
+
+  /* Wireboard core */
+  updateChildrensOfComponent(component) {
+
   }
 
   getAloneComponents() {
