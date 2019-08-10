@@ -1,3 +1,34 @@
+class INPUT extends Component {
+  init() {
+    this.create({
+      right: ['_Q']
+    })
+  }
+
+  initGUI() {
+    this.minWidth = 5;
+  }
+
+  defaultConfig() {
+    return { alias: '', side: 'left' };
+  }
+}
+
+class OUTPUT extends Component {
+  init() {
+    this.create({
+      left: ['_I']
+    })
+  }
+
+  initGUI() {
+    this.minWidth = 5;
+  }
+  
+  defaultConfig() {
+    return { alias: '' };
+  }
+}
 class CONST extends Component {
   init() {
     this.create({
@@ -80,6 +111,8 @@ class TOGGLE extends Component {
   mouseDblClickEvent(e) { return true; }
 }
 
+toolbox['INPUT'] = INPUT;
+toolbox['OUTPUT'] = OUTPUT;
 toolbox['CONST'] = CONST;
 toolbox['LED'] = LED;
 toolbox['TOGGLE'] = TOGGLE;

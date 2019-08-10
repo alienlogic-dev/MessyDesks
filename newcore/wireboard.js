@@ -1,5 +1,6 @@
 class Wireboard {
-  constructor(hasGUI) {
+  constructor(name, hasGUI) {
+    this.name = name || 'main';
     this.hasGUI = hasGUI || false;
 
     if (this.hasGUI) {
@@ -29,7 +30,9 @@ class Wireboard {
   }
 
   /* Generics */
-  newComponent(componentName, id, x, y, config) {
+  newComponent(componentName, id, x, y, config, needUpdate) {
+    needUpdate = needUpdate || true;
+
     componentName = componentName || '';
     x = x || 0;
     y = y || 0;
@@ -50,9 +53,14 @@ class Wireboard {
     }
 
     this.components.push(inst);
+
+    if (needUpdate)
+      this.updateExecutionOrder();
   }
 
-  newWire(fromPin, toPin) {
+  newWire(fromPin, toPin, needUpdate) {
+    needUpdate = needUpdate || true;
+
     var wire = fromPin.connectToPin(toPin);
     if (wire) {
       if (!this.wires.includes(wire))
@@ -64,6 +72,10 @@ class Wireboard {
         wire.svgs.push(con);
       }
     }
+    
+    if (needUpdate)
+      this.updateExecutionOrder();
+
     return wire;
   }
 
@@ -98,10 +110,15 @@ class Wireboard {
   }
 
   /* Source manager */
-  toSource() {
-    var source = {
-      components: [],
-      wires: []
+  export() {
+    var ret = {
+      name: this.name,
+      dependecies: [],
+      source: {
+        components: [],
+        wires: []
+      },
+      silicon: ''
     };
 
     // Components
@@ -116,7 +133,7 @@ class Wireboard {
       if (componentItem.config)
         newComponent.config = componentItem.config;
       
-      source.components.push(newComponent);
+      ret.source.components.push(newComponent);
     }
 
     // Wires
@@ -133,42 +150,42 @@ class Wireboard {
         newWire.push(newWireConnection);
       }
 
-      source.wires.push(newWire);
+      ret.source.wires.push(newWire);
     }
 
-    return source;
+    return ret;
   }
 
-  fromSource(source) {
+  import(src) {
     // Clear the wireboard
     initWireboard();
     this.components = [];
     this.wires = [];
 
-    // Components
-    for (var idx in source.components) {
-      var componentItem = source.components[idx];
+    this.name = src.name;
 
-      this.newComponent(componentItem.name, componentItem.id, componentItem.x, componentItem.y, componentItem.config);
+    // Components
+    for (var componentItem of src.source.components) {
+      this.newComponent(componentItem.name, componentItem.id, componentItem.x, componentItem.y, componentItem.config, false);
 
       this.componentsIdx = Math.max(this.componentsIdx, +(componentItem.id.replace('c','')) + 1);
     }
 
     // Wires
-    for (var idx = 0; idx < source.wires.length; idx++) {
-      var wireItem = source.wires[idx];
-
+    for (var wireItem of src.source.wires) {
       var _firstPin = null;
       for (var c of wireItem) {
         var componentRef = this.components.filter(t => t.id == c.cid)[0];
         var componentPin = componentRef.getPin(c.pn);
 
         if (_firstPin) {
-          this.newWire(_firstPin, componentPin);
+          this.newWire(_firstPin, componentPin, false);
         } else
           _firstPin = componentPin;
       }
     }
+
+    this.updateExecutionOrder();
   }
 
   /* Wireboard core */
@@ -239,5 +256,43 @@ class Wireboard {
 
   /* Compiler */
   compile() {
+    var compiledCode = [];
+
+    compiledCode.push(`class ${this.name} extends Component {`);
+
+    // Create init
+    compiledCode.push(`\tinit() {`);
+
+    var createConfig = {
+      top: [],
+      left: [],
+      bottom: [],
+      right: []
+    };
+
+    var inputComponents = this.components.filter(t => t.constructor.name == 'INPUT');
+    var inputIdx = 0;
+    for (var c of inputComponents) {
+      var inputName = c.config.alias || inputIdx.toString();
+      createConfig[c.config.side.toLowerCase()].push(inputName);
+      inputIdx++;
+    }
+
+    var outputComponents = this.components.filter(t => t.constructor.name == 'OUTPUT');
+    var outputIdx = 0;
+    for (var c of outputComponents) {
+      var inputName = c.config.alias || outputIdx.toString();
+      createConfig.right.push(inputName);
+      outputIdx++;
+    }
+
+    compiledCode.push(`\t\tthis.create(${JSON.stringify(createConfig)})`);
+
+    compiledCode.push(`\t}`);
+
+
+    compiledCode.push(`}`);
+
+  	return compiledCode.join('\n');
   }
 }

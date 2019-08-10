@@ -3,7 +3,7 @@ var wireboardWidth = 256;
 var wireboardHeight = 256;
 var draw = SVG('drawing').size(wireboardWidth*8, wireboardHeight*8);
 
-var mainWireboard = new Wireboard(true);
+var mainWireboard = new Wireboard('main', true);
 
 var toolbox = { };
 
@@ -52,7 +52,7 @@ setTimeout(simEvent, simInterval);
 
 setInterval(function() {
 	mainWireboard.simulate();
-	
+
 	for (var idx = 0; idx < mainWireboard.components.length; idx++) {
 		var componentItem = mainWireboard.components[idx];
 
