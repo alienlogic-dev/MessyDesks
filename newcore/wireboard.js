@@ -26,15 +26,19 @@ class Wireboard {
     parentSVG.add(this.wiresSVG);
   }
 
-  /* Components manager */
-  addComponent(componentName, config = null) {
+  /* Generics */
+  newComponent(componentName, id, x, y, config) {
+    componentName = componentName || '';
+    x = x || 0;
+    y = y || 0;
+    config = config || null;
+
     var inst = new toolbox[componentName](config);
-    inst.id = 'c' + this.componentsIdx++;
+    inst.id = id || ('c' + this.componentsIdx++);
+    inst.x = x;
+    inst.y = y;
 
     if (this.hasGUI) {
-      inst.x = Math.round(document.documentElement.scrollLeft / 8) * 8 + 200;
-      inst.y = Math.round(document.documentElement.scrollTop / 8) * 8 + 200;
-  
       var wireboardRef = this;
       inst.pinClicked = function(p) { wireboardRef.pinClicked(p) };
       inst.createSVG();
@@ -43,6 +47,34 @@ class Wireboard {
     }
 
     this.components.push(inst);
+  }
+
+  newWire(fromPin, toPin) {
+    var wire = fromPin.connectToPin(toPin);
+    if (wire) {
+      if (!this.wires.includes(wire))
+        this.wires.push(wire);
+
+      if (this.hasGUI) {
+        var con = new WireConnection(fromPin.svg, toPin.svg, this.wiresSVG);
+        wire.svgs = wire.svgs || [];
+        wire.svgs.push(con);
+      }
+    }
+    return wire;
+  }
+
+  /* Components manager */
+  addComponent(componentName, config = null) {
+    var px = 0;
+    var py = 0;
+
+    if (this.hasGUI) {
+      px = Math.round(document.documentElement.scrollLeft / 8) * 8 + 200;
+      py = Math.round(document.documentElement.scrollTop / 8) * 8 + 200;
+    }
+
+    this.newComponent(componentName, null, px, py, config);
   }
 
   /* Wires manager */
@@ -56,15 +88,8 @@ class Wireboard {
         return;
       }
   
-      var wire = this.pinSelected.connectToPin(pin);
-  
-      if (wire) {
-        if (!this.wires.includes(wire))
-          this.wires.push(wire);
-  
-        var con = new WireConnection(this.pinSelected.svg, pin.svg, this.wiresSVG);
-      }
-  
+      this.newWire(this.pinSelected, pin);
+
       this.pinSelected = null;
     }
   }
@@ -121,20 +146,7 @@ class Wireboard {
     for (var idx in source.components) {
       var componentItem = source.components[idx];
 
-      var inst = new toolbox[componentItem.name](componentItem.config);
-      inst.id = componentItem.id;
-      inst.x = componentItem.x;
-      inst.y = componentItem.y;
-
-      if (this.hasGUI) {
-        var wireboardRef = this;
-        inst.pinClicked = function(p) { wireboardRef.pinClicked(p) };
-        inst.createSVG();
-        inst.svg.move(inst.x, inst.y);
-        this.componentsSVG.add(inst.svg);
-      }
-
-      this.components.push(inst);
+      this.newComponent(componentItem.name, componentItem.id, componentItem.x, componentItem.y, componentItem.config);
 
       this.componentsIdx = Math.max(this.componentsIdx, +(componentItem.id.replace('c','')) + 1);
     }
@@ -143,23 +155,16 @@ class Wireboard {
     for (var idx = 0; idx < source.wires.length; idx++) {
       var wireItem = source.wires[idx];
 
-      var newWire = new Wire();
-
       var _firstPin = null;
       for (var c of wireItem) {
         var componentRef = this.components.filter(t => t.id == c.cid)[0];
         var componentPin = componentRef.getPin(c.pn);
-        componentPin.connectToWire(newWire);
 
-        if (this.hasGUI) {
-          if (_firstPin) {
-            var con = new WireConnection(_firstPin.svg, componentPin.svg, this.wiresSVG);
-          } else
-            _firstPin = componentPin;
-        }
+        if (_firstPin) {
+          this.newWire(_firstPin, componentPin);
+        } else
+          _firstPin = componentPin;
       }
-
-      this.wires.push(newWire);
     }
   }
 
@@ -175,6 +180,19 @@ class Wireboard {
     }
   
     return aloneComponents;
+  }
+
+  getDependenciesOfComponent(component, order, callStack) {
+    if (!order) order = [];
+
+    if (!callStack) callStack = [];
+    callStack.push(component);
+
+
+
+    callStack.pop();
+
+    return order;
   }
 
   /* Compiler */
