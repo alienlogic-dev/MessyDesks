@@ -188,13 +188,33 @@ class Wireboard {
     return aloneComponents;
   }
 
-  getDependenciesOfComponent(component, order, callStack) {
+  generateExecutionOrderOfComponent(component, order, callStack) {
     if (!order) order = [];
 
     if (!callStack) callStack = [];
     callStack.push(component);
 
+    // Pins NOT on the right are treated as inputs
+    var inputConnectedPins = component.pins.filter(p => (p.side != 'right') && (p.wire != null));
 
+    for (var p of inputConnectedPins) {
+      var sourcePins = p.wire.references.filter(t => t.side == 'right');
+
+      for (var s of sourcePins) {
+        var sourceComponent = s.component;
+
+        if (sourceComponent) {
+          if (!callStack.includes(sourceComponent)) {
+            if (order.includes(sourceComponent)) {
+              var fIdx = order.indexOf(sourceComponent);
+              order.splice(fIdx, 1);
+            }
+            order.push(sourceComponent);
+            this.generateExecutionOrderOfComponent(sourceComponent, order, callStack);
+          }
+        }
+      }
+    }
 
     callStack.pop();
 
