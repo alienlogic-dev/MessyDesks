@@ -1,6 +1,7 @@
 class Symbol {
   constructor() {
 		this.id = '';
+		this.isSelected = false;
 
 		this.x = 0;
     this.minWidth = 5;
@@ -191,6 +192,16 @@ class Symbol {
 	dragend(e) {
 	}
 
+	/* Selection */
+	select() {
+		this.svgBody.stroke({ color: '#0000ff', width: 2 });
+		this.isSelected = true;
+	}
+	deselect() {
+		this.svgBody.stroke({ color: '#666666', width: 2 });
+		this.isSelected = false;
+	}
+	
 	/* Refresh */	
 	draw() {}
 

@@ -36,6 +36,87 @@ function initWireboard() {
 	mainWireboard.addToParentSVG(draw);
 }
 
+draw.on('click', function(e) {
+	if (!e.metaKey) // Use CMD or CTRL key for multiple selection
+		for (var c of mainWireboard.components)
+			c.deselect();
+
+	for (var c of mainWireboard.components) {
+		if (pointInRect(e, c.svg.rbox())) {
+			if (!e.metaKey)
+				c.select();
+			else
+				if (c.isSelected)
+					c.deselect();
+				else
+					c.select();
+
+			break;
+		}
+	}
+});
+
+
+$(document).keydown(function(e) {
+	if (!($('#modalComponentOptions').data('bs.modal') || {})._isShown) {
+		//console.log(e.keyCode, e.metaKey, e.shiftKey, e.altKey);
+		if ((e.keyCode == 79) && e.metaKey) { // CMD/CTRL + O -> Open project
+			$('#file').click();
+			return false;
+		}
+
+		if ((e.keyCode == 83) && e.metaKey) { // CMD/CTRL + S -> Save project
+			saveProjectToFile();
+			return false;
+		}
+
+		if ((e.keyCode == 65) && e.metaKey) { // CMD/CTRL + A -> Select all
+			for (var idx in components)
+				components[idx].select();
+			return false;
+		}
+
+		if ((e.keyCode == 68) && e.metaKey) { // CMD/CTRL + D -> Duplicate component
+			var selectedComponent = null;
+			for (var idx = components.length - 1; idx >= 0; idx--) {
+				var componentItem = components[idx];
+
+				if (componentItem.isSelected) {
+					selectedComponent = componentItem;
+					break;
+				}
+			}
+
+			if (selectedComponent) {
+				var ret = addComponent(selectedComponent.constructor.name, selectedComponent.config);
+				ret.svg.move(Math.round((document.querySelector('.workbox').scrollLeft + mousePosition.x - 150) / 8) * 8, Math.round((document.querySelector('.workbox').scrollTop + mousePosition.y) / 8) * 8);
+			}
+
+			return false;
+		}
+
+		if ((e.keyCode == 90) && e.metaKey && !e.shiftKey) { // CMD/CTRL + Z -> Undo
+			undo();
+			return false;
+		}
+
+		if ((e.keyCode == 90) && e.metaKey && e.shiftKey) { // CMD/CTRL + SHIFT + Z -> Redo
+			redo();
+			return false;
+		}
+
+		if (e.keyCode == 8) { // DEL -> Delete selected components
+			for (var idx = components.length - 1; idx >= 0; idx--) {
+				var componentItem = components[idx];
+
+				if (componentItem.isSelected)
+					removeComponent(componentItem);
+			}
+			return false;
+		}
+	}
+});
+
 function componentFromSource(src, forceName) {
 	var wireboard = new Wireboard(forceName || '');
 	wireboard.fromSource(src);
@@ -52,6 +133,27 @@ function componentFromWireboard(wireboard, forceName) {
 
 	wireboard.clear();
 	return ret;
+}
+
+function newEmptyComponent() {
+	var name = $('#newComponentName').val();
+
+	if ((name != null) && (name != ""))
+		if (name in toolbox)
+			alert('Component alredy exists!');
+		else {
+			$('#modalNewComponent').modal('hide');
+			componentFromSource({
+				name: name,
+				source:	{
+					components: [],
+					wires: []
+				}
+			});
+
+			var inst = new toolbox[name]();
+			startComponentEdit(inst);
+		}
 }
 
 /* Toolbox */
@@ -83,6 +185,8 @@ function drawEditbox() {
 	for (var idx in wireboardStack)
 		$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + wireboardStack[idx].name + '</li>');
 	
+	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + mainWireboard.name + '</li>');
+
 //	drawSiliconbox();
 }
 

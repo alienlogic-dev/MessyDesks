@@ -103,6 +103,10 @@ class Wireboard {
     this.newComponent(componentName, null, px, py, config);
   }
 
+  removeSelectedComponents() {
+
+  }
+
   /* Wires manager */
   pinClicked(pin) {
     if (this.pinSelected == null) {
@@ -118,6 +122,10 @@ class Wireboard {
 
       this.pinSelected = null;
     }
+  }
+
+  disconnectWireFromPin(fromPin) {
+    
   }
 
   /* Source manager */
