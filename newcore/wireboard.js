@@ -93,16 +93,21 @@ class Wireboard {
         this.wires.splice(wIdx, 1);
 
         if (this.hasGUI) {
-          var con = new WireConnection(fromPin.svg, toPin.svg, this.wiresSVG);
-          keepWire.svgs = keepWire.svgs || [];
-          keepWire.svgs.push(con);
+          keepWire.refresh();
         }
       }
     } else {
       var reuseWire = null;
       if (fromPin.wire != null) reuseWire = fromPin.wire;
       if (toPin.wire != null) reuseWire = toPin.wire;
-      if (reuseWire == null) reuseWire = new Wire();
+      if (reuseWire == null) {
+        reuseWire = new Wire();
+
+        if (this.hasGUI) {
+          reuseWire.createSVG();
+          this.wiresSVG.add(reuseWire.svg);
+        }
+      }
   
       if (fromPin.wire != reuseWire) reuseWire.references.push(fromPin);
       fromPin.wire = reuseWire;
@@ -114,9 +119,7 @@ class Wireboard {
         this.wires.push(reuseWire);
 
       if (this.hasGUI) {
-        var con = new WireConnection(fromPin.svg, toPin.svg, this.wiresSVG);
-        reuseWire.svgs = reuseWire.svgs || [];
-        reuseWire.svgs.push(con);
+        reuseWire.refresh();
       }
     }
 
@@ -182,10 +185,17 @@ class Wireboard {
       var pIdx = pin.wire.references.indexOf(pin);
       pin.wire.references.splice(pIdx, 1);
 
+      // Wire can only exists with 2 pin or more connected
       if (pin.wire.references.length < 2) {
+        // Remove last single connection to alone pin
+        for (var rIdx = 0; rIdx < pin.wire.references.length; rIdx++)
+          pin.wire.references[rIdx].wire = null;
+
         var wIdx = this.wires.indexOf(pin.wire);
         this.wires.splice(wIdx, 1);          
       }
+      
+      pin.wire.refresh();
     }
 
     if (needUpdate)

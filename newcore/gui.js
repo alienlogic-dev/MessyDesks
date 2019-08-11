@@ -54,6 +54,7 @@ class Symbol {
 	
 			this.svg.draggable({ snapToGrid: 8 });
 			this.svg.on('dragstart', this.dragstart, this);
+			this.svg.on('dragmove', this.dragmove, this);
 			this.svg.on('dragend', this.dragend, this);
 		} else
 			this.svg.clear();
@@ -191,6 +192,12 @@ class Symbol {
 	dragstart(e) {
 	}
 
+	dragmove(e) {
+		for (var p of this.pins)
+			if (p.wire)
+				p.wire.refresh();
+	}
+
 	dragend(e) {
 	}
 
@@ -226,5 +233,31 @@ class Symbol {
 
 class Cable {
   constructor() {
+		this.svg = null;
+		
+	}
+
+	createSVG() {
+		this.svg = new SVG.G();
+		this.wireSVG = this.svg.polyline([]).fill('none').stroke({ width: 1 });
+	}
+
+	refresh() {
+		this.draw();
+	}
+
+	draw() {
+		var points = [];
+
+		for (var p of this.references) {
+			if (p.svg) {
+				var pcx = p.svg.cx() + p.svg.parent().x();
+				var pcy = p.svg.cy() + p.svg.parent().y();
+
+				points.push([ pcx, pcy ]);
+			}
+		}
+
+		this.wireSVG.plot(points);
 	}
 }
