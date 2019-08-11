@@ -72,27 +72,58 @@ class Wireboard {
   newWire(fromPin, toPin, needUpdate) {
     needUpdate = needUpdate || true;
 
-    var wire = fromPin.connectToPin(toPin);
-    if (wire) {
-      if (wire.references == null) { // Remove wire
-        var wIdx = this.wires.indexOf(wire);
+    if ((fromPin.wire != null) && (toPin.wire != null)) {
+      if (fromPin.wire == toPin.wire) // Same wire, do nothing
+        return null;
+      else {
+        console.log('merge wires');
+
+        // Keep the 'biggest' wire
+        var keepWire = fromPin.wire;
+        if (toPin.wire.references.length > keepWire.references.length) keepWire = toPin.wire;
+
+        var deleteWire = (fromPin.wire == keepWire) ? toPin.wire : fromPin.wire;
+
+        keepWire.references = keepWire.references.concat(deleteWire.references);
+
+        for (var rp of deleteWire.references)
+          rp.wire = keepWire;
+        
+        deleteWire.references = null;
+
+        var wIdx = this.wires.indexOf(deleteWire);
         this.wires.splice(wIdx, 1);
-      } else {
-        if (!this.wires.includes(wire))
-          this.wires.push(wire);
 
         if (this.hasGUI) {
           var con = new WireConnection(fromPin.svg, toPin.svg, this.wiresSVG);
-          wire.svgs = wire.svgs || [];
-          wire.svgs.push(con);
+          keepWire.svgs = keepWire.svgs || [];
+          keepWire.svgs.push(con);
         }
       }
+    } else {
+      var reuseWire = null;
+      if (fromPin.wire != null) reuseWire = fromPin.wire;
+      if (toPin.wire != null) reuseWire = toPin.wire;
+      if (reuseWire == null) reuseWire = new Wire();
+  
+      if (fromPin.wire != reuseWire) reuseWire.references.push(fromPin);
+      fromPin.wire = reuseWire;
+  
+      if (toPin.wire != reuseWire) reuseWire.references.push(toPin);
+      toPin.wire = reuseWire;
+  
+      if (!this.wires.includes(reuseWire))
+        this.wires.push(reuseWire);
+
+      if (this.hasGUI) {
+        var con = new WireConnection(fromPin.svg, toPin.svg, this.wiresSVG);
+        reuseWire.svgs = reuseWire.svgs || [];
+        reuseWire.svgs.push(con);
+      }
     }
-    
+
     if (needUpdate)
       this.updateExecutionOrder();
-
-    return wire;
   }
 
   /* Components manager */

@@ -16,44 +16,6 @@ class Pin {
     this.isHidden = name.startsWith('_'); // Name starts with _
   }
 
-  connectToPin(toPin) {
-    // Same wire check
-    if ((this.wire != null) && (toPin.wire != null)) {
-      if (this.wire == toPin.wire)
-        return null;
-      else {
-        console.log('merge wires');
-
-        // Keep the 'biggest' wire
-        var keepWire = this.wire;
-        if (toPin.wire.references.length > keepWire.references.length) keepWire = toPin.wire;
-
-        var deleteWire = (this.wire == keepWire) ? toPin.wire : this.wire;
-
-        keepWire.references = keepWire.references.concat(deleteWire.references);
-
-        for (var rp of deleteWire.references)
-          rp.wire = keepWire;
-        
-        deleteWire.references = null;
-        return deleteWire;
-      }
-    } else {
-      var reuseWire = null;
-      if (this.wire != null) reuseWire = this.wire;
-      if (toPin.wire != null) reuseWire = toPin.wire;
-      if (reuseWire == null) reuseWire = new Wire();
-  
-      if (this.wire != reuseWire) reuseWire.references.push(this);
-      this.wire = reuseWire;
-  
-      if (toPin.wire != reuseWire) reuseWire.references.push(toPin);
-      toPin.wire = reuseWire;
-  
-      return reuseWire;
-    }
-  }
-
   connectToWire(toWire) {
     // Same wire check
     if (this.wire != null)
@@ -139,10 +101,6 @@ class Component extends Symbol {
 
   getPin(pinName) {
     return this.pins.filter(i => i.name == pinName)[0];
-  }
-
-  connectPinToPin(pinName, toPin) {
-    return this.getPin(pinName).connectToPin(toPin);
   }
 
   connectPinToWire(pinName, wire) {
