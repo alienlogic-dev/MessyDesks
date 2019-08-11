@@ -223,3 +223,8 @@ class Symbol {
 		return null;
 	}
 }
+
+class Cable {
+  constructor() {
+	}
+}

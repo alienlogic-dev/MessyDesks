@@ -76,8 +76,6 @@ class Wireboard {
       if (fromPin.wire == toPin.wire) // Same wire, do nothing
         return null;
       else {
-        console.log('merge wires');
-
         // Keep the 'biggest' wire
         var keepWire = fromPin.wire;
         if (toPin.wire.references.length > keepWire.references.length) keepWire = toPin.wire;
@@ -140,14 +138,26 @@ class Wireboard {
   }
 
   removeSelectedComponents() {
+    for (var cIdx = this.components.length - 1; cIdx >= 0; cIdx--) {
+      var c = this.components[cIdx];
 
+      if (c.isSelected) {
+        for (var p of c.pins)
+          this.disconnectPinFromWire(p, false);
+        
+        c.svg.remove();
+        this.components.splice(cIdx, 1);          
+      }
+    }
+
+    this.updateExecutionOrder();
   }
 
   /* Wires manager */
   pinClicked(pin, removeWire) {
     if (removeWire) {
       this.pinSelected = null;
-      this.disconnectWireFromPin(pin);
+      this.disconnectPinFromWire(pin);
     } else {
       if (this.pinSelected == null) {
         this.pinSelected = pin;
@@ -165,8 +175,21 @@ class Wireboard {
     }
   }
 
-  disconnectWireFromPin(fromPin) {
+  disconnectPinFromWire(pin, needUpdate) {
+    needUpdate = needUpdate || true;
 
+    if (pin.wire != null) {
+      var pIdx = pin.wire.references.indexOf(pin);
+      pin.wire.references.splice(pIdx, 1);
+
+      if (pin.wire.references.length < 2) {
+        var wIdx = this.wires.indexOf(pin.wire);
+        this.wires.splice(wIdx, 1);          
+      }
+    }
+
+    if (needUpdate)
+      this.updateExecutionOrder();
   }
 
   /* Source manager */

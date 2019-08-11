@@ -106,12 +106,7 @@ $(document).keydown(function(e) {
 		}
 
 		if (e.keyCode == 8) { // DEL -> Delete selected components
-			for (var idx = components.length - 1; idx >= 0; idx--) {
-				var componentItem = components[idx];
-
-				if (componentItem.isSelected)
-					removeComponent(componentItem);
-			}
+			mainWireboard.removeSelectedComponents();
 			return false;
 		}
 	}

@@ -1,5 +1,7 @@
-class Wire {
+class Wire extends Cable {
   constructor() {
+    super();
+    
     this.value = null;
     this.references = [];
   }
