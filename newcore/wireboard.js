@@ -93,6 +93,7 @@ class Wireboard {
         this.wires.splice(wIdx, 1);
 
         if (this.hasGUI) {
+          deleteWire.svg.remove();
           keepWire.refresh();
         }
       }

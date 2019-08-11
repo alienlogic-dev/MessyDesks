@@ -36,8 +36,8 @@ class NAND extends Component {
     if (n < 2) n = 2;
 
     this.create({
-      left: [{ prefix: '', count: n }],
-      right: ['Q']
+      left: [{ prefix: '_', count: n }],
+      right: ['_Q']
     })
   }
 

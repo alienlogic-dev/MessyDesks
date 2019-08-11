@@ -15,8 +15,11 @@ function spyComponent(exclude, source, dest) {
 				if (value instanceof Component) {
 					//console.log(`Component - ${key}:`, value, dest, key, dest[key]);
 					spyComponent(exclude, value, dest[key]);
+				} else if (value instanceof Wire) {
+					//console.log(`Wire - ${key}:`, value, dest, key);
+					dest[key].value = value.value;
 				} else {
-					//onsole.log(`Other - ${key}:`, value, dest, key);
+					//console.log(`Other - ${key}:`, value, dest, key);
 					dest[key] = value;
 				}
 			}

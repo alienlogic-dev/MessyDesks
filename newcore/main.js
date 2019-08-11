@@ -58,7 +58,7 @@ draw.on('click', function(e) {
 
 
 $(document).keydown(function(e) {
-	if (!($('#modalComponentOptions').data('bs.modal') || {})._isShown) {
+	if ((!($('#modalComponentOptions').data('bs.modal') || {})._isShown) && (!($('#modalNewComponent').data('bs.modal') || {})._isShown)) {
 		//console.log(e.keyCode, e.metaKey, e.shiftKey, e.altKey);
 		if ((e.keyCode == 79) && e.metaKey) { // CMD/CTRL + O -> Open project
 			$('#file').click();
@@ -214,6 +214,13 @@ function startComponentEdit(component) {
 			return map;
 	}, {});
 
+	var wireIdx = 0;
+	destWireboard = newWireboard.wires.reduce(function(map, obj) {
+			map[`w${wireIdx}`] = obj;
+			wireIdx++;
+			return map;
+	}, destWireboard);
+
 	spyComponent(tck, component, destWireboard);
 	simStep(newWireboard);
 
@@ -280,6 +287,6 @@ function simStep(wireboard) {
 }
 
 setTimeout(function() {
-	//componentFromSource(JSON.parse('{"name":"main","dependecies":[],"source":{"components":[{"id":"c0","name":"AND","x":920,"y":1040,"config":{"pinCount":2}},{"id":"c1","name":"INPUT","x":608,"y":1040,"config":{"alias":"","side":"left"}},{"id":"c2","name":"INPUT","x":656,"y":1096,"config":{"alias":"","side":"left"}},{"id":"c3","name":"OUTPUT","x":1064,"y":1040,"config":{"alias":""}}],"wires":[[{"cid":"c2","pn":"Q"},{"cid":"c0","pn":"1"}],[{"cid":"c0","pn":"0"},{"cid":"c1","pn":"Q"}],[{"cid":"c3","pn":"I"},{"cid":"c0","pn":"Q"}]]},"silicon":""}'))
-	//mainWireboard.fromSource(JSON.parse('{"name":"main","dependecies":[],"source":{"components":[{"id":"c0","name":"TOGGLE","x":608,"y":1064,"config":{}},{"id":"c1","name":"TOGGLE","x":608,"y":1008,"config":{}},{"id":"c2","name":"main","x":664,"y":1040,"config":{}},{"id":"c3","name":"LED","x":824,"y":1040,"config":{}}],"wires":[[{"cid":"c0","pn":"Q"},{"cid":"c2","pn":"I1"}],[{"cid":"c2","pn":"I0"},{"cid":"c1","pn":"Q"}],[{"cid":"c2","pn":"O0"},{"cid":"c3","pn":"I"}]]},"silicon":""}'))
+	componentFromSource(JSON.parse('{"name":"flipflop","source":{"components":[{"id":"c0","name":"INPUT","x":608,"y":832,"config":{"alias":"I0","side":"left"}},{"id":"c1","name":"INPUT","x":608,"y":896,"config":{"alias":"I1","side":"left"}},{"id":"c2","name":"OUTPUT","x":840,"y":832,"config":{"alias":"O0"}},{"id":"c3","name":"NAND","x":720,"y":832,"config":{"pinCount":2}},{"id":"c4","name":"NAND","x":720,"y":888,"config":{"pinCount":2}}],"wires":[[{"cid":"c3","pn":"0"},{"cid":"c0","pn":"Q"}],[{"cid":"c1","pn":"Q"},{"cid":"c4","pn":"1"}],[{"cid":"c4","pn":"0"},{"cid":"c3","pn":"Q"},{"cid":"c2","pn":"I"}],[{"cid":"c4","pn":"Q"},{"cid":"c3","pn":"1"}]]}}'))
+	mainWireboard.fromSource(JSON.parse('{"name":"main","source":{"components":[{"id":"c0","name":"flipflop","x":768,"y":832,"config":{}},{"id":"c1","name":"LED","x":864,"y":816,"config":{}},{"id":"c2","name":"TOGGLE","x":608,"y":832,"config":{}},{"id":"c3","name":"TOGGLE","x":608,"y":896,"config":{}}],"wires":[[{"cid":"c1","pn":"I"},{"cid":"c0","pn":"O0"}],[{"cid":"c2","pn":"Q"},{"cid":"c0","pn":"I0"}],[{"cid":"c3","pn":"Q"},{"cid":"c0","pn":"I1"}]]}}'))
 }, 1000);
