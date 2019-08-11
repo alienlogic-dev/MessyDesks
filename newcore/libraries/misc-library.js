@@ -167,8 +167,47 @@ class TOGGLE extends Component {
   mouseDblClickEvent(e) { return true; }
 }
 
+
+class COUNTER extends Component {
+  init() {
+    this.create({ left: ['_I'] });
+    this.count = 0;
+    this.oldValue = false;
+  }
+
+  initGUI() {
+    this.minWidth = 5;
+    this.minHeight = 5;
+
+		this.countSVG = null;
+  }
+
+  drawSymbol(svg) {
+    this.countSVG = svg
+    .text(this.count.toString())
+    .font({
+            family:   'Menlo'
+          , size:     12
+          , anchor:   'middle'
+          })
+    .move(this.wpx / 2, -15);
+  }
+
+  execute(actual) {
+    if (this.oldValue != actual.left.I) {
+      this.count++;
+    }
+    this.oldValue = actual.left.I;
+  }
+
+  draw() {
+    this.countSVG.text(this.count.toString());
+  }
+}
+
 toolbox['INPUT'] = INPUT;
 toolbox['OUTPUT'] = OUTPUT;
 toolbox['CONST'] = CONST;
 toolbox['LED'] = LED;
 toolbox['TOGGLE'] = TOGGLE;
+toolbox['COUNTER'] = COUNTER;

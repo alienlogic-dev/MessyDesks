@@ -6,10 +6,21 @@ var draw = SVG('drawing').size(wireboardWidth*8, wireboardHeight*8);
 var mainWireboard = new Wireboard('main', true);
 var wireboardStack = [];
 
-var toolbox = { };
+var toolboxChangeTimer = null;
+const toolboxChangeWatcher = {
+	set(target, property, value) {
+		target[property] = value;
+
+		if (toolboxChangeTimer) clearTimeout(toolboxChangeTimer);
+		toolboxChangeTimer = setTimeout(function() { updateToolboxBar() }, 250);
+
+    return true;
+	}
+}
+
+var toolbox = new Proxy({}, toolboxChangeWatcher);
 
 function initWireboard() {
-	console.log('initWireboard');
 	draw.clear();
 
 	var pattern = draw.pattern(8, 8, function(add) {
@@ -43,7 +54,45 @@ function componentFromWireboard(wireboard, forceName) {
 	return ret;
 }
 
-var _debug = null;
+/* Toolbox */
+function addComponentFromToolbox(componentName) {
+	mainWireboard.addComponent(componentName);
+}
+
+function updateToolboxBar() {
+	var toolboxDiv = $('#toolbox');
+	toolboxDiv.html('');
+
+	for (var t in toolbox) {
+		var newToolboxButton = `<li class="list-group-item p-2 text-right" onclick="addComponentFromToolbox('${t}')">${t}</li>`;
+		toolboxDiv.append(newToolboxButton);
+	}
+}
+
+/* Editor */
+function drawEditbox() {
+	if (wireboardStack.length > 0) {
+		$('#editbox').removeClass('hidden');
+		$('#btnSaveProject, #btnOpenProject, #btnSwitchCompiler, #btnCompileBoard').addClass('hide');
+	} else {
+		$('#editbox').addClass('hidden');
+		$('#btnSaveProject, #btnOpenProject, #btnSwitchCompiler, #btnCompileBoard').removeClass('hide');
+	}
+
+	$('#editbox .breadcrumb').html('');
+	for (var idx in wireboardStack)
+		$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + wireboardStack[idx].name + '</li>');
+	
+//	drawSiliconbox();
+}
+
+function cancelLastComponentEdit() {
+	endComponentEdit(true);
+}
+
+function endLastComponentEdit() {
+	endComponentEdit(false);
+}
 
 function startComponentEdit(component) {
 	wireboardStack.push(mainWireboard);
@@ -53,27 +102,13 @@ function startComponentEdit(component) {
 	newWireboard.fromSource(component.constructor.source);
 	newWireboard.addToParentSVG(draw);
 
-	_debug = component;
 	var tc = new Component()
 	tc.init();
 	tc.initGUI();
 	tc.createSVG();
 	tc.pinClicked = null;
+
 	var tck = Object.keys(tc);
-/*
-
-	for (let [key, value] of Object.entries(component)) {
-		if (value instanceof Component) {
-
-			for (let [key, value] of Object.entries(component)) {
-			}
-			var ck = Object.keys(value);
-			var userFields = arrayDiff(ck, tck);
-
-			console.log(`${key}: ${value}`, userFields);
-		}
-	}
-*/
 
 	var destWireboard = newWireboard.components.reduce(function(map, obj) {
 			map[obj.id] = obj;
@@ -81,28 +116,19 @@ function startComponentEdit(component) {
 	}, {});
 
 	spyComponent(tck, component, destWireboard);
+	simStep(newWireboard);
 
 	mainWireboard = newWireboard;
-}
 
-function spyComponent(exclude, source, dest) {
-	for (let [key, value] of Object.entries(source)) {
-		if (!(value instanceof SVG.Element)) {
-			if (!exclude.includes(key)) {
-				if (value instanceof Component) {
-					console.log(`Component - ${key}:`, value, dest, key, dest[key]);
-					spyComponent(exclude, value, dest[key]);
-				} else {
-					console.log(`Other - ${key}:`, value, dest, key);
-					dest[key] = value;
-				}
-			}
-		}
-	}
+	drawEditbox();
 }
 
 function endComponentEdit(cancel) {
 	cancel = (cancel == null) ? false : cancel;
+
+	if (!cancel) {
+		componentFromWireboard(mainWireboard);
+	}
 
 	mainWireboard.removeFromParentSVG();
 
@@ -110,7 +136,11 @@ function endComponentEdit(cancel) {
 	oldWireboard.addToParentSVG(draw);
 
 	mainWireboard = oldWireboard;
+
+	drawEditbox();
 }
+
+
 
 var siliconEditor = null;
 $(window).on('load', function() {
@@ -140,21 +170,15 @@ var simEvent = function() {
 setTimeout(simEvent, simInterval);
 
 setInterval(function() {
-	mainWireboard.simulate();
-
-	for (var idx = 0; idx < mainWireboard.components.length; idx++) {
-		var componentItem = mainWireboard.components[idx];
-
-		componentItem.refresh();
-/*
-		if (componentItem instanceof INPUT) {
-		} else if (componentItem instanceof OUTPUT) {
-		} else {
-			componentItem.refresh();
-		}
-*/
-	}
+	simStep(mainWireboard);
 }, 250);
+
+function simStep(wireboard) {
+	wireboard.simulate();
+
+	for (var c of wireboard.components)
+		c.refresh();
+}
 
 setTimeout(function() {
 		componentFromSource(JSON.parse('{"name":"main","dependecies":[],"source":{"components":[{"id":"c0","name":"AND","x":920,"y":1040,"config":{"pinCount":2}},{"id":"c1","name":"INPUT","x":608,"y":1040,"config":{"alias":"","side":"left"}},{"id":"c2","name":"INPUT","x":656,"y":1096,"config":{"alias":"","side":"left"}},{"id":"c3","name":"OUTPUT","x":1064,"y":1040,"config":{"alias":""}}],"wires":[[{"cid":"c2","pn":"Q"},{"cid":"c0","pn":"1"}],[{"cid":"c0","pn":"0"},{"cid":"c1","pn":"Q"}],[{"cid":"c3","pn":"I"},{"cid":"c0","pn":"Q"}]]},"silicon":""}'))
