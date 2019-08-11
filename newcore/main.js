@@ -52,48 +52,54 @@ function startComponentEdit(component) {
 	var newWireboard = new Wireboard(component.constructor.name, true);
 	newWireboard.fromSource(component.constructor.source);
 	newWireboard.addToParentSVG(draw);
-/*
-	// Apply inputs and outputs actual values
-	var newWireboardInputComponents = newWireboard.components.filter(t => t.constructor.name == 'INPUT');
-	var inputIdx = 0;
-	for (var c of newWireboardInputComponents) {
-		var cAlias = ((c.config.alias == null) || (c.config.alias == '')) ? inputIdx.toString() : c.config.alias;
-		inputIdx++;
-
-		var pinValue = component.readPin(cAlias);
-		c.config.value = pinValue;
-	}
-*/
 
 	_debug = component;
-
 	var tc = new Component()
 	tc.init();
 	tc.initGUI();
 	tc.createSVG();
 	tc.pinClicked = null;
+	var tck = Object.keys(tc);
+/*
 
 	for (let [key, value] of Object.entries(component)) {
 		if (value instanceof Component) {
 
-			var tck = Object.keys(tc);
+			for (let [key, value] of Object.entries(component)) {
+			}
 			var ck = Object.keys(value);
 			var userFields = arrayDiff(ck, tck);
 
 			console.log(`${key}: ${value}`, userFields);
 		}
 	}
+*/
 
+	var destWireboard = newWireboard.components.reduce(function(map, obj) {
+			map[obj.id] = obj;
+			return map;
+	}, {});
 
-
-
-
-
+	spyComponent(tck, component, destWireboard);
 
 	mainWireboard = newWireboard;
 }
 
-
+function spyComponent(exclude, source, dest) {
+	for (let [key, value] of Object.entries(source)) {
+		if (!(value instanceof SVG.Element)) {
+			if (!exclude.includes(key)) {
+				if (value instanceof Component) {
+					console.log(`Component - ${key}:`, value, dest, key, dest[key]);
+					spyComponent(exclude, value, dest[key]);
+				} else {
+					console.log(`Other - ${key}:`, value, dest, key);
+					dest[key] = value;
+				}
+			}
+		}
+	}
+}
 
 function endComponentEdit(cancel) {
 	cancel = (cancel == null) ? false : cancel;

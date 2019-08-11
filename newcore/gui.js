@@ -1,9 +1,13 @@
 class Symbol {
   constructor() {
+		this.id = '';
+
+		this.x = 0;
     this.minWidth = 5;
     this.w = 0;
 		this.wpx = 0;
 
+		this.y = 0;
 		this.minHeight = 2;
 		this.h = 0;
 		this.hpx = 0;
