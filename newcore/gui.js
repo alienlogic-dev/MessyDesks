@@ -12,6 +12,8 @@ class Symbol {
 		this.minHeight = 2;
 		this.h = 0;
 		this.hpx = 0;
+
+		this.pinClicked = null;
   }
 
   initGUI() {}
@@ -162,11 +164,11 @@ class Symbol {
 	/* Mouse */
 	pinRemoveWires(e) {
 		e.preventDefault();
-    console.log(this);
+    this.component.pinClicked(this, true);
 		return false;
 	}
 	pinClickedEvent(e) {
-    this.component.pinClicked(this);
+    this.component.pinClicked(this, false);
 	}
 
 	mouseDownEvent(e) { }

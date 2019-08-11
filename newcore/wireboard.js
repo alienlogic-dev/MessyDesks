@@ -57,7 +57,7 @@ class Wireboard {
     if (this.hasGUI) {
       var wireboardRef = this;
       inst.initGUI();
-      inst.pinClicked = function(p) { wireboardRef.pinClicked(p) };
+      inst.pinClicked = function(p, r) { wireboardRef.pinClicked(p, r) };
       inst.createSVG();
       inst.svg.move(inst.x, inst.y);
       this.componentsSVG.add(inst.svg);
@@ -74,13 +74,18 @@ class Wireboard {
 
     var wire = fromPin.connectToPin(toPin);
     if (wire) {
-      if (!this.wires.includes(wire))
-        this.wires.push(wire);
+      if (wire.references == null) { // Remove wire
+        var wIdx = this.wires.indexOf(wire);
+        this.wires.splice(wIdx, 1);
+      } else {
+        if (!this.wires.includes(wire))
+          this.wires.push(wire);
 
-      if (this.hasGUI) {
-        var con = new WireConnection(fromPin.svg, toPin.svg, this.wiresSVG);
-        wire.svgs = wire.svgs || [];
-        wire.svgs.push(con);
+        if (this.hasGUI) {
+          var con = new WireConnection(fromPin.svg, toPin.svg, this.wiresSVG);
+          wire.svgs = wire.svgs || [];
+          wire.svgs.push(con);
+        }
       }
     }
     
@@ -108,24 +113,29 @@ class Wireboard {
   }
 
   /* Wires manager */
-  pinClicked(pin) {
-    if (this.pinSelected == null) {
-      this.pinSelected = pin;
-    } else {
-      if (pin === this.pinSelected) {
-        alert('Cannot select to the same pin');
-        this.pinSelected = null;
-        return;
-      }
-  
-      this.newWire(this.pinSelected, pin);
-
+  pinClicked(pin, removeWire) {
+    if (removeWire) {
       this.pinSelected = null;
+      this.disconnectWireFromPin(pin);
+    } else {
+      if (this.pinSelected == null) {
+        this.pinSelected = pin;
+      } else {
+        if (pin === this.pinSelected) {
+          alert('Cannot select to the same pin');
+          this.pinSelected = null;
+          return;
+        }
+    
+        this.newWire(this.pinSelected, pin);
+  
+        this.pinSelected = null;
+      }
     }
   }
 
   disconnectWireFromPin(fromPin) {
-    
+
   }
 
   /* Source manager */
@@ -305,7 +315,7 @@ class Wireboard {
 
     compiledCode.push(`\t\tthis.create(${JSON.stringify(createConfig)})`);
 
-    // Create instances
+    // Create component instances
     var realComponents = this.components;
     for (var c of realComponents) {
 			compiledCode.push(`\t\tthis.${c.id} = new ${c.constructor.name}(${JSON.stringify(c.config)});`);

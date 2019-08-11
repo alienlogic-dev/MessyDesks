@@ -61,5 +61,19 @@ class NAND extends Component {
   }
 }
 
+class TRISTATE extends Component {
+  init() {
+    this.create({
+      left: ['A', '!G'],
+      right: ['Y']
+    })
+  }
+
+  execute(actual) {
+    return { 'Y': actual.left.G ? null : actual.left.A }
+  }
+}
+
 toolbox['AND'] = AND;
 toolbox['NAND'] = NAND;
+toolbox['TRISTATE'] = TRISTATE;
