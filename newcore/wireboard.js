@@ -321,14 +321,17 @@ class Wireboard {
 			compiledCode.push(`\t\tthis.${c.id} = new ${c.constructor.name}(${JSON.stringify(c.config)});`);
     }
 
+    // Create wire instances
+    for (var wIdx in this.wires) {
+      var w = this.wires[wIdx];
+      compiledCode.push(`\t\tthis.w${wIdx} = new Wire();`);
+    }
+
     // Create connections
-    for (var w of this.wires) {
-      var _firstPin = null;
+    for (var wIdx in this.wires) {
+      var w = this.wires[wIdx];
       for (var p of w.references) {
-        if (_firstPin) {
-          compiledCode.push(`\t\tthis.${_firstPin.component.id}.connectPin("${_firstPin.name}", this.${p.component.id}.getPin("${p.name}"))`);
-        } else
-          _firstPin = p;
+        compiledCode.push(`\t\tthis.${p.component.id}.connectPinToWire("${p.name}", this.w${wIdx})`);
       }
     }
 

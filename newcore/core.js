@@ -31,7 +31,7 @@ class Pin {
         var deleteWire = (this.wire == keepWire) ? toPin.wire : this.wire;
 
         keepWire.references = keepWire.references.concat(deleteWire.references);
-        
+
         for (var rp of deleteWire.references)
           rp.wire = keepWire;
         
@@ -141,8 +141,12 @@ class Component extends Symbol {
     return this.pins.filter(i => i.name == pinName)[0];
   }
 
-  connectPin(pinName, toPin) {
+  connectPinToPin(pinName, toPin) {
     return this.getPin(pinName).connectToPin(toPin);
+  }
+
+  connectPinToWire(pinName, wire) {
+    return this.getPin(pinName).connectToWire(wire);
   }
 
   writePin(pinName, value) {
