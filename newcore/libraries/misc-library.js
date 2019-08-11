@@ -2,7 +2,9 @@ class INPUT extends Component {
   init() {
     this.create({
       right: ['_Q']
-    })
+    });
+
+    this.value = null;
   }
 
   initGUI() {
@@ -10,15 +12,15 @@ class INPUT extends Component {
   }
 
   defaultConfig() {
-    return { value: null, alias: '', side: 'left' };
+    return { alias: '', side: 'left' };
   }
 
   execute(actual) {
-    return { 'Q': this.config.value };
+    return { 'Q': this.value };
   }
 
   setValue(value) {
-    this.config.value = value;
+    this.value = value;
   }
 
   drawBody(wpx, hpx) {
@@ -43,7 +45,9 @@ class OUTPUT extends Component {
   init() {
     this.create({
       left: ['_I']
-    })
+    });
+
+    this.value = null;
   }
 
   initGUI() {
@@ -51,16 +55,16 @@ class OUTPUT extends Component {
   }
   
   defaultConfig() {
-    return { value: null, alias: '' };
+    return { alias: '' };
   }
 
   execute(actual) {
-    this.config.value = actual.left['I'];
+    this.value = actual.left['I'];
     return null;
   }
 
   getValue() {
-    return this.config.value;
+    return this.value;
   }
 
   drawBody(wpx, hpx) {

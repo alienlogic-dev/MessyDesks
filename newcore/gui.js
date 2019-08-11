@@ -200,4 +200,9 @@ class Symbol {
 
 		this.draw();
 	}
+
+	/* Configuration */
+	createConfigModal() {
+		return null;
+	}
 }

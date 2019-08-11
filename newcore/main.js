@@ -9,6 +9,7 @@ var wireboardStack = [];
 var toolbox = { };
 
 function initWireboard() {
+	console.log('initWireboard');
 	draw.clear();
 
 	var pattern = draw.pattern(8, 8, function(add) {
@@ -42,11 +43,67 @@ function componentFromWireboard(wireboard, forceName) {
 	return ret;
 }
 
+var _debug = null;
+
 function startComponentEdit(component) {
-	console.log(component.constructor.source);
 	wireboardStack.push(mainWireboard);
-	mainWireboard = new Wireboard(component.constructor.name, true);
-	mainWireboard.fromSource(component.constructor.source);
+	mainWireboard.removeFromParentSVG();
+
+	var newWireboard = new Wireboard(component.constructor.name, true);
+	newWireboard.fromSource(component.constructor.source);
+	newWireboard.addToParentSVG(draw);
+/*
+	// Apply inputs and outputs actual values
+	var newWireboardInputComponents = newWireboard.components.filter(t => t.constructor.name == 'INPUT');
+	var inputIdx = 0;
+	for (var c of newWireboardInputComponents) {
+		var cAlias = ((c.config.alias == null) || (c.config.alias == '')) ? inputIdx.toString() : c.config.alias;
+		inputIdx++;
+
+		var pinValue = component.readPin(cAlias);
+		c.config.value = pinValue;
+	}
+*/
+
+	_debug = component;
+
+	var tc = new Component()
+	tc.init();
+	tc.initGUI();
+	tc.createSVG();
+	tc.pinClicked = null;
+
+	for (let [key, value] of Object.entries(component)) {
+		if (value instanceof Component) {
+
+			var tck = Object.keys(tc);
+			var ck = Object.keys(value);
+			var userFields = arrayDiff(ck, tck);
+
+			console.log(`${key}: ${value}`, userFields);
+		}
+	}
+
+
+
+
+
+
+
+	mainWireboard = newWireboard;
+}
+
+
+
+function endComponentEdit(cancel) {
+	cancel = (cancel == null) ? false : cancel;
+
+	mainWireboard.removeFromParentSVG();
+
+	var oldWireboard = wireboardStack.pop();
+	oldWireboard.addToParentSVG(draw);
+
+	mainWireboard = oldWireboard;
 }
 
 var siliconEditor = null;
@@ -92,3 +149,8 @@ setInterval(function() {
 */
 	}
 }, 250);
+
+setTimeout(function() {
+		componentFromSource(JSON.parse('{"name":"main","dependecies":[],"source":{"components":[{"id":"c0","name":"AND","x":920,"y":1040,"config":{"pinCount":2}},{"id":"c1","name":"INPUT","x":608,"y":1040,"config":{"alias":"","side":"left"}},{"id":"c2","name":"INPUT","x":656,"y":1096,"config":{"alias":"","side":"left"}},{"id":"c3","name":"OUTPUT","x":1064,"y":1040,"config":{"alias":""}}],"wires":[[{"cid":"c2","pn":"Q"},{"cid":"c0","pn":"1"}],[{"cid":"c0","pn":"0"},{"cid":"c1","pn":"Q"}],[{"cid":"c3","pn":"I"},{"cid":"c0","pn":"Q"}]]},"silicon":""}'))
+		mainWireboard.fromSource(JSON.parse('{"name":"main","dependecies":[],"source":{"components":[{"id":"c0","name":"TOGGLE","x":608,"y":1064,"config":{}},{"id":"c1","name":"TOGGLE","x":608,"y":1008,"config":{}},{"id":"c2","name":"main","x":664,"y":1040,"config":{}},{"id":"c3","name":"LED","x":824,"y":1040,"config":{}}],"wires":[[{"cid":"c0","pn":"Q"},{"cid":"c2","pn":"I1"}],[{"cid":"c2","pn":"I0"},{"cid":"c1","pn":"Q"}],[{"cid":"c2","pn":"O0"},{"cid":"c3","pn":"I"}]]},"silicon":""}'))
+}, 1000);

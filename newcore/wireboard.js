@@ -35,6 +35,11 @@ class Wireboard {
     parentSVG.add(this.wiresSVG);
   }
 
+  removeFromParentSVG() {
+    this.componentsSVG.remove();
+    this.wiresSVG.remove();
+  }
+
   /* Generics */
   newComponent(componentName, id, x, y, config, needUpdate) {
     needUpdate = (needUpdate == null) ? true : needUpdate;
@@ -162,10 +167,7 @@ class Wireboard {
 
   fromSource(src) {
     // Clear the wireboard
-    initWireboard();
-    this.components = [];
-    this.wires = [];
-    this.executionOrder = [];
+    this.clear();
 
     this.name = src.name;
 
@@ -280,7 +282,7 @@ class Wireboard {
     var inputComponents = this.components.filter(t => t.constructor.name == 'INPUT');
     var inputIdx = 0;
     for (var c of inputComponents) {
-      c.config.alias = ((c.config.alias == null) || (c.config.alias == '')) ? inputIdx.toString() : c.config.alias;
+      c.config.alias = ((c.config.alias == null) || (c.config.alias == '')) ? `I${inputIdx.toString()}` : c.config.alias;
       createConfig[(c.config.side || 'left').toLowerCase()].push(c.config.alias);
       inputIdx++;
     }
@@ -288,7 +290,7 @@ class Wireboard {
     var outputComponents = this.components.filter(t => t.constructor.name == 'OUTPUT');
     var outputIdx = 0;
     for (var c of outputComponents) {
-      c.config.alias = ((c.config.alias == null) || (c.config.alias == '')) ? inputIdx.toString() : c.config.alias;
+      c.config.alias = ((c.config.alias == null) || (c.config.alias == '')) ? `O${outputIdx.toString()}` : c.config.alias;
       createConfig.right.push(c.config.alias);
       outputIdx++;
     }
