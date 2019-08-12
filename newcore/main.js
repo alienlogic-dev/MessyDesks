@@ -194,53 +194,57 @@ function endLastComponentEdit() {
 }
 
 function startComponentEdit(component) {
-	wireboardStack.push(mainWireboard);
-	mainWireboard.removeFromParentSVG();
-
-	var newWireboard = new Wireboard(component.constructor.name, true);
-	newWireboard.fromSource(component.constructor.source);
-	newWireboard.addToParentSVG(draw);
-
-	var tc = new Component()
-	tc.init();
-	tc.initGUI();
-	tc.createSVG();
-	tc.pinClicked = null;
-
-	var tck = Object.keys(tc);
-
-	var destWireboard = newWireboard.components.reduce(function(map, obj) {
-			map[obj.id] = obj;
-			return map;
-	}, {});
-
-	var wireIdx = 0;
-	destWireboard = newWireboard.wires.reduce(function(map, obj) {
-			map[`w${wireIdx}`] = obj;
-			wireIdx++;
-			return map;
-	}, destWireboard);
-
-	spyComponent(tck, component, destWireboard);
-	simStep(newWireboard);
-
-	mainWireboard = newWireboard;
-
-	drawEditbox();
+	if (component.constructor.source) {
+		wireboardStack.push(mainWireboard);
+		mainWireboard.removeFromParentSVG();
+	
+		var newWireboard = new Wireboard(component.constructor.name, true);
+		newWireboard.fromSource(component.constructor.source);
+		newWireboard.addToParentSVG(draw);
+	
+		var tc = new Component()
+		tc.init();
+		tc.initGUI();
+		tc.createSVG();
+		tc.pinClicked = null;
+	
+		var tck = Object.keys(tc);
+	
+		var destWireboard = newWireboard.components.reduce(function(map, obj) {
+				map[obj.id] = obj;
+				return map;
+		}, {});
+	
+		var wireIdx = 0;
+		destWireboard = newWireboard.wires.reduce(function(map, obj) {
+				map[`w${wireIdx}`] = obj;
+				wireIdx++;
+				return map;
+		}, destWireboard);
+	
+		spyComponent(tck, component, destWireboard);
+		simStep(newWireboard);
+	
+		mainWireboard = newWireboard;
+	
+		drawEditbox();
+	}
 }
+
+var _debug = null;
 
 function endComponentEdit(cancel) {
 	cancel = (cancel == null) ? false : cancel;
+
+	mainWireboard.removeFromParentSVG();
+
+	var oldWireboard = wireboardStack.pop();
 
 	if (!cancel) {
 		componentFromWireboard(mainWireboard);
 	}
 
-	mainWireboard.removeFromParentSVG();
-
-	var oldWireboard = wireboardStack.pop();
 	oldWireboard.addToParentSVG(draw);
-
 	mainWireboard = oldWireboard;
 
 	drawEditbox();
@@ -288,5 +292,6 @@ function simStep(wireboard) {
 
 setTimeout(function() {
 	componentFromSource(JSON.parse('{"name":"flipflop","source":{"components":[{"id":"c0","name":"INPUT","x":608,"y":832,"config":{"alias":"I0","side":"left"}},{"id":"c1","name":"INPUT","x":608,"y":896,"config":{"alias":"I1","side":"left"}},{"id":"c2","name":"OUTPUT","x":840,"y":832,"config":{"alias":"O0"}},{"id":"c3","name":"NAND","x":720,"y":832,"config":{"pinCount":2}},{"id":"c4","name":"NAND","x":720,"y":888,"config":{"pinCount":2}}],"wires":[[{"cid":"c3","pn":"0"},{"cid":"c0","pn":"Q"}],[{"cid":"c1","pn":"Q"},{"cid":"c4","pn":"1"}],[{"cid":"c4","pn":"0"},{"cid":"c3","pn":"Q"},{"cid":"c2","pn":"I"}],[{"cid":"c4","pn":"Q"},{"cid":"c3","pn":"1"}]]}}'))
-	mainWireboard.fromSource(JSON.parse('{"name":"main","source":{"components":[{"id":"c0","name":"flipflop","x":768,"y":832,"config":{}},{"id":"c1","name":"LED","x":864,"y":816,"config":{}},{"id":"c2","name":"TOGGLE","x":608,"y":832,"config":{}},{"id":"c3","name":"TOGGLE","x":608,"y":896,"config":{}}],"wires":[[{"cid":"c1","pn":"I"},{"cid":"c0","pn":"O0"}],[{"cid":"c2","pn":"Q"},{"cid":"c0","pn":"I0"}],[{"cid":"c3","pn":"Q"},{"cid":"c0","pn":"I1"}]]}}'))
+	componentFromSource(JSON.parse('{"name":"flopflip","source":{"components":[{"id":"c0","name":"flipflop","x":816,"y":776,"config":{}},{"id":"c1","name":"NAND","x":720,"y":760,"config":{"pinCount":2}},{"id":"c2","name":"NAND","x":720,"y":832,"config":{"pinCount":2}},{"id":"c3","name":"INPUT","x":608,"y":728,"config":{"alias":"I0","side":"left"}},{"id":"c4","name":"INPUT","x":608,"y":840,"config":{"alias":"I1","side":"left"}},{"id":"c5","name":"OUTPUT","x":936,"y":776,"config":{"alias":"O0"}},{"id":"c6","name":"COUNTER","x":896,"y":712,"config":{}}],"wires":[[{"cid":"c1","pn":"Q"},{"cid":"c0","pn":"I0"}],[{"cid":"c2","pn":"Q"},{"cid":"c0","pn":"I1"}],[{"cid":"c3","pn":"Q"},{"cid":"c1","pn":"0"},{"cid":"c1","pn":"1"}],[{"cid":"c4","pn":"Q"},{"cid":"c2","pn":"0"},{"cid":"c2","pn":"1"}],[{"cid":"c5","pn":"I"},{"cid":"c0","pn":"O0"},{"cid":"c6","pn":"I"}]]}}'));
+	mainWireboard.fromSource(JSON.parse('{"name":"main","source":{"components":[{"id":"c1","name":"LED","x":864,"y":816,"config":{}},{"id":"c2","name":"TOGGLE","x":608,"y":832,"config":{}},{"id":"c3","name":"TOGGLE","x":608,"y":896,"config":{}},{"id":"c4","name":"flopflip","x":712,"y":864,"config":{}}],"wires":[[{"cid":"c2","pn":"Q"},{"cid":"c4","pn":"I0"}],[{"cid":"c4","pn":"I1"},{"cid":"c3","pn":"Q"}],[{"cid":"c4","pn":"O0"},{"cid":"c1","pn":"I"}]]}}'))
 }, 1000);

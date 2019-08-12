@@ -227,7 +227,69 @@ class Symbol {
 
 	/* Configuration */
 	createConfigModal() {
-		return null;
+		if (this.config == null) return null;
+
+		var configItems = Object.keys(this.config);
+		if (configItems.length == 0) return null;
+
+		var formDiv = $('<div class="form-group m-0"></div>');
+
+		for (var idx in configItems) {
+			var configItemName = configItems[idx];
+			var configItemValue = this.config[configItemName];
+
+			var rowDiv = $('<div class="row mb-2"></div>');
+
+			var colNameDiv = $('<div class="col-2 text-right pt-1"><b></b></div>');
+			colNameDiv.find('b').text(configItemName);
+
+			var colValueDiv = $('<div class="col-10"></div>');
+			var valueInput = $('<input type="text" class="form-control"/>');
+			valueInput.attr('id', `ci_${configItemName}`);
+			valueInput.val(configItemValue);
+			colValueDiv.html(valueInput);
+
+			rowDiv.append(colNameDiv);
+			rowDiv.append(colValueDiv);
+
+			formDiv.append(rowDiv);
+		}
+
+		return formDiv;
+	}
+
+	onVerifyConfig(config) { return true; }
+	onConfigChanged() { return false; }
+
+	openConfig(configModalContent) {
+		if (configModalContent) {
+			$('#modalComponentOptions .modal-body').html(configModalContent);
+			$('#modalComponentOptions').off('click', '.btnComponentOptionsApply');
+			$('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
+					var data = event.data;
+
+					var userConfig = {};
+					var configInputs = $('[id^=ci_]').toArray();
+					for (var idx in configInputs) {
+						var configInputElement = configInputs[idx];
+						var configItemName = $(configInputElement).attr('id').replace('ci_','');
+						var configItemValue = $(configInputElement).val();
+
+						userConfig[configItemName] = configItemValue;
+					}
+
+					console.log(data, userConfig);
+					
+					var ret = data.onVerifyConfig(userConfig);
+					if (ret) {
+						data.config = userConfig;
+						data.init();
+						data.onConfigChanged();
+						$('#modalComponentOptions').modal('hide');
+					}
+			});
+			$('#modalComponentOptions').modal('show');
+		}
 	}
 }
 
