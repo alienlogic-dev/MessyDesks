@@ -18,6 +18,15 @@ class Pin {
     this.isHidden = name.startsWith('_'); // Name starts with _
   }
 
+  tryStaticReference() {
+    if (this.component) {
+      var pIdx = this.component.pins.filter(t => t.side == this.side).indexOf(this);
+      if (pIdx < 0) return this.name;
+      return `@${this.side[0].toLowerCase()}${pIdx}`;
+    }
+    return this.name;
+  }
+
   connectToWire(toWire) {
     // Same wire check
     if (this.wire != null)
@@ -101,7 +110,12 @@ class Component extends Symbol {
   }
 
   getPin(pinName) {
-    return this.pins.filter(i => i.name == pinName)[0];
+    if (pinName.startsWith('@')) { // Use format @ [side letter] [pin number] ex. @l12 [left - 12]
+      var pinSide = pinName.substr(1,1).toLowerCase();
+      var pinNumber = +pinName.substr(2);
+      return this.pins.filter(i => i.side.toLowerCase().startsWith(pinSide))[pinNumber];
+    } else
+      return this.pins.filter(i => i.name == pinName)[0];
   }
 
   connectPinToWire(pinName, wire) {

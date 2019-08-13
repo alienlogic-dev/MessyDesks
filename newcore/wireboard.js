@@ -278,7 +278,7 @@ class Wireboard {
       for (var p of wireItem.references) {
         var newWireConnection = {
           cid: p.component.id,
-          pn: p.name
+          pn: p.tryStaticReference()
         };
         newWire.push(newWireConnection);
       }
@@ -454,7 +454,7 @@ class Wireboard {
     for (var wIdx in this.wires) {
       var w = this.wires[wIdx];
       for (var p of w.references) {
-        compiledCode.push(`\t\tthis.${p.component.id}.connectPinToWire("${p.name}", this.w${wIdx})`);
+        compiledCode.push(`\t\tthis.${p.component.id}.connectPinToWire("${p.tryStaticReference()}", this.w${wIdx})`);
       }
     }
 
