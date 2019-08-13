@@ -231,8 +231,6 @@ function startComponentEdit(component) {
 	}
 }
 
-var _debug = null;
-
 function endComponentEdit(cancel) {
 	cancel = (cancel == null) ? false : cancel;
 
@@ -250,7 +248,26 @@ function endComponentEdit(cancel) {
 	drawEditbox();
 }
 
+$('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
+	var component = $('#modalComponentOptions').data('component');
 
+	var userConfig = {};
+	var configInputs = $('[id^=ci_]').toArray();
+	for (var idx in configInputs) {
+		var configInputElement = configInputs[idx];
+		var configItemName = $(configInputElement).attr('id').replace('ci_','');
+		var configItemValue = $(configInputElement).val();
+
+		userConfig[configItemName] = configItemValue;
+	}
+
+	var ret = component.onVerifyConfig(userConfig);
+	if (ret) {
+		mainWireboard.updateComponent(component, component.constructor.name, userConfig);
+		component.onConfigChanged();
+		$('#modalComponentOptions').modal('hide');
+	}
+});
 
 var siliconEditor = null;
 $(window).on('load', function() {

@@ -73,7 +73,6 @@ class Component extends Symbol {
         } else console.error('Pin info argument is not an array');
       }
 
-      // TODO: Check if pin already exists, keep the instance
       this.pins = this.pins.concat(newPins);
     }
   }

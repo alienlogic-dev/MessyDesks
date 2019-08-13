@@ -264,30 +264,7 @@ class Symbol {
 	openConfig(configModalContent) {
 		if (configModalContent) {
 			$('#modalComponentOptions .modal-body').html(configModalContent);
-			$('#modalComponentOptions').off('click', '.btnComponentOptionsApply');
-			$('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
-					var data = event.data;
-
-					var userConfig = {};
-					var configInputs = $('[id^=ci_]').toArray();
-					for (var idx in configInputs) {
-						var configInputElement = configInputs[idx];
-						var configItemName = $(configInputElement).attr('id').replace('ci_','');
-						var configItemValue = $(configInputElement).val();
-
-						userConfig[configItemName] = configItemValue;
-					}
-
-					console.log(data, userConfig);
-					
-					var ret = data.onVerifyConfig(userConfig);
-					if (ret) {
-						data.config = userConfig;
-						data.init();
-						data.onConfigChanged();
-						$('#modalComponentOptions').modal('hide');
-					}
-			});
+			$('#modalComponentOptions').data('component', this);
 			$('#modalComponentOptions').modal('show');
 		}
 	}
