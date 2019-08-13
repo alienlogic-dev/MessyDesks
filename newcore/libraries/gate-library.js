@@ -1,7 +1,7 @@
 
 class AND extends Component {
   init() {
-    var n = this.config.pinCount;
+    var n = this.config.pinCount || 2;
     if (n < 2) n = 2;
 
     this.create({
@@ -32,7 +32,7 @@ class AND extends Component {
 
 class NAND extends Component {
   init() {
-    var n = this.config.pinCount;
+    var n = this.config.pinCount || 2;
     if (n < 2) n = 2;
 
     this.create({

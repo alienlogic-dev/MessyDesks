@@ -125,6 +125,7 @@ function componentFromWireboard(wireboard, forceName) {
 	var ret = eval(`${componentName} = (${siliconCode}); ${componentName}`);
 	toolbox[componentName] = ret;
 	ret.source = wireboard.toSource();
+	ret.dependecies = wireboard.getDependencies();
 
 	wireboard.clear();
 	return ret;

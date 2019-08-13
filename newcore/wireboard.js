@@ -67,6 +67,8 @@ class Wireboard {
 
     if (needUpdate)
       this.updateExecutionOrder();
+
+    return inst;
   }
 
   newWire(fromPin, toPin, needUpdate) {
@@ -141,18 +143,50 @@ class Wireboard {
     this.newComponent(componentName, null, px, py, config);
   }
 
+  removeComponent(component) {
+    for (var p of component.pins)
+      this.disconnectPinFromWire(p, false);
+  
+    component.svg.remove();
+
+    var cIdx = this.components.indexOf(component);
+    this.components.splice(cIdx, 1);
+  }
+
   removeSelectedComponents() {
     for (var cIdx = this.components.length - 1; cIdx >= 0; cIdx--) {
       var c = this.components[cIdx];
 
-      if (c.isSelected) {
-        for (var p of c.pins)
-          this.disconnectPinFromWire(p, false);
-        
-        c.svg.remove();
-        this.components.splice(cIdx, 1);          
-      }
+      if (c.isSelected)
+        this.removeComponent(c);
     }
+
+    this.updateExecutionOrder();
+  }
+
+  updateComponent(component, withComponentName, withConfig) {
+    if (!component) return null;
+    if (!toolbox[withComponentName]) return null;
+
+    // If component it's the same (same name), copy config and inner instances (using spyComponent ?)
+    var newComponentConfig = (component.constructor.name == withComponentName) ? component.config : null;
+    newComponentConfig = withConfig || newComponentConfig;
+    var newComponent = this.newComponent(withComponentName, component.id, component.x, component.y, newComponentConfig);
+    
+    // Reconnect pins via order (NOT by name)
+    var sides = ['left', 'right', 'top', 'bottom'];
+    for (var s of sides) {
+      var sidePinsNewComponent = newComponent.pins.filter(t => t.side == s);
+      var sidePinsOldComponent = component.pins.filter(t => t.side == s);
+
+      var minPinLength = Math.min(sidePinsNewComponent.length, sidePinsOldComponent.length);
+
+      for (var i = 0; i < minPinLength; i++)
+        this.newWire(sidePinsOldComponent[i], sidePinsNewComponent[i], false);
+    }
+
+    // Remove the old component
+    this.removeComponent(component);
 
     this.updateExecutionOrder();
   }
@@ -277,6 +311,16 @@ class Wireboard {
 
     this.updateExecutionOrder();
   }
+
+  /* Dependencies */
+  getDependencies() {
+    var ret = [];
+    for (var c of this.components) {
+      if (!ret.includes(c.constructor.name))
+        ret.push(c.constructor.name);
+    }
+    return ret;
+   }
 
   /* Wireboard core */
   getAloneComponents() {
