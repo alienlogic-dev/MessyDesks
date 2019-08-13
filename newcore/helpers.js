@@ -14,13 +14,22 @@ function spyComponent(exclude, source, dest) {
 			if (!exclude.includes(key)) {
 				if (value instanceof Component) {
 					//console.log(`Component - ${key}:`, value, dest, key, dest[key]);
-					spyComponent(exclude, value, dest[key]);
+					if (key in dest)
+						spyComponent(exclude, value, dest[key]);
+					//else
+					//	console.log(`Skipped Component - ${key}:`, value, dest, key, dest[key]);
 				} else if (value instanceof Wire) {
 					//console.log(`Wire - ${key}:`, value, dest, key);
-					dest[key].value = value.value;
+					if (key in dest)
+						dest[key].value = value.value;
+					//else
+					//	console.log(`Skipped Wire - ${key}:`, value, dest, key);
 				} else {
 					//console.log(`Other - ${key}:`, value, dest, key);
-					dest[key] = value;
+					if (key in dest)
+						dest[key] = value;
+					//else
+					//	console.log(`Skipped Other - ${key}:`, value, dest, key);
 				}
 			}
 		}

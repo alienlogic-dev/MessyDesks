@@ -154,7 +154,7 @@ function newEmptyComponent() {
 
 /* Toolbox */
 function addComponentFromToolbox(componentName) {
-	mainWireboard.addComponent(componentName);
+	mainWireboard.createComponent(componentName);
 }
 
 function updateToolboxBar() {
@@ -208,7 +208,6 @@ function startComponentEdit(component) {
 		tc.initGUI();
 		tc.createSVG();
 		tc.pinClicked = null;
-	
 		var tck = Object.keys(tc);
 	
 		var destWireboard = newWireboard.components.reduce(function(map, obj) {
@@ -286,9 +285,7 @@ setInterval(function() {
 
 function simStep(wireboard) {
 	wireboard.simulate();
-
-	for (var c of wireboard.components)
-		c.refresh();
+	wireboard.refresh();
 }
 
 setTimeout(function() {

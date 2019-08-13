@@ -41,9 +41,7 @@ class Wireboard {
   }
 
   /* Generics */
-  newComponent(componentName, id, x, y, config, needUpdate) {
-    needUpdate = (needUpdate == null) ? true : needUpdate;
-
+  newComponent(componentName, id, x, y, config) {
     componentName = componentName || '';
     x = x || 0;
     y = y || 0;
@@ -65,15 +63,10 @@ class Wireboard {
 
     this.components.push(inst);
 
-    if (needUpdate)
-      this.updateExecutionOrder();
-
     return inst;
   }
 
-  newWire(fromPin, toPin, needUpdate) {
-    needUpdate = needUpdate || true;
-
+  newWire(fromPin, toPin) {
     if ((fromPin.wire != null) && (toPin.wire != null)) {
       if (fromPin.wire == toPin.wire) // Same wire, do nothing
         return null;
@@ -125,13 +118,10 @@ class Wireboard {
         reuseWire.refresh();
       }
     }
-
-    if (needUpdate)
-      this.updateExecutionOrder();
   }
 
   /* Components manager */
-  addComponent(componentName, config = null) {
+  createComponent(componentName, config = null) {
     var px = 0;
     var py = 0;
 
@@ -141,11 +131,13 @@ class Wireboard {
     }
 
     this.newComponent(componentName, null, px, py, config);
+
+    this.updateExecutionOrder();
   }
 
   removeComponent(component) {
     for (var p of component.pins)
-      this.disconnectPinFromWire(p, false);
+      this.disconnectPinFromWire(p);
   
     component.svg.remove();
 
@@ -168,11 +160,24 @@ class Wireboard {
     if (!component) return null;
     if (!toolbox[withComponentName]) return null;
 
+    var isSameComponent = component.constructor.name == withComponentName;
+
     // If component it's the same (same name), copy config and inner instances (using spyComponent ?)
-    var newComponentConfig = (component.constructor.name == withComponentName) ? component.config : null;
+    var newComponentConfig = (isSameComponent) ? component.config : null;
     newComponentConfig = withConfig || newComponentConfig;
     var newComponent = this.newComponent(withComponentName, component.id, component.x, component.y, newComponentConfig);
     
+    if (isSameComponent) {
+      var tc = new Component()
+      tc.init();
+      tc.initGUI();
+      tc.createSVG();
+      tc.pinClicked = null;
+      var tck = Object.keys(tc);
+      
+      spyComponent(tck, component, newComponent);
+    }
+
     // Reconnect pins via order (NOT by name)
     var sides = ['left', 'right', 'top', 'bottom'];
     for (var s of sides) {
@@ -182,13 +187,16 @@ class Wireboard {
       var minPinLength = Math.min(sidePinsNewComponent.length, sidePinsOldComponent.length);
 
       for (var i = 0; i < minPinLength; i++)
-        this.newWire(sidePinsOldComponent[i], sidePinsNewComponent[i], false);
+        this.newWire(sidePinsOldComponent[i], sidePinsNewComponent[i]);
     }
 
     // Remove the old component
     this.removeComponent(component);
 
     this.updateExecutionOrder();
+
+    this.simulate();
+    this.refresh();
   }
 
   /* Wires manager */
@@ -196,6 +204,7 @@ class Wireboard {
     if (removeWire) {
       this.pinSelected = null;
       this.disconnectPinFromWire(pin);
+      this.updateExecutionOrder();
     } else {
       if (this.pinSelected == null) {
         this.pinSelected = pin;
@@ -208,14 +217,14 @@ class Wireboard {
     
         this.newWire(this.pinSelected, pin);
   
+        this.updateExecutionOrder();
+
         this.pinSelected = null;
       }
     }
   }
 
-  disconnectPinFromWire(pin, needUpdate) {
-    needUpdate = needUpdate || true;
-
+  disconnectPinFromWire(pin) {
     if (pin.wire != null) {
       var pIdx = pin.wire.references.indexOf(pin);
       pin.wire.references.splice(pIdx, 1);
@@ -231,10 +240,8 @@ class Wireboard {
       }
       
       pin.wire.refresh();
+      pin.wire = null;
     }
-
-    if (needUpdate)
-      this.updateExecutionOrder();
   }
 
   /* Source manager */
@@ -290,7 +297,7 @@ class Wireboard {
 
     // Components
     for (var componentItem of src.source.components) {
-      this.newComponent(componentItem.name, componentItem.id, componentItem.x, componentItem.y, componentItem.config, false);
+      this.newComponent(componentItem.name, componentItem.id, componentItem.x, componentItem.y, componentItem.config);
 
       this.componentsIdx = Math.max(this.componentsIdx, +(componentItem.id.replace('c','')) + 1);
     }
@@ -303,7 +310,7 @@ class Wireboard {
         var componentPin = componentRef.getPin(c.pn);
 
         if (_firstPin) {
-          this.newWire(_firstPin, componentPin, false);
+          this.newWire(_firstPin, componentPin);
         } else
           _firstPin = componentPin;
       }
@@ -386,6 +393,13 @@ class Wireboard {
   simulate() {
     for (var c of this.executionOrder)
       c.run();
+  }
+
+  refresh() {
+    if (this.hasGUI) {
+      for (var c of this.components)
+        c.refresh();
+    }
   }
 
   /* Compiler */
