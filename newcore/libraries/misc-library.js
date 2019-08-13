@@ -12,7 +12,7 @@ class INPUT extends Component {
   }
 
   defaultConfig() {
-    return { alias: '', side: 'left' };
+    return { alias: '', order: 0, side: 'left' };
   }
 
   execute(actual) {
@@ -55,7 +55,7 @@ class OUTPUT extends Component {
   }
   
   defaultConfig() {
-    return { alias: '' };
+    return { alias: '', order: 0 };
   }
 
   execute(actual) {

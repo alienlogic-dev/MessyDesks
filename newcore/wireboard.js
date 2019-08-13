@@ -422,6 +422,8 @@ class Wireboard {
 
     var inputComponents = this.components.filter(t => t.constructor.name == 'INPUT');
     var inputIdx = 0;
+    inputComponents.sort((a, b) => +a.id.substr(1) - +b.id.substr(1));
+    inputComponents.sort((a, b) => +a.config.order - +b.config.order);
     for (var c of inputComponents) {
       c.config.alias = ((c.config.alias == null) || (c.config.alias == '')) ? `I${inputIdx.toString()}` : c.config.alias;
       createConfig[(c.config.side || 'left').toLowerCase()].push(c.config.alias);
@@ -430,6 +432,8 @@ class Wireboard {
 
     var outputComponents = this.components.filter(t => t.constructor.name == 'OUTPUT');
     var outputIdx = 0;
+    outputComponents.sort((a, b) => +a.id.substr(1) - +b.id.substr(1));
+    outputComponents.sort((a, b) => +a.config.order - +b.config.order);
     for (var c of outputComponents) {
       c.config.alias = ((c.config.alias == null) || (c.config.alias == '')) ? `O${outputIdx.toString()}` : c.config.alias;
       createConfig.right.push(c.config.alias);

@@ -199,6 +199,10 @@ class Symbol {
 	}
 
 	dragend(e) {
+		if (this.svg) {
+			this.x = this.svg.x();
+			this.y = this.svg.y();
+		}
 	}
 
 	/* Selection */
