@@ -122,12 +122,18 @@ function componentFromWireboard(wireboard, forceName) {
 	var componentName = forceName || wireboard.name;
 	var siliconCode = wireboard.toSilicon();
 
-	var ret = eval(`${componentName} = (${siliconCode}); ${componentName}`);
-	toolbox[componentName] = ret;
+	var ret = componentFromSilicon(componentName, siliconCode);
+
 	ret.source = wireboard.toSource();
 	ret.dependecies = wireboard.getDependencies();
 
 	wireboard.clear();
+	return ret;
+}
+
+function componentFromSilicon(componentName, siliconCode) {
+	var ret = eval(`${componentName} = (${siliconCode}); ${componentName}`);
+	toolbox[componentName] = ret;
 	return ret;
 }
 
@@ -168,6 +174,8 @@ function updateToolboxBar() {
 }
 
 /* Editor */
+var editedSiliconComponentName = null;
+
 function drawEditbox() {
 	if (wireboardStack.length > 0) {
 		$('#editbox').removeClass('hidden');
@@ -181,9 +189,41 @@ function drawEditbox() {
 	for (var idx in wireboardStack)
 		$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + wireboardStack[idx].name + '</li>');
 	
-	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + mainWireboard.name + '</li>');
+	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + (editedSiliconComponentName ? editedSiliconComponentName : mainWireboard.name) + '</li>');
 
-//	drawSiliconbox();
+	drawSiliconbox();
+}
+
+function drawSiliconbox() {
+	if (wireboardStack.length > 0) {
+		if (editedSiliconComponentName){
+			$('#siliconCodeArea').removeClass('hide');
+			$('#drawing').addClass('hide');
+			$('#btnSwitchToSilicon, #btnNewComponent').addClass('hide');
+			$('#btnSwitchCode').removeClass('hide');
+		} else {
+			$('#siliconCodeArea').addClass('hide');
+			$('#drawing').removeClass('hide');
+			$('#btnSwitchToSilicon, #btnNewComponent').removeClass('hide');
+			$('#btnSwitchCode').addClass('hide');
+		}
+	} else {
+		$('#siliconCodeArea').addClass('hide');
+		$('#drawing, #btnNewComponent').removeClass('hide');
+		$('#btnSwitchToSilicon').addClass('hide');
+		$('#btnSwitchCode').addClass('hide');
+	}
+}
+
+function switchToSilicon() {
+	if (editedSiliconComponentName)
+		editedSiliconComponentName = null;
+	else
+		editedSiliconComponentName = mainWireboard.name;
+
+	siliconEditor.setValue(mainWireboard.toSilicon());
+
+	drawEditbox();
 }
 
 function cancelLastComponentEdit() {
@@ -195,10 +235,12 @@ function endLastComponentEdit() {
 }
 
 function startComponentEdit(component) {
-	if (component.constructor.source) {
-		wireboardStack.push(mainWireboard);
-		mainWireboard.removeFromParentSVG();
-	
+	wireboardStack.push(mainWireboard);
+	mainWireboard.removeFromParentSVG();
+
+	if (component.constructor.source) { // Open Source first
+		editedSiliconComponentName = null;
+
 		var newWireboard = new Wireboard(component.constructor.name, true);
 		newWireboard.fromSource(component.constructor.source);
 		newWireboard.addToParentSVG(draw);
@@ -226,9 +268,12 @@ function startComponentEdit(component) {
 		simStep(newWireboard);
 	
 		mainWireboard = newWireboard;
-	
-		drawEditbox();
+	} else { // Open Silicon only
+		editedSiliconComponentName = component.constructor.name;
+		siliconEditor.setValue(component.constructor.toString());
 	}
+
+	drawEditbox();
 }
 
 function endComponentEdit(cancel) {
@@ -237,11 +282,14 @@ function endComponentEdit(cancel) {
 	mainWireboard.removeFromParentSVG();
 
 	if (!cancel) {
-		componentFromWireboard(mainWireboard);
+		if (editedSiliconComponentName)
+			componentFromSilicon(editedSiliconComponentName, siliconEditor.getValue());
+		else
+			componentFromWireboard(mainWireboard);
 
 		// Update itself and every component with a dependency
 		var dependeciesToUpdate = [];
-		generateDirtyDependenciesList(dependeciesToUpdate, mainWireboard.name);
+		generateDirtyDependenciesList(dependeciesToUpdate, editedSiliconComponentName || mainWireboard.name);
 
 		for (var w of wireboardStack) {
 			var componentsToUpdate = [];
@@ -334,8 +382,8 @@ function simStep(wireboard) {
 }
 
 setTimeout(function() {
-//	componentFromSource(JSON.parse('{"name":"not","source":{"components":[{"id":"c0","name":"INPUT","x":536,"y":784,"config":{"alias":"I0","side":"left"}},{"id":"c1","name":"OUTPUT","x":688,"y":784,"config":{"alias":"O0"}},{"id":"c2","name":"NAND","x":616,"y":784,"config":{"pinCount":2}}],"wires":[[{"cid":"c2","pn":"@r0"},{"cid":"c1","pn":"@l0"}],[{"cid":"c2","pn":"@l1"},{"cid":"c0","pn":"@r0"},{"cid":"c2","pn":"@l0"}]]}}'));
-//	componentFromSource(JSON.parse('{"name":"flipflop","source":{"components":[{"id":"c0","name":"INPUT","x":608,"y":832,"config":{"alias":"I0","side":"left"}},{"id":"c1","name":"INPUT","x":608,"y":896,"config":{"alias":"I1","side":"left"}},{"id":"c2","name":"OUTPUT","x":920,"y":832,"config":{"alias":"O0"}},{"id":"c3","name":"NAND","x":720,"y":832,"config":{"pinCount":2}},{"id":"c4","name":"NAND","x":720,"y":888,"config":{"pinCount":2}},{"id":"c5","name":"not","x":792,"y":840,"config":{}}],"wires":[[{"cid":"c3","pn":"@l0"},{"cid":"c0","pn":"@r0"}],[{"cid":"c1","pn":"@r0"},{"cid":"c4","pn":"@l1"}],[{"cid":"c4","pn":"@l0"},{"cid":"c3","pn":"@r0"},{"cid":"c5","pn":"@l0"}],[{"cid":"c4","pn":"@r0"},{"cid":"c3","pn":"@l1"}],[{"cid":"c5","pn":"@r0"},{"cid":"c2","pn":"@l0"}]]}}'));
-//	componentFromSource(JSON.parse('{"name":"flopflip","source":{"components":[{"id":"c0","name":"flipflop","x":816,"y":776,"config":{}},{"id":"c1","name":"NAND","x":720,"y":760,"config":{"pinCount":2}},{"id":"c2","name":"NAND","x":720,"y":832,"config":{"pinCount":2}},{"id":"c3","name":"INPUT","x":608,"y":728,"config":{"alias":"I0","side":"left"}},{"id":"c4","name":"INPUT","x":608,"y":840,"config":{"alias":"I1","side":"left"}},{"id":"c5","name":"OUTPUT","x":936,"y":776,"config":{"alias":"O0"}},{"id":"c6","name":"COUNTER","x":896,"y":712,"config":{}}],"wires":[[{"cid":"c1","pn":"@r0"},{"cid":"c0","pn":"@l0"}],[{"cid":"c2","pn":"@r0"},{"cid":"c0","pn":"@l1"}],[{"cid":"c3","pn":"@r0"},{"cid":"c1","pn":"@l0"},{"cid":"c1","pn":"@l1"}],[{"cid":"c4","pn":"@r0"},{"cid":"c2","pn":"@l0"},{"cid":"c2","pn":"@l1"}],[{"cid":"c5","pn":"@l0"},{"cid":"c0","pn":"@r0"},{"cid":"c6","pn":"@l0"}]]}}'))
-//	mainWireboard.fromSource(JSON.parse('{"name":"main","source":{"components":[{"id":"c1","name":"LED","x":864,"y":816,"config":{}},{"id":"c2","name":"TOGGLE","x":608,"y":832,"config":{}},{"id":"c3","name":"TOGGLE","x":608,"y":896,"config":{}},{"id":"c5","name":"TOGGLE","x":536,"y":736,"config":{}},{"id":"c6","name":"LED","x":688,"y":768,"config":{}},{"id":"c7","name":"not","x":608,"y":768,"config":{}},{"id":"c4","name":"flopflip","x":712,"y":864,"config":{}}],"wires":[[{"cid":"c2","pn":"@r0"},{"cid":"c4","pn":"@l0"}],[{"cid":"c3","pn":"@r0"},{"cid":"c4","pn":"@l1"}],[{"cid":"c1","pn":"@l0"},{"cid":"c4","pn":"@r0"}],[{"cid":"c7","pn":"@r0"},{"cid":"c6","pn":"@l0"}],[{"cid":"c7","pn":"@l0"},{"cid":"c5","pn":"@r0"}]]}}'))
+	componentFromSource(JSON.parse('{"name":"not","source":{"components":[{"id":"c0","name":"INPUT","x":536,"y":784,"config":{"alias":"I0","side":"left"}},{"id":"c1","name":"OUTPUT","x":688,"y":784,"config":{"alias":"O0"}},{"id":"c2","name":"NAND","x":616,"y":784,"config":{"pinCount":2}}],"wires":[[{"cid":"c2","pn":"@r0"},{"cid":"c1","pn":"@l0"}],[{"cid":"c2","pn":"@l1"},{"cid":"c0","pn":"@r0"},{"cid":"c2","pn":"@l0"}]]}}'));
+	componentFromSource(JSON.parse('{"name":"flipflop","source":{"components":[{"id":"c0","name":"INPUT","x":608,"y":832,"config":{"alias":"I0","side":"left"}},{"id":"c1","name":"INPUT","x":608,"y":896,"config":{"alias":"I1","side":"left"}},{"id":"c2","name":"OUTPUT","x":920,"y":832,"config":{"alias":"O0"}},{"id":"c3","name":"NAND","x":720,"y":832,"config":{"pinCount":2}},{"id":"c4","name":"NAND","x":720,"y":888,"config":{"pinCount":2}},{"id":"c5","name":"not","x":792,"y":840,"config":{}}],"wires":[[{"cid":"c3","pn":"@l0"},{"cid":"c0","pn":"@r0"}],[{"cid":"c1","pn":"@r0"},{"cid":"c4","pn":"@l1"}],[{"cid":"c4","pn":"@l0"},{"cid":"c3","pn":"@r0"},{"cid":"c5","pn":"@l0"}],[{"cid":"c4","pn":"@r0"},{"cid":"c3","pn":"@l1"}],[{"cid":"c5","pn":"@r0"},{"cid":"c2","pn":"@l0"}]]}}'));
+	componentFromSource(JSON.parse('{"name":"flopflip","source":{"components":[{"id":"c0","name":"flipflop","x":816,"y":776,"config":{}},{"id":"c1","name":"NAND","x":720,"y":760,"config":{"pinCount":2}},{"id":"c2","name":"NAND","x":720,"y":832,"config":{"pinCount":2}},{"id":"c3","name":"INPUT","x":608,"y":728,"config":{"alias":"I0","side":"left"}},{"id":"c4","name":"INPUT","x":608,"y":840,"config":{"alias":"I1","side":"left"}},{"id":"c5","name":"OUTPUT","x":936,"y":776,"config":{"alias":"O0"}},{"id":"c6","name":"COUNTER","x":896,"y":712,"config":{}}],"wires":[[{"cid":"c1","pn":"@r0"},{"cid":"c0","pn":"@l0"}],[{"cid":"c2","pn":"@r0"},{"cid":"c0","pn":"@l1"}],[{"cid":"c3","pn":"@r0"},{"cid":"c1","pn":"@l0"},{"cid":"c1","pn":"@l1"}],[{"cid":"c4","pn":"@r0"},{"cid":"c2","pn":"@l0"},{"cid":"c2","pn":"@l1"}],[{"cid":"c5","pn":"@l0"},{"cid":"c0","pn":"@r0"},{"cid":"c6","pn":"@l0"}]]}}'))
+	mainWireboard.fromSource(JSON.parse('{"name":"main","source":{"components":[{"id":"c1","name":"LED","x":864,"y":816,"config":{}},{"id":"c2","name":"TOGGLE","x":608,"y":832,"config":{}},{"id":"c3","name":"TOGGLE","x":608,"y":896,"config":{}},{"id":"c5","name":"TOGGLE","x":536,"y":736,"config":{}},{"id":"c6","name":"LED","x":688,"y":768,"config":{}},{"id":"c7","name":"not","x":608,"y":768,"config":{}},{"id":"c4","name":"flopflip","x":712,"y":864,"config":{}}],"wires":[[{"cid":"c2","pn":"@r0"},{"cid":"c4","pn":"@l0"}],[{"cid":"c3","pn":"@r0"},{"cid":"c4","pn":"@l1"}],[{"cid":"c1","pn":"@l0"},{"cid":"c4","pn":"@r0"}],[{"cid":"c7","pn":"@r0"},{"cid":"c6","pn":"@l0"}],[{"cid":"c7","pn":"@l0"},{"cid":"c5","pn":"@r0"}]]}}'))
 }, 1000);
