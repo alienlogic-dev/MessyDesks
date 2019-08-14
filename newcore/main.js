@@ -358,6 +358,68 @@ $(window).on('load', function() {
 	});
 });
 
+/* Project Save / Open */
+function saveProject() {
+	var project = {
+		toolbox: [],
+		wireboard: {}
+	};
+
+	for (var tId in toolbox) {
+		var t = toolbox[tId];
+
+		// TODO: Save with dependencies order ?
+		if (t.source) {
+			project.toolbox.push(t.source);
+		} else {
+			project.toolbox.push({
+				name: tId,
+				silicon: t.toString()
+			});
+		}
+	}
+
+	project.wireboard = mainWireboard.toSource();
+
+	return project;
+}
+
+function saveProjectToFile() {
+	var filename = prompt('Enter project filename', 'project');
+	if ((filename != null) && (filename != ""))
+		download(JSON.stringify(saveProject()), filename + '.prj', 'text/plain');
+}
+
+function loadProject(project) {
+	if (!project) return null;
+
+	project.toolbox = project.toolbox || [];
+	project.wireboard = project.wireboard || {};
+
+	for (var t of project.toolbox) {
+		if (t.source) {
+			componentFromSource(t);
+		} else if (t.silicon) {
+			componentFromSilicon(t.name, t.silicon);
+		} else
+			console.error('Error in project!');
+	}
+
+	mainWireboard.fromSource(project.wireboard);
+}
+
+// Function to read data from a file
+var openFile = function(event, callback) {
+	var input = event.target;
+
+	var reader = new FileReader();
+	reader.onload = function(){
+		var text = reader.result;
+		loadProject(JSON.parse(text));
+	};
+	reader.readAsText(input.files[0]);
+};
+
 initWireboard();
 
 setTimeout(function() {
