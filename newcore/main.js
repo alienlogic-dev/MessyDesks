@@ -58,7 +58,7 @@ draw.on('click', function(e) {
 
 
 $(document).keydown(function(e) {
-	if ((!($('#modalComponentOptions').data('bs.modal') || {})._isShown) && (!($('#modalNewComponent').data('bs.modal') || {})._isShown)) {
+	if ((!($('#modalComponentOptions').data('bs.modal') || {})._isShown) && (!($('#modalNewComponent').data('bs.modal') || {})._isShown) && (!$('#drawing').hasClass('hide'))) {
 		//console.log(e.keyCode, e.metaKey, e.shiftKey, e.altKey);
 		if ((e.keyCode == 79) && e.metaKey) { // CMD/CTRL + O -> Open project
 			$('#file').click();
@@ -289,7 +289,7 @@ function endComponentEdit(cancel) {
 
 		// Update itself and every component with a dependency
 		var dependeciesToUpdate = [];
-		generateDirtyDependenciesList(dependeciesToUpdate, editedSiliconComponentName || mainWireboard.name);
+		generateDirtyDependenciesList(dependeciesToUpdate, editedSiliconComponentName ? editedSiliconComponentName : mainWireboard.name);
 
 		for (var w of wireboardStack) {
 			var componentsToUpdate = [];

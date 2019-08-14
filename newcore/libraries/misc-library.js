@@ -105,6 +105,27 @@ class CONST extends Component {
   }
 }
 
+class CLOCK extends Component {
+  init() {
+    this.config.interval = this.config.interval || 1000;
+    var obj = this;
+    this.timer = setInterval(function() { obj.onTimer() }, +this.config.interval);
+    this.value = false;
+    this.create({
+      right: ['Q']
+    })
+  }
+
+  defaultConfig() {
+    return { interval: 1000 };
+  }
+
+  onTimer() {
+    this.value = !this.value;
+    this.writePin('Q', this.value);
+  }
+}
+
 class LED extends Component {
   init() {
     this.create({ left: ['_I'] });
@@ -195,7 +216,8 @@ class COUNTER extends Component {
 
   execute(actual) {
     if (this.oldValue != actual.left.I) {
-      this.count++;
+      if (actual.left.I)
+        this.count++;
     }
     this.oldValue = actual.left.I;
   }
@@ -207,6 +229,7 @@ class COUNTER extends Component {
 
 toolbox['INPUT'] = INPUT;
 toolbox['OUTPUT'] = OUTPUT;
+toolbox['CLOCK'] = CLOCK;
 toolbox['CONST'] = CONST;
 toolbox['LED'] = LED;
 toolbox['TOGGLE'] = TOGGLE;
