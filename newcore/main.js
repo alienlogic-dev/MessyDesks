@@ -420,6 +420,55 @@ var openFile = function(event, callback) {
 	reader.readAsText(input.files[0]);
 };
 
+/* Clean Compiled code generator */
+function clearSiliconComponent(componentName) {
+	var t = toolbox[componentName];
+	var tk = Object.getOwnPropertyNames(t.prototype);
+	var s = Object.getOwnPropertyNames(Symbol.prototype);
+
+	var classParts = [];
+
+	classParts.push(`class ${t.name} extends Component {`);
+
+	for (var i of arrayDiff(tk, s)) {
+		var code = t.prototype[i].toString();
+		classParts.push('\t' + code);
+	}
+
+	classParts.push(`}`);
+
+	return classParts.join('\n');
+}
+
+function generateCompiledCode() {
+	var compiledCodeParts = [];
+
+	// Generate framework code
+	var frameworkParts = [];
+	frameworkParts.push(Wire.toString().replace(' extends Cable', '').replace('super();\n', ''));
+	frameworkParts.push(Pin.toString().replace(' extends Pon', '').replace('super();\n', ''));
+	frameworkParts.push(Component.toString().replace(' extends Symbol', '').replace('super();\n', ''));
+
+	var frameworkCode = frameworkParts.join('\n').replace(/\n\s*\n/g, '\n');
+	compiledCodeParts.push(frameworkCode);
+
+	// Generate toolbox code
+	var toolboxParts = [];
+	for (var tId in toolbox) {
+		var ts = clearSiliconComponent(tId);
+		toolboxParts.push(ts);
+	}
+	var toolboxCode = toolboxParts.join('\n').replace(/\n\s*\n/g, '\n');
+	compiledCodeParts.push(toolboxCode);
+
+	// Generate wireboard code
+	var wireboardCode = mainWireboard.toSilicon().replace(/\n\s*\n/g, '\n');
+	compiledCodeParts.push(wireboardCode);
+
+	var compiledCode = compiledCodeParts.join('\n');
+	console.log(compiledCode);
+}
+
 initWireboard();
 
 setTimeout(function() {
@@ -442,10 +491,3 @@ function simStep(wireboard) {
 	wireboard.simulate();
 	wireboard.refresh();
 }
-
-setTimeout(function() {
-	componentFromSource(JSON.parse('{"name":"not","source":{"components":[{"id":"c0","name":"INPUT","x":536,"y":784,"config":{"alias":"I0","side":"left"}},{"id":"c1","name":"OUTPUT","x":688,"y":784,"config":{"alias":"O0"}},{"id":"c2","name":"NAND","x":616,"y":784,"config":{"pinCount":2}}],"wires":[[{"cid":"c2","pn":"@r0"},{"cid":"c1","pn":"@l0"}],[{"cid":"c2","pn":"@l1"},{"cid":"c0","pn":"@r0"},{"cid":"c2","pn":"@l0"}]]}}'));
-	componentFromSource(JSON.parse('{"name":"flipflop","source":{"components":[{"id":"c0","name":"INPUT","x":608,"y":832,"config":{"alias":"I0","side":"left"}},{"id":"c1","name":"INPUT","x":608,"y":896,"config":{"alias":"I1","side":"left"}},{"id":"c2","name":"OUTPUT","x":920,"y":832,"config":{"alias":"O0"}},{"id":"c3","name":"NAND","x":720,"y":832,"config":{"pinCount":2}},{"id":"c4","name":"NAND","x":720,"y":888,"config":{"pinCount":2}},{"id":"c5","name":"not","x":792,"y":840,"config":{}}],"wires":[[{"cid":"c3","pn":"@l0"},{"cid":"c0","pn":"@r0"}],[{"cid":"c1","pn":"@r0"},{"cid":"c4","pn":"@l1"}],[{"cid":"c4","pn":"@l0"},{"cid":"c3","pn":"@r0"},{"cid":"c5","pn":"@l0"}],[{"cid":"c4","pn":"@r0"},{"cid":"c3","pn":"@l1"}],[{"cid":"c5","pn":"@r0"},{"cid":"c2","pn":"@l0"}]]}}'));
-	componentFromSource(JSON.parse('{"name":"flopflip","source":{"components":[{"id":"c0","name":"flipflop","x":816,"y":776,"config":{}},{"id":"c1","name":"NAND","x":720,"y":760,"config":{"pinCount":2}},{"id":"c2","name":"NAND","x":720,"y":832,"config":{"pinCount":2}},{"id":"c3","name":"INPUT","x":608,"y":728,"config":{"alias":"I0","side":"left"}},{"id":"c4","name":"INPUT","x":608,"y":840,"config":{"alias":"I1","side":"left"}},{"id":"c5","name":"OUTPUT","x":936,"y":776,"config":{"alias":"O0"}},{"id":"c6","name":"COUNTER","x":896,"y":712,"config":{}}],"wires":[[{"cid":"c1","pn":"@r0"},{"cid":"c0","pn":"@l0"}],[{"cid":"c2","pn":"@r0"},{"cid":"c0","pn":"@l1"}],[{"cid":"c3","pn":"@r0"},{"cid":"c1","pn":"@l0"},{"cid":"c1","pn":"@l1"}],[{"cid":"c4","pn":"@r0"},{"cid":"c2","pn":"@l0"},{"cid":"c2","pn":"@l1"}],[{"cid":"c5","pn":"@l0"},{"cid":"c0","pn":"@r0"},{"cid":"c6","pn":"@l0"}]]}}'))
-	mainWireboard.fromSource(JSON.parse('{"name":"main","source":{"components":[{"id":"c1","name":"LED","x":864,"y":816,"config":{}},{"id":"c2","name":"TOGGLE","x":608,"y":832,"config":{}},{"id":"c3","name":"TOGGLE","x":608,"y":896,"config":{}},{"id":"c5","name":"TOGGLE","x":536,"y":736,"config":{}},{"id":"c6","name":"LED","x":688,"y":768,"config":{}},{"id":"c7","name":"not","x":608,"y":768,"config":{}},{"id":"c4","name":"flopflip","x":712,"y":864,"config":{}}],"wires":[[{"cid":"c2","pn":"@r0"},{"cid":"c4","pn":"@l0"}],[{"cid":"c3","pn":"@r0"},{"cid":"c4","pn":"@l1"}],[{"cid":"c1","pn":"@l0"},{"cid":"c4","pn":"@r0"}],[{"cid":"c7","pn":"@r0"},{"cid":"c6","pn":"@l0"}],[{"cid":"c7","pn":"@l0"},{"cid":"c5","pn":"@r0"}]]}}'))
-}, 1000);
