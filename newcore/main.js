@@ -256,6 +256,11 @@ function drawComponentQuickActions() {
 		$('#btnStartComponentEdit').removeClass('hide');
 	else
 		$('#btnStartComponentEdit').addClass('hide');
+
+	if (selectedComponents.length > 0)
+		$('#btnReplaceComponents').removeClass('hide');
+	else
+		$('#btnReplaceComponents').addClass('hide');
 }
 
 function switchToSilicon() {
