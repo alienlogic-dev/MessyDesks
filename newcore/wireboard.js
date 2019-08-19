@@ -403,12 +403,14 @@ class Wireboard {
   }
 
   /* Compiler */
-  toSilicon() {
+  toSilicon(forceName) {
+    var componentName = forceName || this.name;
+
     var compiledCode = [];
 
     this.updateExecutionOrder();
 
-    compiledCode.push(`class ${this.name} extends Component {`);
+    compiledCode.push(`class ${componentName} extends Component {`);
 
     // Create init
     compiledCode.push(`\tinit() {`);

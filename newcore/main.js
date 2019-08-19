@@ -54,12 +54,54 @@ draw.on('click', function(e) {
 			break;
 		}
 	}
+
+	drawComponentQuickActions();
 });
 
+var hotkeys = {
+	I: {
+		modifier: {
+			meta: false,
+			shift: false,
+			alt: false
+		},
+		toolbox: 'INPUT'
+	},
+	O: {
+		modifier: {
+			meta: false,
+			shift: false,
+			alt: false
+		},
+		toolbox: 'OUTPUT'
+	}
+}
 
 $(document).keydown(function(e) {
 	if ((!($('#modalComponentOptions').data('bs.modal') || {})._isShown) && (!($('#modalNewComponent').data('bs.modal') || {})._isShown) && (!$('#drawing').hasClass('hide'))) {
-		//console.log(e.keyCode, e.metaKey, e.shiftKey, e.altKey);
+		//console.log(String.fromCharCode(e.keyCode), e.metaKey, e.shiftKey, e.altKey);
+		var keyCh = String.fromCharCode(e.keyCode).toUpperCase();
+		if (keyCh in hotkeys) {
+			var hotkey = hotkeys[keyCh];
+
+			if (hotkey) {
+				var modifierMatch = true;
+				if (hotkey.modifier) {
+					hotkey.modifier.meta = hotkey.modifier.meta || false;
+					hotkey.modifier.shift = hotkey.modifier.shift || false;
+					hotkey.modifier.alt = hotkey.modifier.alt || false;
+	
+					modifierMatch = (hotkey.modifier.meta == e.metaKey) && (hotkey.modifier.shift == e.shiftKey) && (hotkey.modifier.alt == e.altKey);
+				}
+	
+				if (modifierMatch) {
+					if (hotkey.toolbox) { // Create new toolbox component
+						addComponentFromToolbox(hotkey.toolbox);
+					}
+				}
+			}
+		}
+
 		if ((e.keyCode == 79) && e.metaKey) { // CMD/CTRL + O -> Open project
 			$('#file').click();
 			return false;
@@ -67,31 +109,6 @@ $(document).keydown(function(e) {
 
 		if ((e.keyCode == 83) && e.metaKey) { // CMD/CTRL + S -> Save project
 			saveProjectToFile();
-			return false;
-		}
-
-		if ((e.keyCode == 65) && e.metaKey) { // CMD/CTRL + A -> Select all
-			for (var idx in components)
-				components[idx].select();
-			return false;
-		}
-
-		if ((e.keyCode == 68) && e.metaKey) { // CMD/CTRL + D -> Duplicate component
-			var selectedComponent = null;
-			for (var idx = components.length - 1; idx >= 0; idx--) {
-				var componentItem = components[idx];
-
-				if (componentItem.isSelected) {
-					selectedComponent = componentItem;
-					break;
-				}
-			}
-
-			if (selectedComponent) {
-				var ret = addComponent(selectedComponent.constructor.name, selectedComponent.config);
-				ret.svg.move(Math.round((document.querySelector('.workbox').scrollLeft + mousePosition.x - 150) / 8) * 8, Math.round((document.querySelector('.workbox').scrollTop + mousePosition.y) / 8) * 8);
-			}
-
 			return false;
 		}
 
@@ -112,6 +129,15 @@ $(document).keydown(function(e) {
 	}
 });
 
+function btnStartComponentEdit() {	
+	for (var c of mainWireboard.components) {
+		if (c.isSelected) {
+			startComponentEdit(c);
+			break;
+		}
+	}
+}
+
 function componentFromSource(src, forceName) {
 	var wireboard = new Wireboard(forceName || '');
 	wireboard.fromSource(src);
@@ -120,7 +146,7 @@ function componentFromSource(src, forceName) {
 
 function componentFromWireboard(wireboard, forceName) {
 	var componentName = forceName || wireboard.name;
-	var siliconCode = wireboard.toSilicon();
+	var siliconCode = wireboard.toSilicon(forceName);
 
 	var ret = componentFromSilicon(componentName, siliconCode);
 
@@ -141,17 +167,23 @@ function newEmptyComponent() {
 	var name = $('#newComponentName').val();
 
 	if ((name != null) && (name != ""))
+		$('#newComponentName').val('');
+
 		if (name in toolbox)
 			alert('Component alredy exists!');
 		else {
 			$('#modalNewComponent').modal('hide');
-			componentFromSource({
-				name: name,
-				source:	{
-					components: [],
-					wires: []
-				}
-			});
+
+			if (newComponentSourceFromWireboard)
+				componentFromWireboard(mainWireboard, name);
+			else
+				componentFromSource({
+					name: name,
+					source:	{
+						components: [],
+						wires: []
+					}
+				});	
 
 			var inst = new toolbox[name]();
 			startComponentEdit(inst);
@@ -192,6 +224,7 @@ function drawEditbox() {
 	$('#editbox .breadcrumb').append('<li class="breadcrumb-item">' + (editedSiliconComponentName ? editedSiliconComponentName : mainWireboard.name) + '</li>');
 
 	drawSiliconbox();
+	drawComponentQuickActions();
 }
 
 function drawSiliconbox() {
@@ -213,6 +246,16 @@ function drawSiliconbox() {
 		$('#btnSwitchToSilicon').addClass('hide');
 		$('#btnSwitchCode').addClass('hide');
 	}
+}
+
+function drawComponentQuickActions() {
+	// Check if any object is selected
+	var selectedComponents = mainWireboard.components.filter(t => t.isSelected == true);
+
+	if ((selectedComponents.length == 1) && !editedSiliconComponentName)
+		$('#btnStartComponentEdit').removeClass('hide');
+	else
+		$('#btnStartComponentEdit').addClass('hide');
 }
 
 function switchToSilicon() {
@@ -306,6 +349,7 @@ function endComponentEdit(cancel) {
 	}
 
 	var oldWireboard = wireboardStack.pop();
+	editedSiliconComponentName = null;
 
 	oldWireboard.addToParentSVG(draw);
 	mainWireboard = oldWireboard;
@@ -323,6 +367,18 @@ function generateDirtyDependenciesList(dirtyList, componentName) {
 					generateDirtyDependenciesList(dirtyList, t.name);
 	}
 }
+
+var newComponentSourceFromWireboard = false;
+
+$('#btnNewEmptyComponent').on('click', function(event) {
+	newComponentSourceFromWireboard = false;
+	$('#modalNewComponent').modal('show');
+});
+
+$('#btnNewWireboardComponent').on('click', function(event) {
+	newComponentSourceFromWireboard = true;
+	$('#modalNewComponent').modal('show');
+});
 
 $('#modalComponentOptions').on('click', '.btnComponentOptionsApply', this, function(event) {
 	var component = $('#modalComponentOptions').data('component');
@@ -446,7 +502,7 @@ function generateCompiledCode() {
 	// Generate framework code
 	var frameworkParts = [];
 	frameworkParts.push(Wire.toString().replace(' extends Cable', '').replace('super();\n', ''));
-	frameworkParts.push(Pin.toString().replace(' extends Pon', '').replace('super();\n', ''));
+	frameworkParts.push(Pin.toString().replace(' extends Pong', '').replace('super();\n', ''));
 	frameworkParts.push(Component.toString().replace(' extends Symbol', '').replace('super();\n', ''));
 
 	var frameworkCode = frameworkParts.join('\n').replace(/\n\s*\n/g, '\n');
@@ -491,3 +547,8 @@ function simStep(wireboard) {
 	wireboard.simulate();
 	wireboard.refresh();
 }
+
+
+setTimeout(function() {
+	mainWireboard.fromSource(JSON.parse('{"name":"main","source":{"components":[{"id":"c0","name":"LED","x":688,"y":872,"config":{}},{"id":"c1","name":"CLOCK","x":576,"y":872,"config":{}}],"wires":[[{"cid":"c0","pn":"@l0"},{"cid":"c1","pn":"@r0"}]]}}'))
+}, 1000);
