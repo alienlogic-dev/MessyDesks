@@ -43,7 +43,12 @@ class Component extends Symbol {
     super();
 
     this.pins = [];
-    this.config = config || this.defaultConfig();
+
+    this.config = this.defaultConfig();
+
+    if (config)
+      for (var k in config)
+        this.config[k] = config[k];
 
     this.init();
   }
