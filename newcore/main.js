@@ -37,7 +37,7 @@ function initWireboard() {
 }
 
 draw.on('click', function(e) {
-	if (!e.metaKey) // Use CMD or CTRL key for multiple selection
+	if (!e.metaKey && !e.ctrlKey) // Use CMD or CTRL key for multiple selection
 		for (var c of mainWireboard.components)
 			c.deselect();
 
@@ -150,7 +150,7 @@ function componentFromWireboard(wireboard, forceName) {
 
 	var ret = componentFromSilicon(componentName, siliconCode);
 
-	ret.source = wireboard.toSource();
+	ret.source = wireboard.toSource(forceName);
 	ret.dependecies = wireboard.getDependencies();
 
 	wireboard.clear();
@@ -190,6 +190,19 @@ function newEmptyComponent() {
 		}
 }
 
+function replaceSelectedComponents() {
+  var newComponentName = $('#replaceNewComponentName').val();
+
+  for (var cIdx = mainWireboard.components.length - 1; cIdx >= 0; cIdx--) {
+    var c = mainWireboard.components[cIdx];
+		if (c.isSelected) {
+      mainWireboard.updateComponent(c, newComponentName);
+		}
+	}
+
+	$('#modalReplaceComponent').modal('hide');
+}
+
 /* Toolbox */
 function addComponentFromToolbox(componentName) {
 	mainWireboard.createComponent(componentName);
@@ -203,6 +216,20 @@ function updateToolboxBar() {
 		var newToolboxButton = `<li class="list-group-item p-2 text-right" onclick="addComponentFromToolbox('${t}')">${t}</li>`;
 		toolboxDiv.append(newToolboxButton);
 	}
+
+  updateToolboxSelect();
+}
+
+function updateToolboxSelect() {
+  var toolboxSelects = $('.toolboxSelect');
+  toolboxSelects.each(function() {
+    $(this).html('');
+
+    for (var t in toolbox) {
+      var newToolboxButton = `<option value="${t}">${t}</option>`;
+      $(this).append(newToolboxButton);
+    }
+  });
 }
 
 /* Editor */
@@ -374,6 +401,11 @@ function generateDirtyDependenciesList(dirtyList, componentName) {
 }
 
 var newComponentSourceFromWireboard = false;
+
+$('#btnNewComponent').on('click', function(event) {
+	newComponentSourceFromWireboard = false;
+	$('#modalNewComponent').modal('show');
+});
 
 $('#btnNewEmptyComponent').on('click', function(event) {
 	newComponentSourceFromWireboard = false;

@@ -245,9 +245,9 @@ class Wireboard {
   }
 
   /* Source manager */
-  toSource() {
+  toSource(forcedName) {
     var ret = {
-      name: this.name,
+      name: forcedName || this.name,
       source: {
         components: [],
         wires: []
