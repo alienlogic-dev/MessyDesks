@@ -189,41 +189,35 @@ class TOGGLE extends Component {
 }
 
 
-class COUNTER extends Component {
+class SHOW extends Component {
   init() {
     this.create({ left: ['_I'] });
-    this.count = 0;
-    this.oldValue = false;
+    this.value = null;
   }
 
   initGUI() {
-    this.minWidth = 5;
+    this.minWidth = 10;
     this.minHeight = 5;
 
-		this.countSVG = null;
+		this.displaySVG = null;
   }
 
   drawSymbol(svg) {
-    this.countSVG = svg
-    .text(this.count.toString())
+    this.displaySVG = svg
+    .text((this.value != null) ? this.value.toString() : 'null')
     .font({
             family:   'Menlo'
           , size:     12
           , anchor:   'middle'
-          })
-    .move(this.wpx / 2, -15);
+          });
   }
 
   execute(actual) {
-    if (this.oldValue != actual.left.I) {
-      if (actual.left.I)
-        this.count++;
-    }
-    this.oldValue = actual.left.I;
+    this.value = actual.left.I;
   }
 
   draw() {
-    this.countSVG.text(this.count.toString());
+    this.displaySVG.text((this.value != null) ? this.value.toString() : 'null');
   }
 }
 
@@ -233,4 +227,4 @@ toolbox['CLOCK'] = CLOCK;
 toolbox['CONST'] = CONST;
 toolbox['LED'] = LED;
 toolbox['TOGGLE'] = TOGGLE;
-toolbox['COUNTER'] = COUNTER;
+toolbox['SHOW'] = SHOW;

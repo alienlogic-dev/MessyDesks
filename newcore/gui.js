@@ -301,6 +301,8 @@ class Cable {
 			}
 		}
 
+    points.sort( (a,b) => a[0] - b[0] );
+
 		this.wireSVG.plot(points);
 	}
 }

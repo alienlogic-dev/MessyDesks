@@ -28,3 +28,16 @@ v1.0:
     - Rectancular selection
     - Copy / Paste
     ! Use monaco editor
+
+v2.0
+    - Add context menu for components
+      - Flip / Rotate component
+      - Replace component
+      - Edit component
+      - Export component
+
+    - Add pin 'canOutput' and 'canInput' definition
+    - Add visual indication of Input-Only, Output-Only, Input-Output pin (yellow, white, yellow + white)
+    - Add tools to simplify debug
+      - Show pin status even if wire is not connected
+      - Spy pin value
