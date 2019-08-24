@@ -57,8 +57,6 @@ class Symbol {
 		var textW = this.calculateTextWidth(sidePins);
 		var textH = this.calculateTextHeight(sidePins);
 
-    console.log(textW);
-
 		this.w = Math.max(this.minWidth, Math.max(textW, Math.max(sidePins.top.length * 2, sidePins.bottom.length * 2)));
 		this.wpx = this.w * 8;
 
@@ -239,14 +237,12 @@ class Symbol {
 	draw() {}
 
 	refresh() {
-    var outputs = this.run();
-
     for (var p of this.pins) {
       var pinValue = null;
       if (p.wire)
         pinValue = p.wire.value;
       else
-        pinValue = outputs[p.name];
+        pinValue = p.value;
       
 			p.svg.fill((pinValue == null) ? '#fc0' : (+pinValue ? '#0c0' : '#c00'));
     }

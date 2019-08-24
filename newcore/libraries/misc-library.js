@@ -122,13 +122,17 @@ class CLOCK extends Component {
 
   onTimer() {
     this.value = !this.value;
-    this.writePin('Q', this.value);
+  }
+
+  execute(actual) {
+    return { Q: this.value };
   }
 }
 
 class LED extends Component {
   init() {
     this.create({ left: ['_I'] });
+    this.value = null;
   }
 
   initGUI() {
@@ -145,8 +149,12 @@ class LED extends Component {
     svg.size(24, 24);
   }
 
+  execute(actual) {
+    this.value = actual.left.I;
+  }
+
   draw() {
-    if (+this.readPin('I'))
+    if (+this.value)
       this.ledSVG.fill('#ff0000').stroke({ color: '#cc0000', width: 2 });
     else
       this.ledSVG.fill('#3f0000').stroke({ color: '#330000', width: 2 });
@@ -156,10 +164,8 @@ class LED extends Component {
 
 class TOGGLE extends Component {
   init() {
-    this.value = false;
-
     this.create({ right: ['_Q'] });
-    this.writePin('Q', this.value);
+    this.value = false;
   }
 
   initGUI() {
@@ -177,13 +183,16 @@ class TOGGLE extends Component {
     svg.size(24, 24);
   }
 
+  execute(actual) {
+    return { Q: this.value };
+  }
+
   mouseDownEvent(e) {
     this.btnSVG.fill('#888');
   }
   mouseUpEvent(e) {
     this.btnSVG.fill('#ccc');
     this.value = !this.value;
-    this.writePin('Q', this.value);
   }
   mouseDblClickEvent(e) { return true; }
 }

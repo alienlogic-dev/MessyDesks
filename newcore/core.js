@@ -15,6 +15,7 @@ class Pin extends Pong {
     this.component = null;
     this.side = side || 'left';
     this.wire = null;
+    this.value = null;
 
     this.isInverted = name.startsWith('!'); // Name starts with !
     this.isHidden = name.startsWith('_'); // Name starts with _
@@ -43,6 +44,8 @@ class Pin extends Pong {
 class Component extends Symbol {
   constructor(config) {
     super();
+
+    this.runRequired = false;
 
     this.pins = [];
 
@@ -101,7 +104,7 @@ class Component extends Symbol {
     var actual = {};
     for (var p of this.pins) {
       actual[p.side] = actual[p.side] || {};
-      actual[p.side][p.name] = (p.wire == null) ? null : p.wire.value;
+      actual[p.side][p.name] = (p.wire == null) ? p.value : p.wire.value;
     }
 
     var output = this.execute(actual);
@@ -111,6 +114,8 @@ class Component extends Symbol {
         if (output[p.name] != null) {
           if (p.wire)
             p.wire.value = output[p.name];
+          else
+            p.value = output[p.name];
         }
       }
     }
@@ -133,16 +138,28 @@ class Component extends Symbol {
 
   writePin(pinName, value) {
     var pin = this.getPin(pinName);
-    if (pin)
+    if (pin) {
+      this.runRequired = true;
       if (pin.wire)
         pin.wire.value = value;
+      else
+        pin.value = value;
+    }
   }
 
   readPin(pinName) {
+    if (this.runRequired) {
+      this.run();
+      this.runRequired = false;
+    }
+
     var pin = this.getPin(pinName);
     if (pin)
       if (pin.wire)
         return pin.wire.value;
+      else
+        return pin.value;
+    
     return null;
   }
 }

@@ -176,7 +176,7 @@ function componentFromWireboard(wireboard, forceName) {
 
 	var ret = componentFromSilicon(componentName, siliconCode);
 
-	ret.source = wireboard.toSource(forceName);
+	ret.source = wireboard.toSource(false, forceName);
 	ret.dependecies = wireboard.getDependencies();
 
 	wireboard.clear();
@@ -574,8 +574,10 @@ function generateCompiledCode() {
 	// Generate toolbox code
 	var toolboxParts = [];
 	for (var tId in toolbox) {
-		var ts = clearSiliconComponent(tId);
-		toolboxParts.push(ts);
+		if (tId != mainWireboard.name) {
+			var ts = clearSiliconComponent(tId);
+			toolboxParts.push(ts);
+		}
 	}
 	var toolboxCode = toolboxParts.join('\n').replace(/\n\s*\n/g, '\n');
 	compiledCodeParts.push(toolboxCode);
@@ -584,8 +586,14 @@ function generateCompiledCode() {
 	var wireboardCode = mainWireboard.toSilicon().replace(/\n\s*\n/g, '\n');
 	compiledCodeParts.push(wireboardCode);
 
+	// Add class export for Node.js
+	compiledCodeParts.push(`module.exports = ${mainWireboard.name};`);
+
 	var compiledCode = compiledCodeParts.join('\n');
-	console.log(compiledCode);
+
+	var filename = prompt('Enter project filename', 'project');
+	if ((filename != null) && (filename != ""))
+		download(compiledCode, filename + '.js', 'text/plain');
 }
 
 initWireboard();

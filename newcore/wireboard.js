@@ -245,7 +245,9 @@ class Wireboard {
   }
 
   /* Source manager */
-  toSource(forcedName) {
+  toSource(onlySelected, forcedName) {
+    onlySelected = onlySelected || false;
+
     var ret = {
       name: forcedName || this.name,
       source: {
@@ -257,16 +259,18 @@ class Wireboard {
     // Components
     for (var idx = 0; idx < this.components.length; idx++) {
       var componentItem = this.components[idx];
-      var newComponent = {
-        id: componentItem.id,
-        name: componentItem.constructor.name,
-        x: this.hasGUI ? componentItem.svg.x() : componentItem.x,
-        y: this.hasGUI ? componentItem.svg.y() : componentItem.y,
-      };
-      if (componentItem.config)
-        newComponent.config = componentItem.config;
-      
-      ret.source.components.push(newComponent);
+      if (componentItem.isSelected || !onlySelected) {
+        var newComponent = {
+          id: componentItem.id,
+          name: componentItem.constructor.name,
+          x: this.hasGUI ? componentItem.svg.x() : componentItem.x,
+          y: this.hasGUI ? componentItem.svg.y() : componentItem.y,
+        };
+        if (componentItem.config)
+          newComponent.config = componentItem.config;
+        
+        ret.source.components.push(newComponent);
+      }
     }
 
     // Wires
@@ -276,14 +280,17 @@ class Wireboard {
       var newWire = [];
 
       for (var p of wireItem.references) {
-        var newWireConnection = {
-          cid: p.component.id,
-          pn: p.tryStaticReference()
-        };
-        newWire.push(newWireConnection);
+        if (p.component.isSelected || !onlySelected) {
+          var newWireConnection = {
+            cid: p.component.id,
+            pn: p.tryStaticReference()
+          };
+          newWire.push(newWireConnection);
+        }
       }
 
-      ret.source.wires.push(newWire);
+      if (newWire.length > 1)
+        ret.source.wires.push(newWire);
     }
 
     return ret;
@@ -317,6 +324,10 @@ class Wireboard {
     }
 
     this.updateExecutionOrder();
+  }
+
+  pasteFromSource(src) {
+
   }
 
   /* Dependencies */

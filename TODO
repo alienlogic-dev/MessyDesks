@@ -41,5 +41,8 @@ v2.0
     - Add tools to simplify debug
       - Show pin status even if wire is not connected
       - Spy pin value
-
+      - Debugger (as 'watch table' for inputs / outputs)
+      - Tests
+    
     - Copy and Paste (using JSON source)
+
