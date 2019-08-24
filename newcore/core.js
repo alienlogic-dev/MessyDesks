@@ -7,8 +7,10 @@ class Wire extends Cable {
   }
 }
 
-class Pin {
+class Pin extends Pong {
   constructor(name, side) {
+    super();
+    
     this.name = name.replace('!', '').replace('_', '') || '';
     this.component = null;
     this.side = side || 'left';
@@ -110,8 +112,10 @@ class Component extends Symbol {
           if (p.wire)
             p.wire.value = output[p.name];
         }
-      }      
+      }
     }
+
+    return output;
   }
 
   getPin(pinName) {

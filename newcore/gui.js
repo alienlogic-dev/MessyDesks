@@ -18,17 +18,32 @@ class Symbol {
 
   initGUI() {}
 
-	calculateTextWidth() {
-		return (0 + 0 + 24) / 8;	
+	calculateTextWidth(sidePins) {
+		var inMaxWidth = 0;
+		for (var i = sidePins.left.length - 1; i >= 0; i--) {
+			var item = sidePins.left[i];
+
+			var textWidth = item.name.length * 5.25;
+
+			if (textWidth > inMaxWidth) inMaxWidth = textWidth;
+		}
+
+		var outMaxWidth = 0;
+		for (var i = sidePins.right.length - 1; i >= 0; i--) {
+			var item = sidePins.right[i];
+
+			var textWidth = item.name.length * 5.25;
+
+			if (textWidth > outMaxWidth) outMaxWidth = textWidth;
+		}
+
+		return Math.floor((Math.floor(inMaxWidth) + Math.floor(outMaxWidth) + 24) / 8);	
 	}
-	calculateTextHeight() {
+	calculateTextHeight(sidePins) {
 		return (0 + 0 + 24) / 8;	
 	}
 
 	createSVG() {
-		var textW = this.calculateTextWidth();
-		var textH = this.calculateTextHeight();
-
     var sidePins = {
       left: [],
       right: [],
@@ -38,6 +53,11 @@ class Symbol {
     for (var p of this.pins) {
       sidePins[p.side].push(p);
     }
+
+		var textW = this.calculateTextWidth(sidePins);
+		var textH = this.calculateTextHeight(sidePins);
+
+    console.log(textW);
 
 		this.w = Math.max(this.minWidth, Math.max(textW, Math.max(sidePins.top.length * 2, sidePins.bottom.length * 2)));
 		this.wpx = this.w * 8;
@@ -219,10 +239,15 @@ class Symbol {
 	draw() {}
 
 	refresh() {
+    var outputs = this.run();
+
     for (var p of this.pins) {
       var pinValue = null;
       if (p.wire)
         pinValue = p.wire.value;
+      else
+        pinValue = outputs[p.name];
+      
 			p.svg.fill((pinValue == null) ? '#fc0' : (+pinValue ? '#0c0' : '#c00'));
     }
 
@@ -277,7 +302,6 @@ class Symbol {
 class Cable {
   constructor() {
 		this.svg = null;
-		
 	}
 
 	createSVG() {
@@ -301,8 +325,14 @@ class Cable {
 			}
 		}
 
-    points.sort( (a,b) => a[0] - b[0] );
+    points.sort( (a,b) => (a[0] + a[1] * 1000) - (b[0] + b[1] * 1000) );
 
 		this.wireSVG.plot(points);
+	}
+}
+
+class Pong {
+  constructor() {
+		this.value = null;
 	}
 }

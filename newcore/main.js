@@ -74,7 +74,38 @@ var hotkeys = {
 			alt: false
 		},
 		toolbox: 'OUTPUT'
-	}
+	},
+  A: {
+    modifier: {
+			meta: true,
+			shift: false,
+			alt: false
+		},
+    action: function() {
+      for (var c of mainWireboard.components)
+        c.select();
+    }
+  },
+  O: {
+    modifier: {
+			meta: true,
+			shift: false,
+			alt: false
+		},
+    action: function() {
+			$('#file').click();
+    }
+  },
+  S: {
+    modifier: {
+			meta: true,
+			shift: false,
+			alt: false
+		},
+    action: function() {
+			saveProjectToFile();
+    }
+  }
 }
 
 $(document).keydown(function(e) {
@@ -91,25 +122,20 @@ $(document).keydown(function(e) {
 					hotkey.modifier.shift = hotkey.modifier.shift || false;
 					hotkey.modifier.alt = hotkey.modifier.alt || false;
 	
-					modifierMatch = (hotkey.modifier.meta == e.metaKey) && (hotkey.modifier.shift == e.shiftKey) && (hotkey.modifier.alt == e.altKey);
+					modifierMatch = ((hotkey.modifier.meta == e.metaKey) || (hotkey.modifier.meta == e.ctrlKey)) && (hotkey.modifier.shift == e.shiftKey) && (hotkey.modifier.alt == e.altKey);
 				}
 	
 				if (modifierMatch) {
 					if (hotkey.toolbox) { // Create new toolbox component
 						addComponentFromToolbox(hotkey.toolbox);
+            return false;
 					}
+          if (hotkey.action) {
+            hotkey.action();
+            return false;
+          }
 				}
 			}
-		}
-
-		if ((e.keyCode == 79) && e.metaKey) { // CMD/CTRL + O -> Open project
-			$('#file').click();
-			return false;
-		}
-
-		if ((e.keyCode == 83) && e.metaKey) { // CMD/CTRL + S -> Save project
-			saveProjectToFile();
-			return false;
 		}
 
 		if ((e.keyCode == 90) && e.metaKey && !e.shiftKey) { // CMD/CTRL + Z -> Undo
