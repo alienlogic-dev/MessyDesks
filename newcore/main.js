@@ -316,6 +316,18 @@ function drawComponentQuickActions() {
 		$('#btnReplaceComponents').addClass('hide');
 }
 
+function drawBoardConnection() {
+  if (connectedHost) {
+    $('#btnConnectBoard').addClass('text-success');
+    $('#btnConnectBoard > i').addClass('fa-rotate-90');
+    $('#btnCompileBoard').removeAttr('disabled');
+  } else {
+    $('#btnConnectBoard').removeClass('text-success');
+    $('#btnConnectBoard > i').removeClass('fa-rotate-90');
+    $('#btnCompileBoard').attr('disabled', '');
+  }
+}
+
 function switchToSilicon() {
 	if (editedSiliconComponentName)
 		editedSiliconComponentName = null;
@@ -347,7 +359,6 @@ function startComponentEdit(component) {
 		newWireboard.addToParentSVG(draw);
 	
 		var tc = new Component()
-		tc.init();
 		tc.initGUI();
 		tc.createSVG();
 		tc.pinClicked = null;
@@ -440,25 +451,23 @@ $('#btnConnectBoard').on('click', function(event) {
         url: `http://${connectedHost}:3000/source/`,
         timeout: 1000,
         success: function(data) {
-          $('#btnConnectBoard').addClass('text-success').removeClass('text-danger');
-          $('#btnCompileBoard').removeAttr('disabled');
+          drawBoardConnection();
 
           if (data)
             if (data.length > 0)
               loadProject(JSON.parse(data));
         },
         error: function(data) {
-          $('#btnConnectBoard').removeClass('text-success').addClass('text-danger');
-          $('#btnCompileBoard').attr('disabled', '');
+          connectedHost = null;
+          drawBoardConnection();
           alert('Error connection to board!');
         }
       });
     }
   } else {
     if (confirm('Disconnect from board?')) {
-      $('#btnConnectBoard').removeClass('text-success').removeClass('text-danger');
-      $('#btnCompileBoard').attr('disabled', '');
       connectedHost = null;
+      drawBoardConnection();
     }
   }
 });
@@ -702,6 +711,8 @@ function refreshFromBoard() {
       },
       error: function(data) {
         connectedHost = null;
+        drawBoardConnection();
+
         alert('Error connection to board!');
       }
     });

@@ -17,6 +17,19 @@ app.use(function (req, res, next) {
   router(req, res, next)
 })
 
+const getCircularReplacer = () => {
+  const seen = new WeakSet();
+  return (key, value) => {
+    if (typeof value === "object" && value !== null) {
+      if (seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+};
+
 function defineStuff() {
   router = express.Router()
 
@@ -90,7 +103,7 @@ function defineStuff() {
 			}
     }
 
-    var json = JSON.stringify(ret);
+    var json = JSON.stringify(ret, getCircularReplacer());
 
     res.send(json);
   });
@@ -98,9 +111,6 @@ function defineStuff() {
 
 app.listen(3000)
 
-function spyComponent(instance, key) {
-
-}
 
 defineStuff();
 
@@ -115,4 +125,4 @@ var inst = new main();
 
 setInterval(function() {
   inst.run();
-}, 50);
+}, 10);

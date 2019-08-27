@@ -30,6 +30,7 @@
     "mysql": "^2.17.1",
     "popper.js": "^1.14.6",
     "readline-sync": "^1.4.10",
-    "svg.js": "^2.7.1"
+    "svg.js": "^2.7.1",
+    "sync-mysql": "^3.0.1"
   }
 }

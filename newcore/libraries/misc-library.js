@@ -1,5 +1,5 @@
 class INPUT extends Component {
-  init() {
+  construct() {
     this.create({
       right: ['_Q']
     });
@@ -42,7 +42,7 @@ class INPUT extends Component {
 }
 
 class OUTPUT extends Component {
-  init() {
+  construct() {
     this.create({
       left: ['_I']
     });
@@ -86,7 +86,7 @@ class OUTPUT extends Component {
 }
 
 class CONST extends Component {
-  init() {
+  construct() {
     this.create({
       right: ['Q']
     })
@@ -106,7 +106,7 @@ class CONST extends Component {
 }
 
 class CLOCK extends Component {
-  init() {
+  construct() {
     this.config.interval = this.config.interval || 1000;
     var obj = this;
     this.timer = setInterval(function() { obj.onTimer() }, +this.config.interval);
@@ -130,7 +130,7 @@ class CLOCK extends Component {
 }
 
 class LED extends Component {
-  init() {
+  construct() {
     this.create({ left: ['_I'] });
     this.value = null;
   }
@@ -163,7 +163,7 @@ class LED extends Component {
 
 
 class TOGGLE extends Component {
-  init() {
+  construct() {
     this.create({ right: ['_Q'] });
     this.value = false;
   }
@@ -199,7 +199,7 @@ class TOGGLE extends Component {
 
 
 class SHOW extends Component {
-  init() {
+  construct() {
     this.create({ left: ['_I'] });
     this.value = null;
   }

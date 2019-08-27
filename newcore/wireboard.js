@@ -169,7 +169,6 @@ class Wireboard {
     
     if (isSameComponent) {
       var tc = new Component()
-      tc.init();
       tc.initGUI();
       tc.createSVG();
       tc.pinClicked = null;
@@ -424,7 +423,7 @@ class Wireboard {
     compiledCode.push(`class ${componentName} extends Component {`);
 
     // Create init
-    compiledCode.push(`\tinit() {`);
+    compiledCode.push(`\tconstruct() {`);
 
     var createConfig = {
       top: [],

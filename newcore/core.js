@@ -55,9 +55,16 @@ class Component extends Symbol {
       for (var k in config)
         this.config[k] = config[k];
 
-    this.init();
+    this.construct();
+
+    try {
+      this.init();
+    } catch (e) {
+      console.log(e);
+    }
   }
 
+  construct() {}
   init() {}
 
   create(pinsInfo) {
@@ -109,11 +116,16 @@ class Component extends Symbol {
       actual[p.side][p.name] = (p.wire == null) ? p.value : p.wire.value;
     }
 
-    var output = this.execute(actual);
+    var output = null;
+    try {
+      output = this.execute(actual);
+    } catch (e) {
+      console.log(e);
+    }
     
     if (output) {
       for (var p of this.pins) {
-        if (output[p.name] != null) {
+        if (p.name in output) {
           if (p.wire)
             p.wire.value = output[p.name];
           else

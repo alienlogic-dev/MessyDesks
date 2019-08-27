@@ -1,6 +1,6 @@
 
 class AND extends Component {
-  init() {
+  construct() {
     var n = this.config.pinCount || 2;
     if (n < 2) n = 2;
 
@@ -31,7 +31,7 @@ class AND extends Component {
 }
 
 class NAND extends Component {
-  init() {
+  construct() {
     var n = this.config.pinCount || 2;
     if (n < 2) n = 2;
 
@@ -62,7 +62,7 @@ class NAND extends Component {
 }
 
 class OR extends Component {
-  init() {
+  construct() {
     var n = this.config.pinCount || 2;
     if (n < 2) n = 2;
 
@@ -93,7 +93,7 @@ class OR extends Component {
 }
 
 class NOR extends Component {
-  init() {
+  construct() {
     var n = this.config.pinCount || 2;
     if (n < 2) n = 2;
 
@@ -124,7 +124,7 @@ class NOR extends Component {
 }
 
 class XOR extends Component {
-  init() {
+  construct() {
     var n = this.config.pinCount || 2;
     if (n < 2) n = 2;
 
@@ -159,7 +159,7 @@ class XOR extends Component {
 }
 
 class XNOR extends Component {
-  init() {
+  construct() {
     var n = this.config.pinCount || 2;
     if (n < 2) n = 2;
 
@@ -194,7 +194,7 @@ class XNOR extends Component {
 }
 
 class TRISTATE extends Component {
-  init() {
+  construct() {
     this.create({
       left: ['A', '!G'],
       right: ['Y']
