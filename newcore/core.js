@@ -101,6 +101,8 @@ class Component extends Symbol {
   execute(actual) { return null; }
 
   run() {
+    this.runRequired = false;
+
     var actual = {};
     for (var p of this.pins) {
       actual[p.side] = actual[p.side] || {};
@@ -148,10 +150,8 @@ class Component extends Symbol {
   }
 
   readPin(pinName) {
-    if (this.runRequired) {
+    if (this.runRequired)
       this.run();
-      this.runRequired = false;
-    }
 
     var pin = this.getPin(pinName);
     if (pin)

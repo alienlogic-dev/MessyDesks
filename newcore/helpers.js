@@ -27,6 +27,17 @@ function download(data, filename, type) {
 	}
 }
 
+// Function to copy text using input 'copyarea'
+function copy(txt) {
+  var tempInput = document.createElement("textarea");
+  tempInput.style = "position: absolute; left: -1000px; top: -1000px";
+  tempInput.value = txt;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  document.execCommand("copy");
+  document.body.removeChild(tempInput);
+}
+
 // Function to spy and copy component instances
 function spyComponent(exclude, source, dest) {
 	for (let [key, value] of Object.entries(source)) {

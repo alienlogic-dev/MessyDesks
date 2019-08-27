@@ -428,6 +428,57 @@ function generateDirtyDependenciesList(dirtyList, componentName) {
 
 var newComponentSourceFromWireboard = false;
 
+var connectedHost = null;
+
+$('#btnConnectBoard').on('click', function(event) {
+  if (connectedHost == null) {
+    var boardIP = prompt('Enter board IP address', 'localhost');
+    if ((boardIP != null) && (boardIP != "")) {
+      connectedHost = boardIP;
+      $.ajax({
+        type: 'GET',
+        url: `http://${connectedHost}:3000/source/`,
+        timeout: 1000,
+        success: function(data) {
+          $('#btnConnectBoard').addClass('text-success').removeClass('text-danger');
+          $('#btnCompileBoard').removeAttr('disabled');
+
+          if (data)
+            if (data.length > 0)
+              loadProject(JSON.parse(data));
+        },
+        error: function(data) {
+          $('#btnConnectBoard').removeClass('text-success').addClass('text-danger');
+          $('#btnCompileBoard').attr('disabled', '');
+          alert('Error connection to board!');
+        }
+      });
+    }
+  } else {
+    if (confirm('Disconnect from board?')) {
+      $('#btnConnectBoard').removeClass('text-success').removeClass('text-danger');
+      $('#btnCompileBoard').attr('disabled', '');
+      connectedHost = null;
+    }
+  }
+});
+
+$('#btnCompileBoard').on('click', function(event) {
+  $.ajax({
+    type: 'POST',
+    url: `http://${connectedHost}:3000/source/`,
+    data: JSON.stringify(saveProject()),
+    contentType: 'text/plain'
+  });
+
+  $.ajax({
+    type: 'POST',
+    url: `http://${connectedHost}:3000/code/`,
+    data: generateCompiledCode(),
+    contentType: 'text/plain'
+  })
+});
+
 $('#btnNewComponent').on('click', function(event) {
 	newComponentSourceFromWireboard = false;
 	$('#modalNewComponent').modal('show');
@@ -564,9 +615,9 @@ function generateCompiledCode() {
 
 	// Generate framework code
 	var frameworkParts = [];
-	frameworkParts.push(Wire.toString().replace(' extends Cable', '').replace('super();\n', ''));
-	frameworkParts.push(Pin.toString().replace(' extends Pong', '').replace('super();\n', ''));
-	frameworkParts.push(Component.toString().replace(' extends Symbol', '').replace('super();\n', ''));
+	frameworkParts.push(Wire.toString().replace(' extends Cable', '').replace('super();', ''));
+	frameworkParts.push(Pin.toString().replace(' extends Pong', '').replace('super();', ''));
+	frameworkParts.push(Component.toString().replace(' extends Symbol', '').replace('super();', ''));
 
 	var frameworkCode = frameworkParts.join('\n').replace(/\n\s*\n/g, '\n');
 	compiledCodeParts.push(frameworkCode);
@@ -591,9 +642,7 @@ function generateCompiledCode() {
 
 	var compiledCode = compiledCodeParts.join('\n');
 
-	var filename = prompt('Enter project filename', 'project');
-	if ((filename != null) && (filename != ""))
-		download(compiledCode, filename + '.js', 'text/plain');
+  return compiledCode;
 }
 
 initWireboard();
@@ -603,15 +652,11 @@ setTimeout(function() {
 }, 100);
 
 /* Real-Time Simulation */
-var simInterval = 50;
-var simEvent = function() {
-	//simStep();
-	setTimeout(simEvent, simInterval);
-}
-setTimeout(simEvent, simInterval);
-
 setInterval(function() {
-	simStep(mainWireboard);
+  if (connectedHost == null)
+	  simStep(mainWireboard);
+  else
+    refreshFromBoard();
 }, 250);
 
 function simStep(wireboard) {
@@ -619,6 +664,50 @@ function simStep(wireboard) {
 	wireboard.refresh();
 }
 
+function refreshFromBoard() {
+  if (connectedHost) {
+    $.ajax({
+      type: 'GET',
+      url: `http://${connectedHost}:3000/spy/`,
+      timeout: 1000,
+      success: function(data) {
+        if (data)
+          if (data.length > 0) {
+            var actualValues = JSON.parse(data);
+
+            for (let [key, value] of Object.entries(actualValues)) {
+              if (key.startsWith('c')) {
+                if (value.length > 0) {
+                  var foundComponents = mainWireboard.components.filter(t => t.id == key);
+                  if (foundComponents.length > 0) {
+                    var c = foundComponents[0];
+                    //console.log('Component:', key, c, value);
+                    for (var p of value) {
+                      c.writePin(p.name, p.value);
+                    }
+                  }
+                }
+              } else if (key.startsWith('w')) {
+                //console.log('Wire:', key, value);
+                var wIdx = +key.substr(1);
+                mainWireboard.wires[wIdx].value = value;
+              } else {
+                //console.log('Else:', key, value);
+                mainWireboard[key] = value;
+              }
+            }
+
+            mainWireboard.refresh();
+          }
+      },
+      error: function(data) {
+        connectedHost = null;
+        alert('Error connection to board!');
+      }
+    });
+
+  }
+}
 
 setTimeout(function() {
 	mainWireboard.fromSource(JSON.parse('{"name":"main","source":{"components":[{"id":"c0","name":"LED","x":688,"y":872,"config":{}},{"id":"c1","name":"CLOCK","x":576,"y":872,"config":{}}],"wires":[[{"cid":"c0","pn":"@l0"},{"cid":"c1","pn":"@r0"}]]}}'))
