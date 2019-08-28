@@ -12,3 +12,4 @@ board/**/Debug/src/*
 
 
 board/messydesk/src/messydesk.cpp
+newcore/runtime/sourcecode.json

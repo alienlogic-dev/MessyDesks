@@ -454,8 +454,9 @@ $('#btnConnectBoard').on('click', function(event) {
           drawBoardConnection();
 
           if (data)
-            if (data.length > 0)
-              loadProject(JSON.parse(data));
+            loadProject(data);
+
+          initWebSocket();
         },
         error: function(data) {
           connectedHost = null;
@@ -475,17 +476,13 @@ $('#btnConnectBoard').on('click', function(event) {
 $('#btnCompileBoard').on('click', function(event) {
   $.ajax({
     type: 'POST',
-    url: `http://${connectedHost}:3000/source/`,
-    data: JSON.stringify(saveProject()),
-    contentType: 'text/plain'
+    url: `http://${connectedHost}:3000/upload/`,
+    data: JSON.stringify({
+      source: saveProject(),
+      code: generateCompiledCode()
+    }),
+    contentType: 'application/json'
   });
-
-  $.ajax({
-    type: 'POST',
-    url: `http://${connectedHost}:3000/code/`,
-    data: generateCompiledCode(),
-    contentType: 'text/plain'
-  })
 });
 
 $('#btnNewComponent').on('click', function(event) {
@@ -673,50 +670,64 @@ function simStep(wireboard) {
 	wireboard.refresh();
 }
 
-function refreshFromBoard() {
-  if (connectedHost) {
-    $.ajax({
-      type: 'GET',
-      url: `http://${connectedHost}:3000/spy/`,
-      timeout: 1000,
-      success: function(data) {
-        if (data)
-          if (data.length > 0) {
-            var actualValues = JSON.parse(data);
+var socket = null;
 
-            for (let [key, value] of Object.entries(actualValues)) {
-              if (key.startsWith('c')) {
-                if (value.length > 0) {
-                  var foundComponents = mainWireboard.components.filter(t => t.id == key);
-                  if (foundComponents.length > 0) {
-                    var c = foundComponents[0];
-                    //console.log('Component:', key, c, value);
-                    for (var p of value) {
-                      c.writePin(p.name, p.value);
-                    }
-                  }
+function initWebSocket() {
+  socket = new WebSocket(`ws://${connectedHost}:8081`);
+
+  socket.onmessage = function(event) {
+    var data = event.data;
+
+    if (data)
+      if (data.length > 0) {
+        var actualValues = JSON.parse(data);
+
+        for (let [key, value] of Object.entries(actualValues)) {
+          if (key.startsWith('c')) {
+            if (value.length > 0) {
+              var foundComponents = mainWireboard.components.filter(t => t.id == key);
+              if (foundComponents.length > 0) {
+                var c = foundComponents[0];
+                //console.log('Component:', key, c, value);
+                for (var p of value) {
+                  c.writePin(p.name, p.value);
                 }
-              } else if (key.startsWith('w')) {
-                //console.log('Wire:', key, value);
-                var wIdx = +key.substr(1);
-                mainWireboard.wires[wIdx].value = value;
-              } else {
-                //console.log('Else:', key, value);
-                mainWireboard[key] = value;
               }
             }
-
-            mainWireboard.refresh();
+          } else if (key.startsWith('w')) {
+            //console.log('Wire:', key, value);
+            var wIdx = +key.substr(1);
+            mainWireboard.wires[wIdx].value = value;
+          } else {
+            //console.log('Else:', key, value);
+            mainWireboard[key] = value;
           }
-      },
-      error: function(data) {
-        connectedHost = null;
-        drawBoardConnection();
+        }
 
-        alert('Error connection to board!');
+        mainWireboard.refresh();
       }
-    });
+  };
 
+  socket.onclose = function(event) {
+    connectedHost = null;
+    drawBoardConnection();
+  };
+
+  socket.onerror = function(error) {
+    socket = null;
+    connectedHost = null;
+    drawBoardConnection();
+
+    alert('Error connection to board!');
+  };
+}
+
+
+function refreshFromBoard() {
+  if (connectedHost) {
+    if (socket)
+      if (socket.readyState == socket.OPEN)
+        socket.send('');
   }
 }
 

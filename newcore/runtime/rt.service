@@ -1,0 +1,13 @@
+[Unit]
+Description=MessyDesk runtime
+
+[Service]
+ExecStart=/bin/node main.js
+WorkingDirectory=/runtime
+User=root
+Restart=on-failure
+SyslogIdentifier=rt
+PrivateTemp=true
+
+[Install]
+WantedBy=multi-user.target
