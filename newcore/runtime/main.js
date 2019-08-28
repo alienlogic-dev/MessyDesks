@@ -24,6 +24,7 @@ class main {
 }
 
 var inst = new main();
+var newInst = new main();
 
 var runningSource = null;
 
@@ -73,6 +74,11 @@ function defineStuff() {
     logToConsole('Client connected');
     res.send(runningSource);
   });
+
+  router.get('/spy/*', function(req, res) {
+    var tree = req.params[0].split('/');
+    res.send(spyInstanceTree(tree));
+  });
 }
 
 app.listen(3000);
@@ -88,7 +94,7 @@ function spyInstanceTree(tree) {
 
   var ret = {};
 
-  var exclude = [];
+  var exclude = ['pins', 'runRequired'];
 
   for (let [key, value] of Object.entries(spyInstance)) {
     if (!exclude.includes(key)) {
@@ -98,12 +104,11 @@ function spyInstanceTree(tree) {
           if (skey.startsWith('c')) {
           } else if (skey.startsWith('w')) {
           } else {
-            if (skey != 'pins') {
+            if (!exclude.includes(skey)) {
               extra[skey] = svalue;
             }
           }
         }
-
 
         var pins = [];
         for (var pIdx in value.pins) {
@@ -118,9 +123,6 @@ function spyInstanceTree(tree) {
         }
 
         extra['pins'] = pins;
-
-        //console.log(extra);
-
 
         ret[key] = pins;
       } else if (key.startsWith('w')) {
@@ -139,12 +141,43 @@ function logToConsole(str) {
   console.log(`${timestampString} > ${str}`);
 }
 
+// Function to spy and copy component instances
+function spyComponent(exclude, source, dest) {
+	for (let [key, value] of Object.entries(source)) {
+    if (!exclude.includes(key)) {
+      if (key.startsWith('c')) {
+        //console.log(`Component - ${key}:`, value, dest, key, dest[key]);
+        if (key in dest)
+          spyComponent(exclude, value, dest[key]);
+        //else
+        //	console.log(`Skipped Component - ${key}:`, value, dest, key, dest[key]);
+      } else if (key.startsWith('w')) {
+        //console.log(`Wire - ${key}:`, value, dest, key);
+        if (key in dest)
+          dest[key].value = value.value;
+        //else
+        //	console.log(`Skipped Wire - ${key}:`, value, dest, key);
+      } else {
+        //console.log(`Other - ${key}:`, value, dest, key);
+        if (key in dest)
+          dest[key] = value;
+        //else
+        //	console.log(`Skipped Other - ${key}:`, value, dest, key);
+      }
+    }
+	}
+}
+
 function applySourcecode(sourcecodeJson) {
   try {
     runningSource = sourcecodeJson.source;
-    var code = sourcecodeJson.code + '\n inst = new main();';
+    var code = sourcecodeJson.code + '\n newInst = new main();';
     defineStuff();
     eval(code);
+
+    spyComponent(['pins', 'config'], inst, newInst);
+
+    inst = newInst;
 
     logToConsole('Program loaded successfully');
   } catch (ex) {

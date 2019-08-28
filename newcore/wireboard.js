@@ -16,6 +16,8 @@ class Wireboard {
     this.wires = [];
 
     this.executionOrder = [];
+
+    this.refComponent = null;
   }
 
   /* GUI */

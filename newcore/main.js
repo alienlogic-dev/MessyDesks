@@ -5,6 +5,7 @@ var draw = SVG('drawing').size(wireboardWidth*8, wireboardHeight*8);
 
 var mainWireboard = new Wireboard('main', true);
 var wireboardStack = [];
+var componentStack = [];
 
 var toolboxChangeTimer = null;
 const toolboxChangeWatcher = {
@@ -348,6 +349,7 @@ function endLastComponentEdit() {
 }
 
 function startComponentEdit(component) {
+  componentStack.push(component);
 	wireboardStack.push(mainWireboard);
 	mainWireboard.removeFromParentSVG();
 
@@ -417,6 +419,7 @@ function endComponentEdit(cancel) {
 		}
 	}
 
+  var oldComponent = componentStack.pop();
 	var oldWireboard = wireboardStack.pop();
 	editedSiliconComponentName = null;
 
@@ -726,8 +729,13 @@ function initWebSocket() {
 function refreshFromBoard() {
   if (connectedHost) {
     if (socket)
-      if (socket.readyState == socket.OPEN)
-        socket.send('');
+      if (socket.readyState == socket.OPEN) {
+        var tree = [];
+        for (var c of componentStack)
+          tree.push(c.id);
+
+        socket.send(tree.join('/'));
+      }
   }
 }
 
