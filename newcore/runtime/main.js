@@ -3,8 +3,18 @@ var express = require('express')
 var app = express()
 var cors = require('cors');
 const WebSocket = require('ws');
-var NanoTimer = require('nanotimer');
 
+const { JSDOM } = require( 'jsdom' );
+const jsdom = new JSDOM( '' );
+
+// Set window and document from jsdom
+const { window } = jsdom;
+const { document } = window;
+// Also set global window and document before requiring jQuery
+global.window = window;
+global.document = document;
+
+const $ = global.jQuery = require( 'jquery' );
 var sourcecodeFilename = 'sourcecode.json';
 
 const wss = new WebSocket.Server({ port: 8081 });
