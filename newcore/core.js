@@ -45,6 +45,7 @@ class Component extends Symbol {
   constructor(config) {
     super();
 
+    this.lastActuals = {};
     this.runRequired = false;
 
     this.pins = [];
@@ -106,23 +107,52 @@ class Component extends Symbol {
   defaultConfig() { return {} }
 
   execute(actual) { return null; }
+  onchange(actual) { return null; }
 
   run() {
     this.runRequired = false;
+
+    var inputsChanged = false;
+    var noInputs = true;
 
     var actual = {};
     for (var p of this.pins) {
       actual[p.side] = actual[p.side] || {};
       actual[p.side][p.name] = (p.wire == null) ? p.value : p.wire.value;
+
+      if (p.side != 'right') {
+        if (p.wire != null)
+          noInputs = false;
+
+        if (p.side in this.lastActuals)
+          if (p.name in this.lastActuals[p.side])
+            if (this.lastActuals[p.side][p.name] != actual[p.side][p.name])
+              inputsChanged = true;
+      }
     }
 
+    this.lastActuals = actual;
+
     var output = null;
-    try {
-      output = this.execute(actual);
-    } catch (e) {
-      console.log(e);
+
+    if (typeof this.loop === 'function') {
+      try {
+        output = this.loop(actual);
+      } catch (e) {
+        console.log(e);
+      }
     }
-    
+
+    if (inputsChanged || noInputs) {
+      if (typeof this.execute === 'function') {
+        try {
+          output = this.execute(actual);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }
+
     if (output) {
       for (var p of this.pins) {
         if (p.name in output) {
