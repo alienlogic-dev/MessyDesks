@@ -104,7 +104,7 @@ function spyInstanceTree(tree) {
 
   var ret = {};
 
-  var exclude = ['pins', 'runRequired'];
+  var exclude = ['settings', 'pins', 'runRequired'];
 
   for (let [key, value] of Object.entries(spyInstance)) {
     if (!exclude.includes(key)) {
@@ -153,29 +153,33 @@ function logToConsole(str) {
 
 // Function to spy and copy component instances
 function spyComponent(exclude, source, dest) {
-	for (let [key, value] of Object.entries(source)) {
-    if (!exclude.includes(key)) {
-      if (key.startsWith('c')) {
-        //console.log(`Component - ${key}:`, value, dest, key, dest[key]);
-        if (key in dest)
-          spyComponent(exclude, value, dest[key]);
-        //else
-        //	console.log(`Skipped Component - ${key}:`, value, dest, key, dest[key]);
-      } else if (key.startsWith('w')) {
-        //console.log(`Wire - ${key}:`, value, dest, key);
-        if (key in dest)
-          dest[key].value = value.value;
-        //else
-        //	console.log(`Skipped Wire - ${key}:`, value, dest, key);
-      } else {
-        //console.log(`Other - ${key}:`, value, dest, key);
-        if (key in dest)
-          dest[key] = value;
-        //else
-        //	console.log(`Skipped Other - ${key}:`, value, dest, key);
+  if (typeof source != 'undefined') {
+    if (source != null) {
+      for (let [key, value] of Object.entries(source)) {
+        if (!exclude.includes(key)) {
+          if (key.startsWith('c')) {
+            //console.log(`Component - ${key}:`, value, dest, key, dest[key]);
+            if (key in dest)
+              spyComponent(exclude, value, dest[key]);
+            //else
+            //	console.log(`Skipped Component - ${key}:`, value, dest, key, dest[key]);
+          } else if (key.startsWith('w')) {
+            //console.log(`Wire - ${key}:`, value, dest, key);
+            if (key in dest)
+              dest[key].value = value.value;
+            //else
+            //	console.log(`Skipped Wire - ${key}:`, value, dest, key);
+          } else {
+            //console.log(`Other - ${key}:`, value, dest, key);
+            if (key in dest)
+              dest[key] = value;
+            //else
+            //	console.log(`Skipped Other - ${key}:`, value, dest, key);
+          }
+        }
       }
     }
-	}
+  }
 }
 
 function applySourcecode(sourcecodeJson) {

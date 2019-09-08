@@ -3,6 +3,8 @@ class Wire extends Cable {
     super();
     
     this.value = null;
+    this.oldValue = null;
+
     this.references = [];
   }
 }
@@ -45,10 +47,11 @@ class Component extends Symbol {
   constructor(config) {
     super();
 
-    this.lastActuals = {};
-    this.runRequired = false;
+    this.forceExecute = false;
 
     this.pins = [];
+
+    this.settings = {};
 
     this.config = this.defaultConfig();
 
@@ -68,13 +71,14 @@ class Component extends Symbol {
   construct() {}
   init() {}
 
-  create(pinsInfo) {
-    // ex.
-    // left: ['a', 'b', 'c']
-    // left: { prefix: 'I', count: 10, offset: 1, step: 2 }
+  create(settings) {
+    // PINS
+    //    ex.
+    //    left: ['a', 'b', 'c']
+    //    left: { prefix: 'I', count: 10, offset: 1, step: 2 }
     var sides = ['left', 'right', 'top', 'bottom'];
     for (var s of sides) {
-      var item = pinsInfo[s];
+      var item = settings[s];
       var newPins = [];
 
       if (item) {
@@ -102,17 +106,18 @@ class Component extends Symbol {
 
       this.pins = this.pins.concat(newPins);
     }
+
+    // ONCHANGE
+    settings.onchange = (typeof settings.onchange != 'undefined') ? settings.onchange : true;
+
+    this.settings = settings;
   }
 
   defaultConfig() { return {} }
 
   execute(actual) { return null; }
-  onchange(actual) { return null; }
 
   run() {
-    this.runRequired = false;
-
-    var inputsChanged = false;
     var noInputs = true;
 
     var actual = {};
@@ -120,31 +125,17 @@ class Component extends Symbol {
       actual[p.side] = actual[p.side] || {};
       actual[p.side][p.name] = (p.wire == null) ? p.value : p.wire.value;
 
-      if (p.side != 'right') {
+      if (p.side != 'right')
         if (p.wire != null)
           noInputs = false;
-
-        if (p.side in this.lastActuals)
-          if (p.name in this.lastActuals[p.side])
-            if (this.lastActuals[p.side][p.name] != actual[p.side][p.name])
-              inputsChanged = true;
-      }
     }
 
-    this.lastActuals = actual;
+    var needExecute = this.forceExecute || noInputs || !this.settings.onchange;
+    this.forceExecute = false;
 
     var output = null;
-
-    if (typeof this.loop === 'function') {
-      try {
-        output = this.loop(actual);
-      } catch (e) {
-        console.log(e);
-      }
-    }
-
-    if (inputsChanged || noInputs) {
-      if (typeof this.execute === 'function') {
+    if (typeof this.execute === 'function') {
+      if (needExecute) {
         try {
           output = this.execute(actual);
         } catch (e) {
@@ -156,9 +147,16 @@ class Component extends Symbol {
     if (output) {
       for (var p of this.pins) {
         if (p.name in output) {
-          if (p.wire)
+          if (p.wire) {
+            if (p.wire.oldValue != p.wire.value) {
+              var pInputs = p.wire.references.filter(t => t.side != 'right');
+              console.log(this, pInputs);
+              for (var pi of pInputs)
+                pi.component.forceExecute = true;
+            }
+            p.wire.oldValue = p.wire.value;
             p.wire.value = output[p.name];
-          else
+          } else
             p.value = output[p.name];
         }
       }
@@ -183,16 +181,23 @@ class Component extends Symbol {
   writePin(pinName, value) {
     var pin = this.getPin(pinName);
     if (pin) {
-      this.runRequired = true;
-      if (pin.wire)
+      if (pin.wire) {
+        if (pin.wire.oldValue != pin.wire.value)
+          this.forceExecute = true;
+
+        pin.wire.oldValue = pin.wire.value;
         pin.wire.value = value;
-      else
+      } else {
+        if (pin.value != value)
+          this.forceExecute = true;
+        
         pin.value = value;
+      }
     }
   }
 
   readPin(pinName) {
-    if (this.runRequired)
+    if (this.forceExecute)
       this.run();
 
     var pin = this.getPin(pinName);
