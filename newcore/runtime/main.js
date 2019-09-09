@@ -7,6 +7,8 @@ const WebSocket = require('ws');
 const { JSDOM } = require( 'jsdom' );
 const jsdom = new JSDOM( '' );
 
+var loopInterval = 0;
+
 // Set window and document from jsdom
 const { window } = jsdom;
 const { document } = window;
@@ -225,6 +227,16 @@ setTimeout(() => {
   loadFromSourcecodeFile();
 }, 1000);
 
-setInterval(function() {
-  inst.run();
-}, 10);
+function fastLoop() {
+  setImmediate(function() {
+    inst.run();
+    fastLoop();
+  })
+}
+
+if (loopInterval == 0)
+  fastLoop();
+else 
+  setInterval(function() {
+    inst.run();
+  }, loopInterval);

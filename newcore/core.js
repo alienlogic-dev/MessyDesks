@@ -148,14 +148,15 @@ class Component extends Symbol {
       for (var p of this.pins) {
         if (p.name in output) {
           if (p.wire) {
+            p.wire.value = output[p.name];
+
             if (p.wire.oldValue != p.wire.value) {
               var pInputs = p.wire.references.filter(t => t.side != 'right');
-              console.log(this, pInputs);
               for (var pi of pInputs)
                 pi.component.forceExecute = true;
             }
+
             p.wire.oldValue = p.wire.value;
-            p.wire.value = output[p.name];
           } else
             p.value = output[p.name];
         }
