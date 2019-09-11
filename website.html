@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="icon" type="image/png" href="assets/icons/png/icon_64.png" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <!-- Codemirror CSS -->
+    <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css">
+    <!-- Monaco Editor CSS -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="node_modules/monaco-editor/min/vs/editor/editor.main.css">
+    <!-- Google fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <title>MessyDesk</title>
+
+    <style type="text/css">
+      body {
+        font-family: 'Nunito', sans-serif;
+      }
+
+      .hide {
+        display: none!important;
+      }
+
+      .wire {
+        pointer-events: none;
+      }
+      .pin:hover {
+        stroke: red;
+      }
+
+      .componentbox {
+        position: fixed;
+        left: 0;
+        top: 56px;
+        bottom: 0;
+        width: 150px;
+        font-size: 0.8em;
+        overflow-y: scroll;
+        background-color: white;
+      }
+
+      .toolbox {
+        position: fixed;
+        right: 0;
+        left: 150px;
+        top: 56px;
+        text-align: right;
+        z-index: 1;
+      }
+
+      .editbox {
+        font-size: 1em;
+      }
+      .editbox.hidden > div {
+        display: none;
+      }
+      .editbox.hidden > ol {
+        display: none;
+      }
+
+      .workbox {
+        margin-left: 150px;
+        /*height: 50vh;*/
+      }
+      .workbox .CodeMirror {
+        margin-top: 50px;
+        height: calc(100vh - 50px);
+      }
+
+      #siliconCodeArea {
+        margin-top: 106px;
+        height: calc(100vh - 107px);
+      }
+
+      .compilerbox {
+        position: fixed;
+        left: 150px;
+        right: 0;
+        bottom: 0;
+        z-index: 100;
+      }
+
+      .htmlbox {
+        margin-left: 150px;
+        height: 50vh;
+      }
+
+      .dropdown {
+        display: inline-block;
+      }
+
+      .CodeMirror {
+        z-index: 0;
+      }
+
+      .icon {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+      }
+    </style>
+    <style type="text/css">
+      .inputfile {
+          width: 0.1px;
+          height: 0.1px;
+          opacity: 0;
+          overflow: hidden;
+          position: absolute;
+          z-index: -1;
+      }
+
+      .inputfile + label {
+          max-width: 80%;
+          font-size: 1.25rem;
+          /* 20px */
+          font-weight: 700;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          cursor: pointer;
+          display: inline-block;
+          overflow: hidden;
+          padding: 0.625rem 1.25rem;
+          /* 10px 20px */
+      }
+
+      .no-js .inputfile + label {
+          display: none;
+      }
+
+      .inputfile:focus + label,
+      .inputfile.has-focus + label {
+          outline: 1px dotted #000;
+          outline: -webkit-focus-ring-color auto 5px;
+      }
+
+      .inputfile + label * {
+          /* pointer-events: none; */
+          /* in case of FastClick lib use */
+      }
+
+      .inputfile + label svg {
+          width: 1em;
+          height: 1em;
+          vertical-align: middle;
+          fill: currentColor;
+          margin-top: -0.25em;
+          /* 4px */
+          margin-right: 0.25em;
+          /* 4px */
+      }
+
+      .navbar {
+        z-index: 1000;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="">
+        <img src="assets/icons/png/icon_512.png" width="30" height="30" class="d-inline-block align-top" alt="">
+        <span>MessyDesks</span>
+        <small>.io</small>
+      </a>
+
+      <div class="navbar-collapse">
+        <ul class="navbar-nav mr-auto">
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="" data-toggle="modal" data-target="#modalViewExamples"><i class="fa fa-graduation-cap" aria-hidden="true"></i> Examples</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href=""><i class="fa fa-download" aria-hidden="true"></i> Download</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="" data-toggle="modal" data-target="#modalViewDonation"><i class="fa fa-coffee" aria-hidden="true"></i> Donate</a>
+          </li>
+        </ul>
+
+        <form class="form-inline text-light">
+          <button class="btn btn-outline-light ml-3 mr-2" type="button" data-toggle="modal" data-target="#modalViewLogin">Login</button>
+          ||
+          <button class="btn btn-light ml-2" type="button" data-toggle="modal" data-target="#modalViewRegister">Register</button>
+        </form>
+      </div>
+    </nav>
+
+    <input type="file" name="file" id="file" class="inputfile" accept=".prj" onchange="openFile(event)"/>
+    <input type="file" name="lib" id="lib" class="inputfile" accept=".prj" onchange="openAsLib(event)"/>
+    
+    <div class="componentbox">
+      <ul id="toolbox" class="list-group list-group-flush">
+        <li class="list-group-item">Loading...</li>
+      </ul>
+    </div>
+
+    <div class="workbox">
+      <div class="toolbox p-2 d-flex justify-content-between">
+        <div id="editbox" class="editbox hidden">
+          <div class="btn-group float-left mr-2 hidden" role="group">
+            <button class="btn btn-dark" onclick="cancelLastComponentEdit()"><i class="fas fa-times fa-fw"></i></button>
+            <button class="btn btn-primary" onclick="endLastComponentEdit()"><i class="fas fa-check fa-fw"></i></button>
+          </div>
+
+          <button id="btnSwitchToSilicon" class="btn btn-dark float-left mr-2 hide" onclick="switchToSilicon()"><i class="fas fa-code"></i></button>
+ 
+          <ol class="breadcrumb m-0 p-2 pl-3 pr-3 hidden">
+            <li class="breadcrumb-item">test</li>
+          </ol>
+        </div>
+
+        <div>
+          <div class="btn-group btnComponentActions float-left mr-2" role="group">
+            <button id="btnStartComponentEdit" class="btn btn-light hide" onclick="btnStartComponentEdit()"><i class="fas fa-pen"></i></button>
+            <button id="btnReplaceComponents" class="btn btn-light hide" data-toggle="modal" data-target="#modalReplaceComponent"><i class="fa fa-random" aria-hidden="true"></i></button>  
+          </div>
+
+          <div class="btn-group" role="group">
+            <button id="btnUndo" class="btn btn-dark m-0" onclick="undo()" disabled><i class="fas fa-undo"></i></button>
+            <button id="btnRedo" class="btn btn-dark m-0" onclick="redo()" disabled><i class="fas fa-redo"></i></button>
+          </div>
+
+          <div class="btn-group" role="group">
+            <button id="btnSaveProject" class="btn btn-dark" onclick="saveProjectToFile()"><i class="far fa-save"></i></button>
+            <label id="btnOpenProject" class="btn btn-dark m-0" for="file"><i class="far fa-folder-open"></i></label>
+          </div>
+
+          <div class="btn-group dropleft">
+            <button id="btnNewComponent" class="btn btn-dark"><i class="fas fa-microchip"></i></button>
+            <button type="button" class="btn btn-dark dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" type="button" id="btnNewEmptyComponent">Empty</button>
+              <button class="dropdown-item" type="button" id="btnNewWireboardComponent">From Wireboard</button>
+            </div>
+          </div>
+          
+          <div class="btn-group" role="group">
+            <button id="btnConnectBoard" type="button" class="btn btn-dark" title="Connect to Board">
+              <i class="fas fa-plug"></i>
+            </button>
+            <button id="btnCompileBoard" type="button" class="btn btn-dark" disabled data-toggle="tooltip" data-placement="bottom" title="Download to Board">
+              <i class="fas fa-circle-notch fa-spin hide"></i>
+              <i class="fas fa-download"></i>
+            </button>
+          </div>
+
+          <button id="btnSaveProject" class="btn btn-dark" onclick="compileAndLocalDownload()" data-toggle="tooltip" data-placement="bottom" title="Compile and Download"><i class="fa fa-bolt"></i></button>
+        </div>
+      </div>
+      
+      <div id="drawing" class="wireboard"></div>
+
+      <div id="siliconCodeArea" class="hide"></div>
+      
+      <img src="assets/icons/png/icon_512.png" class="icon mr-2 mb-2" height="32px" />
+    </div>
+<!--
+    <div class="htmlbox">
+      <div id="testHTML" class="form-control"></div>
+    </div>
+-->
+
+    <div id="modalComponentOptions" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Modal body text goes here.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary btnComponentOptionsApply">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalNewComponent" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">New component</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group m-0">
+              <input type="text" class="form-control" id="newComponentName" placeholder="Name">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="newEmptyComponent()">New</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalReplaceComponent" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Replace component</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group m-0">
+                <select class="custom-select toolboxSelect" id="replaceNewComponentName">
+                </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="replaceSelectedComponents()">Replace</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalImportProject" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Import from Project</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="chkImportProject" id="chkEntireProject" value="option1" checked>
+              <label class="form-check-label" for="chkEntireProject">
+                Entire project as new component
+              </label>
+              <input type="text" class="form-control form-control-sm mt-2 mb-4" id="txtImportProject" placeholder="Component name">
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="chkImportProject" id="chkSingleToolbox" value="option2">
+              <label class="form-check-label" for="chkSingleToolbox">
+                Single toolbox components
+              </label>
+              <fieldset id="setSingleToolbox" disabled>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
+                  <label class="form-check-label" for="defaultCheck1">
+                    Toolbox
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="confirmOpenAsLib()">Import</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalConnectToBoard" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Connect to Board</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body text-center">
+            Don't have one? Follow <a href="#">these easy steps</a> to configure your Raspberry Pi as a MessyDesk Board.
+
+            <div class="input-group mt-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text">IP Address</span>
+              </div>
+              <input id="boardIPAddress" type="text" class="form-control" placeholder="127.0.0.1">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-success" id="btnConfirmConnectBoard">Connect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalViewExamples" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fa fa-graduation-cap" aria-hidden="true"></i> Examples</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item list-group-item-action" onclick="loadExample('blinkled')">Blinking led (A Classic)</li>
+              <li class="list-group-item list-group-item-action" onclick="loadExample('logicgates')">Logic gates</li>
+              <li class="list-group-item list-group-item-action disabled" disabled onclick="loadExample('customcomponent')">Custom component <span class="badge badge-secondary">Coming soon</span></li>
+              <li class="list-group-item list-group-item-action disabled" disabled onclick="loadExample('customjscomponent')">Custom javascript component <span class="badge badge-secondary">Coming soon</span></li>
+              <li class="list-group-item list-group-item-action disabled" disabled onclick="loadExample('httprouting')">HTTP routing <span class="badge badge-secondary">Coming soon</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalViewDonation" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Thanks You!</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body text-center">
+            <span>For fundraising <b>MessyDesks.io</b> with a small donation.</span>
+            <form class="mt-3" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+              <input type="hidden" name="cmd" value="_donations" />
+              <input type="hidden" name="business" value="trombettamichele@yahoo.it" />
+              <input type="hidden" name="item_name" value="Fundraise development of MessyDesks" />
+              <input type="hidden" name="currency_code" value="USD" />
+              <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+              <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalViewLogin" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Login</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body text-center">
+            <h1>{ COMING SOON }</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalViewRegister" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Register</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body text-center">
+            <h1>{ COMING SOON }</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
+<!--
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <script>const prompt = require('electron-prompt');</script>
+-->
+
+    <script type="text/javascript" src="node_modules/popper.js/dist/umd/popper.min.js"></script>
+    <script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript" src="node_modules/svg.js/dist/svg.min.js"></script>
+    <script type="text/javascript" src="core/svg.draggable.min.js"></script>
+
+    <script>var require = { paths: { 'vs': 'node_modules/monaco-editor/min/vs' } };</script>
+    <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
+    <script src="node_modules/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+    <script src="node_modules/monaco-editor/min/vs/editor/editor.main.js"></script>
+<!-- v1.0
+    <script type="text/javascript" src="core/6502.min.js"></script>
+    <script type="text/javascript" src="core/mtWiring.js"></script>
+    <script type="text/javascript" src="core/main.js"></script>
+
+    <script type="text/javascript" src="core/misc.library.js"></script>
+    <script type="text/javascript" src="core/ttl.library.js"></script>
+    <script type="text/javascript" src="core/library.js"></script>
+    <script type="text/javascript" src="core/main.min.js"></script>
+    <script type="text/javascript" src="core/cpp_compiler.js"></script>
+-->
+
+    <script type="text/javascript" src="newcore/helpers.js"></script>
+
+    <script type="text/javascript" src="newcore/wireboard.js"></script>
+    <script type="text/javascript" src="newcore/main.js"></script>
+    <script type="text/javascript" src="core/mtWiring.js"></script>
+
+    <script type="text/javascript" src="newcore/gui.js"></script>
+    <script type="text/javascript" src="newcore/core.js"></script>
+
+    <script type="text/javascript" src="newcore/libraries/misc-library.js"></script>
+    <script type="text/javascript" src="newcore/libraries/gate-library.js"></script>
+
+  </body>
+</html>

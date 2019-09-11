@@ -110,7 +110,8 @@ var hotkeys = {
 }
 
 $(document).keydown(function(e) {
-	if ((!($('#modalComponentOptions').data('bs.modal') || {})._isShown) && (!($('#modalNewComponent').data('bs.modal') || {})._isShown) && (!$('#drawing').hasClass('hide'))) {
+  var bypassHotkeys = (!($('#modalComponentOptions').data('bs.modal') || {})._isShown) && (!($('#modalConnectToBoard').data('bs.modal') || {})._isShown) && (!($('#modalNewComponent').data('bs.modal') || {})._isShown) && (!$('#drawing').hasClass('hide'));
+	if (bypassHotkeys) {
 		//console.log(String.fromCharCode(e.keyCode), e.metaKey, e.shiftKey, e.altKey);
 		var keyCh = String.fromCharCode(e.keyCode).toUpperCase();
 		if (keyCh in hotkeys) {
@@ -446,34 +447,40 @@ var connectedHost = null;
 
 $('#btnConnectBoard').on('click', function(event) {
   if (connectedHost == null) {
-    var boardIP = prompt('Enter board IP address', 'localhost');
-    if ((boardIP != null) && (boardIP != "")) {
-      connectedHost = boardIP;
-      $.ajax({
-        type: 'GET',
-        url: `http://${connectedHost}:3000/source/`,
-        timeout: 1000,
-        success: function(data) {
-          drawBoardConnection();
-
-          if (data)
-            loadProject(data);
-
-          initWebSocket();
-        },
-        error: function(data) {
-          connectedHost = null;
-          drawBoardConnection();
-          alert('Error connection to board!');
-        }
-      });
-    }
+	  $('#modalConnectToBoard').modal('show');
   } else {
     if (confirm('Disconnect from board?')) {
       connectedHost = null;
       drawBoardConnection();
     }
   }
+});
+
+$('#btnConfirmConnectBoard').on('click', function(event) {
+  var boardIP = $('#boardIPAddress').val();
+  if ((boardIP != null) && (boardIP != "")) {
+    connectedHost = boardIP;
+    $.ajax({
+      type: 'GET',
+      url: `http://${connectedHost}:3000/source/`,
+      timeout: 1000,
+      success: function(data) {
+        drawBoardConnection();
+
+        if (data)
+          loadProject(data);
+
+        initWebSocket();
+      },
+      error: function(data) {
+        connectedHost = null;
+        drawBoardConnection();
+        alert('Error connection to board!');
+      }
+    });
+  }
+
+	$('#modalConnectToBoard').modal('hide');
 });
 
 $('#btnCompileBoard').on('click', function(event) {
@@ -561,6 +568,12 @@ function saveProject() {
 	project.wireboard = mainWireboard.toSource();
 
 	return project;
+}
+
+function compileAndLocalDownload() {
+	var filename = prompt('Enter project filename', 'project');
+	if ((filename != null) && (filename != ""))
+		download(generateCompiledCode(), filename + '.js', 'text/plain');
 }
 
 function saveProjectToFile() {
@@ -740,5 +753,18 @@ function refreshFromBoard() {
 }
 
 setTimeout(function() {
-	mainWireboard.fromSource(JSON.parse('{"name":"main","source":{"components":[{"id":"c0","name":"LED","x":688,"y":872,"config":{}},{"id":"c1","name":"CLOCK","x":576,"y":872,"config":{}}],"wires":[[{"cid":"c0","pn":"@l0"},{"cid":"c1","pn":"@r0"}]]}}'))
+	mainWireboard.fromSource(JSON.parse(examples['blinkled']));
 }, 1000);
+
+var examples = {
+  blinkled: '{"name":"main","source":{"components":[{"id":"c0","name":"LED","x":976,"y":1016,"config":{}},{"id":"c1","name":"CLOCK","x":872,"y":1024,"config":{"interval":1000}}],"wires":[[{"cid":"c0","pn":"@l0"},{"cid":"c1","pn":"@r0"}]]}}',
+  logicgates: '{"name":"main","source":{"components":[{"id":"c2","name":"TOGGLE","x":712,"y":976,"config":{}},{"id":"c3","name":"TOGGLE","x":712,"y":1112,"config":{}},{"id":"c4","name":"AND","x":856,"y":992,"config":{"pinCount":2}},{"id":"c5","name":"OR","x":904,"y":1048,"config":{"pinCount":2}},{"id":"c6","name":"XOR","x":856,"y":1104,"config":{"pinCount":2}},{"id":"c7","name":"LED","x":1008,"y":992,"config":{}},{"id":"c8","name":"LED","x":1008,"y":1048,"config":{}},{"id":"c9","name":"LED","x":1008,"y":1104,"config":{}}],"wires":[[{"cid":"c3","pn":"@r0"},{"cid":"c6","pn":"@l1"},{"cid":"c5","pn":"@l1"},{"cid":"c4","pn":"@l1"}],[{"cid":"c2","pn":"@r0"},{"cid":"c4","pn":"@l0"},{"cid":"c5","pn":"@l0"},{"cid":"c6","pn":"@l0"}],[{"cid":"c7","pn":"@l0"},{"cid":"c4","pn":"@r0"}],[{"cid":"c8","pn":"@l0"},{"cid":"c5","pn":"@r0"}],[{"cid":"c9","pn":"@l0"},{"cid":"c6","pn":"@r0"}]]}}',
+  customcomponent: '',
+  customjscomponent: '',
+  httprouting: '',
+}
+
+function loadExample(name) {
+	mainWireboard.fromSource(JSON.parse(examples[name]));
+	$('#modalViewExamples').modal('hide');
+}
