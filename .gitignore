@@ -9,7 +9,6 @@ board/**/Debug/*
 board/**/Debug/src/*
 !board/**/Debug/src/*.mk
 
-
-
+package-lock.json
 board/messydesk/src/messydesk.cpp
-newcore/runtime/sourcecode.json
+core/runtime/sourcecode.json

@@ -1,39 +1,32 @@
 {
-  "name": "electron-quick-start",
+  "name": "messydesks",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
-  "main": "main.js",
+  "description": "A minimal visual language based on Javascript",
+  "main": "designer/main.js",
   "scripts": {
     "start": "electron ."
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://www.messydesks.io",
   "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+    "MessyDesks",
+    "Designer"
   ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "author": "AlienLogic",
+  "license": "CC-BY-NC-3.0",
   "devDependencies": {
     "electron": "^3.0.7"
   },
   "dependencies": {
     "bootstrap": "^4.2.1",
-    "codemirror": "^5.42.2",
     "cors": "^2.8.5",
     "electron-prompt": "^1.3.0",
     "express": "^4.17.1",
     "jquery": "^3.4.1",
     "jsdom": "^15.1.1",
     "monaco-editor": "^0.16.2",
-    "mysql": "^2.17.1",
-    "nanotimer": "^0.3.15",
     "popper.js": "^1.14.6",
     "readline-sync": "^1.4.10",
     "svg.js": "^2.7.1",
-    "sync-mysql": "^3.0.1",
     "ws": "^7.1.2"
   }
 }
