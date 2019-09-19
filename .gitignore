@@ -10,5 +10,5 @@ board/**/Debug/src/*
 !board/**/Debug/src/*.mk
 
 package-lock.json
-board/messydesk/src/messydesk.cpp
 core/runtime/sourcecode.json
+releases

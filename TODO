@@ -44,5 +44,12 @@ v2.0
       - Debugger (as 'watch table' for inputs / outputs)
       - Tests
     
-    - Copy and Paste (using JSON source)
+    ! Resize wireboard with preview map
+    ! Copy and Paste (using JSON source)
+    ! Undo and Redo
+    - Rectangular selection
 
+v2.1
+    - Auto dispose components
+    - GUI of component (drawSymbol svg) accessible also via webserver (as big svg with absolute positions)
+    - 

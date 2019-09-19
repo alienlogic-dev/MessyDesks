@@ -4,7 +4,9 @@
   "description": "A minimal visual language based on Javascript",
   "main": "designer/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-packager . --out=releases --icon=assets/icons/ico/icon_64.ico --overwrite",
+    "setup": "electron-installer-windows --src releases/messydesks-win32-x64 --dest releases/installers"
   },
   "repository": "https://www.messydesks.io",
   "keywords": [
