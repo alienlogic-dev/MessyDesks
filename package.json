@@ -16,7 +16,7 @@
   "author": "AlienLogic",
   "license": "CC-BY-NC-3.0",
   "devDependencies": {
-    "electron": "^3.0.7"
+    "electron": "^9.4.0"
   },
   "dependencies": {
     "bootstrap": "^4.2.1",
